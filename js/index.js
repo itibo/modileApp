@@ -33,7 +33,7 @@ var app = {
           pushNotification = window.plugins.pushNotification;
           if (device.platform == 'android' || device.platform == 'Android') {
               $("#app-status-ul").append('<li>registering android</li>');
-              pushNotification.register(/*app.successHandler, app.errorHandler,*/ function(){alert ("La BOMBA!")},function(){alert ("Alarma!")},  {"senderID":"216199045656","ecb":"app.onNotificationGCM"});		// required!
+              pushNotification.register(app.successHandler, app.errorHandler, {"senderID":"216199045656","ecb":"app.onNotificationGCM"});		// required!
           } else {
               $("#app-status-ul").append('<li>registering iOS</li>');
               pushNotification.register(app.tokenHandler, app.errorHandler, {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});	// required!
@@ -48,12 +48,10 @@ var app = {
   },
 
   successHandler: function (result) {
-    alert("success");
     $("#app-status-ul").append('<li>success:'+ result +'</li>');
   },
 
   errorHandler: function(error) {
-    alert("error");
     $("#app-status-ul").append('<li>error:'+ error +'</li>');
   },
 
