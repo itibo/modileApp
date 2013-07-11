@@ -33,10 +33,10 @@ var app = {
           pushNotification = window.plugins.pushNotification;
           if (device.platform == 'android' || device.platform == 'Android') {
               $("#app-status-ul").append('<li>registering android</li>');
-              pushNotification.register(successHandler, errorHandler, {"senderID":"216199045656","ecb":"onNotificationGCM"});		// required!
+              pushNotification.register(app.successHandler, app.errorHandler, {"senderID":"216199045656","ecb":"onNotificationGCM"});		// required!
           } else {
               $("#app-status-ul").append('<li>registering iOS</li>');
-              pushNotification.register(tokenHandler, errorHandler, {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});	// required!
+              pushNotification.register(app.tokenHandler, app.errorHandler, {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});	// required!
           }
       }
       catch(err)
