@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!-- config.xml reference: https://build.phonegap.com/docs/config-xml -->
 
-  <widget xmlns = "http://www.w3.org/ns/widgets" xmlns:gap = "http://phonegap.com/ns/1.0" id = "com.example.dcsmobile"
+  <widget xmlns = "http://www.w3.org/ns/widgets" xmlns:gap = "http://phonegap.com/ns/1.0" id = "com.azati.dcsmobile"
           version = "2.0.0">
     <name>DCS</name>
     <description>

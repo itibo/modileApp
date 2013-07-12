@@ -1,7 +1,8 @@
 var app = {
   token: '',
   worker: '',
-  site: 'http://209.123.209.168:3000',
+//  site: 'http://209.123.209.168:3000',
+  site: 'http://192.168.92.208:3000',
   jobs: '',
   lat: 0,
   lon: 0,
