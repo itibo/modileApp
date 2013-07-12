@@ -111,6 +111,7 @@ var app = {
     $('#workaround').show();
     $('#jobs-list-div').hide();
     $('#worker-name-label').text('Worker: ' + app.worker.display_name);
+    app.show_deviceinfo();
   },
   show_deviceready: function(){
     $('#worker-info-div').hide();
@@ -178,7 +179,7 @@ var app = {
     $.ajax({
       type: "POST",
       url: app.site+'/mobile/login.json',
-      data: {email: email, password: password, number: number, lat: app.lat, lon: app.lon},
+      data: {email: email, password: password, number: number, lat: app.lat, lon: app.lon, device_uuid: device.uuid},
       cache: false,
       dataType: 'json',
       success: function(data) {
@@ -288,6 +289,15 @@ var app = {
   },
   showError: function(error){
     alert('ERROR: ' + error.responseJSON.message);
+  },
+  show_deviceinfo: function(){
+    var element = document.getElementById('device-info');
+
+    element.innerHTML = 'Device Name: '     + device.name     + '<br />' +
+        'Device Cordova: '  + device.cordova + '<br />' +
+        'Device Platform: ' + device.platform + '<br />' +
+        'Device UUID: '     + device.uuid     + '<br />' +
+        'Device Version: '  + device.version  + '<br />';
   }
 
 };

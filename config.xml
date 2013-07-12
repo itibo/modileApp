@@ -51,8 +51,8 @@
     <gap:plugin name="Example" />
     A list of available plugins are available at https://build.phonegap.com/docs/plugins
     -->
+    <gap:plugin name="GenericPush" /> <!-- latest release -->
     <plugins>
-      <gap:plugin name="GenericPush" /> <!-- latest release -->
     </plugins>
 
     <!-- Define app icon for each platform. -->
