@@ -7,6 +7,7 @@ var app = {
   lon: 0,
   watchID: null,
   counter: 0,
+  push_id: '',
   gps_connect_timeout: 60000,
   last_gps_connect_time: 0,
   initialize: function() {
@@ -36,7 +37,7 @@ var app = {
               pushNotification.register(app.successHandler, app.errorHandler, {"senderID":"216199045656","ecb":"app.onNotificationGCM"});		// required!
           } else {
               $("#app-status-ul").append('<li>registering iOS</li>');
-              pushNotification.register(app.tokenHandler, app.errorHandler, {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});	// required!
+              pushNotification.register(app.tokenHandler, app.errorHandler, {"badge":"true","sound":"true","alert":"true","ecb":"app.onNotificationAPN"});	// required!
           }
       }
       catch(err)
@@ -55,6 +56,30 @@ var app = {
     $("#app-status-ul").append('<li>error:'+ error +'</li>');
   },
 
+  // handle APNS notifications for iOS
+  onNotificationAPN: function (e) {
+    if (e.alert) {
+        $("#app-status-ul").append('<li>push-notification: ' + e.alert + '</li>');
+        navigator.notification.alert(e.alert);
+    }
+
+    if (e.sound) {
+/*        var snd = new Media(e.sound);
+        snd.play();
+*/
+    }
+
+    if (e.badge) {
+        pushNotification.setApplicationIconBadgeNumber(successHandler, e.badge);
+    }
+  },
+
+  tokenHandler: function(result) {
+    $("#app-status-ul").append('<li>token: '+ result +'</li>');
+    // Your iOS push server needs to know the token before it can push to this device
+    // here is where you might want to send it the token for later use.
+  },
+
   // handle GCM notifications for Android
   onNotificationGCM: function(e) {
     $("#app-status-ul").append('<li>EVENT -> RECEIVED:' + e.event + '</li>');
@@ -65,6 +90,7 @@ var app = {
             if ( e.regid.length > 0 )
             {
                 $("#app-status-ul").append('<li>REGISTERED -> REGID:' + e.regid + "</li>");
+                app.push_id = e.regid;
                 // Your GCM push server needs to know the regID before it can push to this device
                 // here is where you might want to send it the regID for later use.
                 console.log("regID = " + e.regID);
@@ -179,7 +205,7 @@ var app = {
     $.ajax({
       type: "POST",
       url: app.site+'/mobile/login.json',
-      data: {email: email, password: password, number: number, lat: app.lat, lon: app.lon, device_uuid: device.uuid},
+      data: {email: email, password: password, number: number, lat: app.lat, lon: app.lon, device_uuid: device.uuid, push_id: app.push_id},
       cache: false,
       dataType: 'json',
       success: function(data) {
