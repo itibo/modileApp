@@ -58,6 +58,7 @@ var app = {
 
   // handle APNS notifications for iOS
   onNotificationAPN: function (e) {
+    $("#app-status-ul").append('<li>onNotificationAPNing....</li>');
     if (e.alert) {
         $("#app-status-ul").append('<li>push-notification: ' + e.alert + '</li>');
         navigator.notification.alert(e.alert);
@@ -70,7 +71,7 @@ var app = {
     }
 
     if (e.badge) {
-        pushNotification.setApplicationIconBadgeNumber(successHandler, e.badge);
+        pushNotification.setApplicationIconBadgeNumber(app.successHandler, e.badge);
     }
   },
 
