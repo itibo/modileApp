@@ -15,6 +15,9 @@
         <h1>Welcome</h1>
       </div><!-- /header -->
       <div data-role="content">
+        <h5>
+          You are logged in as {{display_name}} ({{role}})
+        </h5>
         <ul data-role="listview" data-inset="true">
           <li><a href="#my_jobs">My Jobs</a></li>
           <li><a href="#inspections">Current Inspections</a></li>
@@ -28,6 +31,9 @@
         <a href="/#welcome" class="ui-btn-right" data-role="button" >Back</a>
       </div><!-- /header -->
       <div data-role="content">
+        <h5>
+          You are logged in as {{display_name}} ({{role}})
+        </h5>
         <ul data-role="listview" data-inset="true">
           <li>Job 1</li>
           <li>Job 2</li>
@@ -43,6 +49,9 @@
         <a href="/#welcome" class="ui-btn-right" data-role="button" >Back</a>
       </div><!-- /header -->
       <div data-role="content">
+        <h5>
+          You are logged in as {{display_name}} ({{role}})
+        </h5>
         <ul data-role="listview" data-inset="true">
           <li>Inspection 1</li>
           <li>Inspection 2</li>
@@ -58,16 +67,16 @@
       </div><!-- /header -->
       <div data-role="content">
         <p>Please login</p>
-        <form method="post">
+        <div id="login-form">
           <div data-role="fieldcontain">
             <label for="email">User email:</label>
-            <input type="email" name="email" id="email" value="demo@azati.com"  />
+            <input type="email" name="email" id="email" value="rrichey@diamondcontract.com" placeholder="Email" />
           </div>
           <div data-role="fieldcontain">
             <label for="email">Password:</label>
-            <input type="password" name="password" id="password" value="Demo123"  />
+            <input type="password" name="password" id="password" value="123123123" placeholder="Password" />
           </div>
-          <button type="submit" class="ui-btn-hidden" aria-disabled="false">Submit</button>
+          <button type="button" class="ui-btn-hidden" aria-disabled="false">Submit</button>
         </form>
       </div><!-- /content -->
     </script>

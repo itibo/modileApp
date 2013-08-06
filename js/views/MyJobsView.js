@@ -1,7 +1,8 @@
 var MyJobsView = function() {
 
   this.render = function() {
-    this.el.html(MyJobsView.template());
+    var context = app.userInfo;
+    this.el.html(MyJobsView.template(context));
     return this;
   };
 

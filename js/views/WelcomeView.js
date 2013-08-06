@@ -1,7 +1,8 @@
 var WelcomeView = function() {
 
   this.render = function() {
-    this.el.html(WelcomeView.template());
+    var context = app.userInfo;
+    this.el.html(WelcomeView.template(context));
     return this;
   };
 

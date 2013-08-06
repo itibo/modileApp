@@ -5,13 +5,17 @@ var app = {
     // config
     this.site = 'http://209.123.209.168:3000';
 //    this.site = 'http://192.168.92.208:3000';
-    this.lat = 0;
-    this.lon = 0;
     this.push_id = '';
     this.token = false;
+    this.userInfo = {};
+    this.coordinates = [];
+    // как часто в милисекундах проверять геопозицию
+    this.watchPositionTimeout = 60000;
+    this.senderIDforPushMsg = 216199045656;
 
     this.bindEvents();
   },
+
   // Bind Event Listeners
   //
   // Bind any events that are required on startup. Common events are:
@@ -21,15 +25,16 @@ var app = {
 
     document.addEventListener('deviceready', $.proxy(this.onDeviceReady, self), false);
     document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
-    // TODO: для тестинга на обычном браузере, удалить по окончанию работы
-    window.addEventListener('load', $.proxy(this.onDeviceReady, self), false);
   },
+
   // deviceready Event Handler
-  //
   // The scope of 'this' is the event. In order to call the 'receivedEvent'
   // function, we must explicity call 'app.receivedEvent(...);'
   onDeviceReady: function() {
     var self = this;
+
+    self.pushRegister();
+    self.updatePosition();
     self.route();
 
     $(document).bind( "pagebeforechange", function( e, data ) {
@@ -38,6 +43,137 @@ var app = {
         e.preventDefault();
       }
     });
+  },
+
+  pushRegister: function(){
+    var pushNotification;
+    var successHandler = function (result) {};
+    var errorHandler = function(error) {};
+    try
+    {
+      pushNotification = window.plugins.pushNotification;
+
+      if (device.platform == 'android' || device.platform == 'Android') {
+        pushNotification.register(successHandler, errorHandler,
+          {
+            "senderID": app.senderIDforPushMsg,
+            "ecb":"app.onNotificationGCM"
+          }
+        );		// required!
+      } else {
+        pushNotification.register(
+          function(result){
+            app.push_id = result;
+          },
+          errorHandler,
+          {
+            "badge":"true",
+            "sound":"true",
+            "alert":"true",
+            "ecb":"app.onNotificationAPN"
+          }
+        );	// required!
+      }
+    }
+    catch(err)
+    {
+      txt="There was an error on this page.\n\n";
+      txt+="Error description: " + err.message + "\n\n";
+      alert(txt);
+    }
+  },
+
+  // handle APNS notifications for iOS
+  onNotificationAPN: function (e) {
+    if (e.alert) {
+      navigator.notification.alert(e.alert);
+    }
+    if (e.sound) {
+      /*        var snd = new Media(e.sound);
+       snd.play();
+       */
+    }
+
+    if (e.badge) {
+      pushNotification.setApplicationIconBadgeNumber(function(result){}, e.badge);
+    }
+  },
+
+  // handle GCM notifications for Android
+  onNotificationGCM: function(e) {
+    switch( e.event )
+    {
+      case 'registered':
+        if ( e.regid.length > 0 )
+        {
+          app.push_id = e.regid;
+        }
+        break;
+
+      case 'message':
+        if (e.foreground)
+        {
+          // if the notification contains a soundname, play it.
+          /*                var my_media = new Media("/android_asset/www/"+e.soundname);
+           my_media.play();
+           */
+        }
+        else
+        {	// otherwise we were launched because the user touched a notification in the notification tray.
+          if (e.coldstart){
+//            $("#app-status-ul").append('<li>--COLDSTART NOTIFICATION--' + '</li>');
+          } else {
+//            $("#app-status-ul").append('<li>--BACKGROUND NOTIFICATION--' + '</li>');
+          }
+        }
+        alert(e.payload.message);
+/*
+        $("#app-status-ul").append('<li>MESSAGE -> MSG: ' + e.payload.message + '</li>');
+        $("#app-status-ul").append('<li>MESSAGE -> MSGCNT: ' + e.payload.msgcnt + '</li>');*/
+        break;
+
+      case 'error':
+//        $("#app-status-ul").append('<li>ERROR -> MSG:' + e.msg + '</li>');
+        break;
+      default:
+//        $("#app-status-ul").append('<li>EVENT -> Unknown, an event was received and we do not know what it is</li>');
+        break;
+    }
+  },
+
+  updatePosition: function(){
+    var watchID,
+        geolocation = navigator.geolocation;
+
+    if (geolocation){
+      watchID = geolocation.watchPosition(
+        function(position){
+          if (watchID != null) {
+            if (app.token){
+              app.coordinates[app.coordinates.length] = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                time: (new Date()).toUTCString()
+              };
+            } else {
+              app.coordinates[0] = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                time: (new Date()).toUTCString()
+              };
+            }
+          }
+        },
+        function(PositionError){
+          console.log(PositionError.message);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 30000,
+          timeout: app.watchPositionTimeout
+        }
+      );
+    }
   },
 
   showContent: function(args_array){
@@ -72,8 +208,6 @@ var app = {
 
   // routing
   route: function(data){
-    console.log("app.token: ", app.token);
-    console.log("routing...");
     var u,
         arguments = [],
         self = this;
@@ -98,37 +232,38 @@ var app = {
   },
 
   //login
-  getLoginToken: function(email, password, number){
-    number = 1;
-    console.log("app.site: ", app.site);
-    $.ajax({
-      type: "POST",
-      url: app.site+'/mobile/login.json',
-      data: {email: email,
-        password: password,
-        number: number,
-        lat: app.lat,
-        lon: app.lon,
-        device: {uuid: device.uuid,
-          platform: device.platform},
-        push_id: app.push_id},
-      cache: false,
-      crossDomain: true,
-      dataType: 'json',
-      success: function(data) {
-        app.token = data.token;
-//        app.user = data.user;
-//      Запускаем GPS один раз и потом ловим ивенты
-        /*        app.getGPS();
-         app.show_workaround();
-         */
-        app.route();
-      },
-      error: function(error){
-        console.log(error);
-      }
+  getLoginToken: function(email, password){
 
-    });
+    var coordinates = app.coordinates;
+    if (app.coordinates.length > 0){
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/login.json',
+        data: {
+          email: email,
+          password: password,
+          gps: coordinates,
+          device: {
+            uuid: device.uuid,
+            platform: device.platform
+          },
+          push_id: app.push_id
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        success: function(data) {
+          app.coordinates = app.coordinates.splice(0, coordinates.length);
+          app.token = data.token;
+          app.userInfo = $.extend(app.userInfo, data.user);
+          app.route();
+          return false;
+        },
+        error: function(error){
+          (new LoginView().showErrorMessage(error)).trigger('pagecreate');
+        }
+      });
+    }
   },
 
   //logout
@@ -149,9 +284,11 @@ var app = {
       }
     });
   },
+
   backButton:function(){
     app.showConfirm('exit', 'Quit?', app.exitFromApp);
   },
+
   exitFromApp: function(buttonIndex){
     if (buttonIndex==2){
       if (app.token!=''){

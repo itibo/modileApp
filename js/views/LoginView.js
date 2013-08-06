@@ -1,7 +1,12 @@
 var LoginView = function() {
 
+  this.showErrorMessage = function(error){
+    var msg = jQuery.parseJSON(error.responseText);
+    $('#login-form').prepend('<div>'+msg.message+'</div>');
+    return this;
+  };
+
   this.login = function(e){
-    e.preventDefault();
     var email = $("#email").val();
     var password = $("#password").val();
     app.getLoginToken(email, password);
@@ -16,7 +21,7 @@ var LoginView = function() {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div/>');
-    this.el.on('submit', 'form', $.proxy(this.login, self));
+    this.el.on('click', '#login-form button[type=button]', $.proxy(this.login, self));
   };
   this.initialize();
 

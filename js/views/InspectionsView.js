@@ -1,7 +1,8 @@
 var InspectionsView = function() {
 
   this.render = function() {
-    this.el.html(InspectionsView.template());
+    var context = app.userInfo;
+    this.el.html(InspectionsView.template(context));
     return this;
   };
 
