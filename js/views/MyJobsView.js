@@ -4,6 +4,7 @@ var MyJobsView = function() {
     var context = {};
     context.userInfo = app.userInfo;
     context.jobsAvailiableToInspect = app.jobsAvailiableToInspect;
+//    alert(JSON.stringify(app.jobsAvailiableToInspect));
     this.el.html(MyJobsView.template(context));
     return this;
   };
@@ -20,8 +21,7 @@ var MyJobsView = function() {
 Handlebars.registerHelper('ListOfAvailiableJobs', function() {
   var out="";
   for(var i=0, l=app.jobsAvailiableToInspect.length; i<l; i++) {
-//    out = out + "<li>" + options.fn(items[i]) + "</li>";
-      out = out + "<li>Job" + i + "</li>";
+    out = out + "<li>" + app.jobsAvailiableToInspect[i].location  + " " + app.jobsAvailiableToInspect[i].address + "</li>";
   }
   return out;
 });

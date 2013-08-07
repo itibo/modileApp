@@ -31,10 +31,10 @@ var WelcomeView = function() {
 
 }
 
-Handlebars.registerHelper('MyJobs', function(jobsAvailiableToInspect) {
+Handlebars.registerHelper('MyJobs', function() {
   return new Handlebars.SafeString(
-    '<li>' + ((jobsAvailiableToInspect.length>0)? "<a href=\"#my_jobs\">":"") + 'My Jobs' +
-        ((jobsAvailiableToInspect.length>0)? "<span class=\"ui-li-count\">"+jobsAvailiableToInspect.length +
+    '<li>' + ((app.jobsAvailiableToInspect.length>0)? "<a href=\"#my_jobs\">":"") + 'My Jobs' +
+        ((app.jobsAvailiableToInspect.length>0)? "<span class=\"ui-li-count\">"+app.jobsAvailiableToInspect.length +
         "</span></a>":"") + '</li>'
   );
 });

@@ -161,9 +161,7 @@ var app = {
           crossDomain: true,
           dataType: 'json',
           success: function(data) {
-            alert("succes check, length: "+ coordinates.length +", before slice: " + JSON.stringify(app.coordinates));
-            app.coordinates = app.coordinates.splice(0, coordinates.length);
-            alert("succes check, after slice: " + JSON.stringify(app.coordinates));
+            app.coordinates = (app.coordinates).slice(coordinates.length)
             $.each(data.jobs, function(ind,v){
               var job_already_exist = false;
               for(var i=0; i < app.jobsAvailiableToInspect.length; i++) {
@@ -172,7 +170,6 @@ var app = {
                   break;
                 }
               }
-              alert("jobsAvailiableToInspect: " + JSON.stringify(app.jobsAvailiableToInspect));
               if (!job_already_exist){
                 app.jobsAvailiableToInspect.push(v);
               }
