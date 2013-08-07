@@ -16,10 +16,10 @@
       </div><!-- /header -->
       <div data-role="content">
         <h5>
-          You are logged in as {{display_name}} ({{role}})
+          You are logged in as {{userInfo.display_name}} ({{userInfo.role}})
         </h5>
         <ul data-role="listview" data-inset="true">
-          <li><a href="#my_jobs">My Jobs</a></li>
+          {{MyJobs}}
           <li><a href="#inspections">Current Inspections</a></li>
           <li data-icon="delete"><a href="#logout">Logout</a></li>
         </ul>
@@ -32,14 +32,21 @@
       </div><!-- /header -->
       <div data-role="content">
         <h5>
-          You are logged in as {{display_name}} ({{role}})
+          You are logged in as {{userInfo.display_name}} ({{userInfo.role}})
         </h5>
+        <p>
+
+        </p>
         <ul data-role="listview" data-inset="true">
-          <li>Job 1</li>
-          <li>Job 2</li>
-          <li>Job 3</li>
-          <li>Job 4</li>
-          <li>Job 5</li>
+          <li data-role="list-divider" role="heading">
+            Available jobs for the current location. Please, choose one for initializing inspection.
+          </li>
+          <li>Inspection 1</li>
+          <li>Inspection 2</li>
+          <li>Inspection 3</li>
+          <li>Inspection 4</li>
+          <li>Inspection 5</li>
+          {{ListOfAvailiableJobs}}
         </ul>
       </div><!-- /content -->
     </script>
@@ -82,6 +89,7 @@
     </script>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="lib/handlebars.js"></script>
+    <script type="text/javascript" src="js/PushNotification.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
     <script type="text/javascript" src="js/views/WelcomeView.js"></script>
     <script type="text/javascript" src="js/views/LoginView.js"></script>

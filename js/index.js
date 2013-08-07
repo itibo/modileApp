@@ -11,7 +11,10 @@ var app = {
     this.coordinates = [];
     // как часто в милисекундах проверять геопозицию
     this.watchPositionTimeout = 60000;
-    this.senderIDforPushMsg = 216199045656;
+
+    this.senderIDforPushMsg = "216199045656";
+    // джобы, доступные к инспекции
+    this.jobsAvailiableToInspect=[];
 
     this.bindEvents();
   },
@@ -59,7 +62,7 @@ var app = {
             "senderID": app.senderIDforPushMsg,
             "ecb":"app.onNotificationGCM"
           }
-        );		// required!
+        );
       } else {
         pushNotification.register(
           function(result){
@@ -72,7 +75,7 @@ var app = {
             "alert":"true",
             "ecb":"app.onNotificationAPN"
           }
-        );	// required!
+        );
       }
     }
     catch(err)
@@ -93,7 +96,6 @@ var app = {
        snd.play();
        */
     }
-
     if (e.badge) {
       pushNotification.setApplicationIconBadgeNumber(function(result){}, e.badge);
     }
@@ -141,6 +143,53 @@ var app = {
     }
   },
 
+  checkAvailiableJobs: function(){
+    var use_geofence = false;
+    var coordinates = app.coordinates;
+
+    if (coordinates.length > 0){
+      if (app.token){
+        $.ajax({
+          type: "POST",
+          url: app.site+'/mobile/check.json',
+          data: {
+            id: app.token,
+            use_geofence: use_geofence,
+            gps: coordinates
+          },
+          cache: false,
+          crossDomain: true,
+          dataType: 'json',
+          success: function(data) {
+            alert("succes check, length: "+ coordinates.length +", before slice: " + JSON.stringify(app.coordinates));
+            app.coordinates = app.coordinates.splice(0, coordinates.length);
+            alert("succes check, after slice: " + JSON.stringify(app.coordinates));
+            $.each(data.jobs, function(ind,v){
+              var job_already_exist = false;
+              for(var i=0; i < app.jobsAvailiableToInspect.length; i++) {
+                if(v.id == app.jobsAvailiableToInspect[i].id){
+                  job_already_exist = true;
+                  break;
+                }
+              }
+              alert("jobsAvailiableToInspect: " + JSON.stringify(app.jobsAvailiableToInspect));
+              if (!job_already_exist){
+                app.jobsAvailiableToInspect.push(v);
+              }
+            });
+            (new WelcomeView()).updateContent();
+          },
+          error: function(error){
+            alert("eror check");
+            alert("fcuk: " + JSON.stringify(error));
+          }
+        });
+      } else {
+        app.route();
+      }
+    }
+  },
+
   updatePosition: function(){
     var watchID,
         geolocation = navigator.geolocation;
@@ -150,17 +199,18 @@ var app = {
         function(position){
           if (watchID != null) {
             if (app.token){
-              app.coordinates[app.coordinates.length] = {
+              app.coordinates.push({
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
                 time: (new Date()).toUTCString()
-              };
+              });
+              app.checkAvailiableJobs();
             } else {
-              app.coordinates[0] = {
+              app.coordinates = [{
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
                 time: (new Date()).toUTCString()
-              };
+              }];
             }
           }
         },
@@ -233,8 +283,8 @@ var app = {
 
   //login
   getLoginToken: function(email, password){
-
     var coordinates = app.coordinates;
+
     if (app.coordinates.length > 0){
       $.ajax({
         type: "POST",
@@ -257,6 +307,7 @@ var app = {
           app.token = data.token;
           app.userInfo = $.extend(app.userInfo, data.user);
           app.route();
+          app.checkAvailiableJobs();
           return false;
         },
         error: function(error){
@@ -271,12 +322,18 @@ var app = {
     $.ajax({
       type: "POST",
       url: app.site+'/mobile/logout.json',
-      data: {id: app.token, lat: app.lat, lon: app.lon},
+      data: {
+        id: app.token,
+        gps: app.coordinates
+      },
       cache: false,
       crossDomain: true,
       dataType: 'json',
       success: function(data) {
         app.token = false;
+        app.userInfo = {};
+        app.coordinates = [app.coordinates.slice(-1)[0]];
+        app.jobsAvailiableToInspect=[];
         app.route();
       },
       error: function(error) {
@@ -297,6 +354,4 @@ var app = {
       navigator.app.exitApp();
     }
   }
-
-
 };
