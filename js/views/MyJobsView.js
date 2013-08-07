@@ -23,7 +23,7 @@ Handlebars.registerHelper('ListOfAvailiableJobs', function() {
   for(var i=0, l=app.jobsAvailiableToInspect.length; i<l; i++) {
     out = out + "<li>" + app.jobsAvailiableToInspect[i].location  + " " + app.jobsAvailiableToInspect[i].address + "</li>";
   }
-  return out;
+  return new Handlebars.SafeString(out);
 });
 
 
