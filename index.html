@@ -63,6 +63,24 @@
         </ul>
       </div><!-- /content -->
     </script>
+    <script id="inspection-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>Inspection</h1>
+      </div><!-- /header -->
+      <div data-role="content">
+        <h5>
+          You are logged in as {{userInfo.display_name}} ({{userInfo.role}})
+        </h5>
+        <ul data-role="listview" data-inset="true">
+          {{#checkListContent checkList}}{{/checkListContent}}
+        </ul>
+        <div data-role="fieldcontain">
+          <label for="notes">Notes</label>
+          <textarea name="notes" id="notes" placeholder=""></textarea>
+        </div>
+        <a data-role="button" id="submit_inspection">Submit</a>
+      </div><!-- /content -->
+    </script>
     <script id="login-tpl" type="text/x-handlebars-template">
       <div data-role="header">
         <h1>Login</h1>
@@ -72,11 +90,11 @@
         <div id="login-form">
           <div data-role="fieldcontain">
             <label for="email">User email:</label>
-            <input type="email" name="email" id="email" value="rrichey@diamondcontract.com" placeholder="Email" />
+            <input type="email" name="email" id="email" placeholder="Email" />
           </div>
           <div data-role="fieldcontain">
             <label for="email">Password:</label>
-            <input type="password" name="password" id="password" value="123123123" placeholder="Password" />
+            <input type="password" name="password" id="password" placeholder="Password" />
           </div>
           <button type="button" class="ui-btn-hidden" aria-disabled="false">Submit</button>
         </form>
@@ -90,6 +108,7 @@
     <script type="text/javascript" src="js/views/LoginView.js"></script>
     <script type="text/javascript" src="js/views/MyJobsView.js"></script>
     <script type="text/javascript" src="js/views/InspectionsView.js"></script>
+    <script type="text/javascript" src="js/views/InspectionView.js"></script>
     <script type="text/javascript">
       app.initialize();
     </script>

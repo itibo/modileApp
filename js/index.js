@@ -7,8 +7,10 @@ var app = {
 //    this.site = 'http://192.168.92.208:3000';
     this.push_id = '';
     this.token = false;
+    this.watchID = null;
     this.userInfo = {};
     this.coordinates = [];
+    this.inspectionJobID = false;
     // как часто в милисекундах проверять геопозицию
     this.watchPositionTimeout = 60000;
 
@@ -25,9 +27,7 @@ var app = {
   // 'load', 'deviceready', 'offline', and 'online'.
   bindEvents: function() {
     var self = this;
-
     document.addEventListener('deviceready', $.proxy(this.onDeviceReady, self), false);
-    document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
   },
 
   // deviceready Event Handler
@@ -35,9 +35,8 @@ var app = {
   // function, we must explicity call 'app.receivedEvent(...);'
   onDeviceReady: function() {
     var self = this;
-
+    document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
     self.pushRegister();
-    self.updatePosition();
     self.route();
 
     $(document).bind( "pagebeforechange", function( e, data ) {
@@ -143,17 +142,19 @@ var app = {
     }
   },
 
-  checkAvailiableJobs: function(){
-    var use_geofence = false;
+  check: function(use_geofence){
+    var token,
+        use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
 
     if (coordinates.length > 0){
       if (app.token){
+        token = app.token;
         $.ajax({
           type: "POST",
           url: app.site+'/mobile/check.json',
           data: {
-            id: app.token,
+            id: token,
             use_geofence: use_geofence,
             gps: coordinates
           },
@@ -177,8 +178,13 @@ var app = {
             (new WelcomeView()).updateContent();
           },
           error: function(error){
-            alert("eror check");
-            alert("fcuk: " + JSON.stringify(error));
+            if (error.status == 401){
+              app.token = false;
+              app.route();
+            } else{
+              // do nothing
+              alert("fcuk: " + JSON.stringify(error));
+            }
           }
         });
       } else {
@@ -188,20 +194,19 @@ var app = {
   },
 
   updatePosition: function(){
-    var watchID,
-        geolocation = navigator.geolocation;
+    var geolocation = navigator.geolocation;
 
     if (geolocation){
-      watchID = geolocation.watchPosition(
+      app.watchID = geolocation.watchPosition(
         function(position){
-          if (watchID != null) {
+          if (app.watchID != null) {
             if (app.token){
               app.coordinates.push({
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
                 time: (new Date()).toUTCString()
               });
-              app.checkAvailiableJobs();
+              app.check();
             } else {
               app.coordinates = [{
                 lat: position.coords.latitude,
@@ -231,17 +236,22 @@ var app = {
     urlObj = args_array[0];
     options = (args_array.length > 1) ? args_array[1] : {};
 
-    switch (urlObj.hash){
-      case "#login":
+    switch (true) {
+      case '#login' == urlObj.hash:
         $container.html(new LoginView().render().el).trigger('pagecreate');
         break;
-      case "#my_jobs":
+      case '#my_jobs' == urlObj.hash:
         $container.html(new MyJobsView().render().el).trigger('pagecreate');
         break;
-      case "#inspections":
+      case '#inspections' == urlObj.hash:
         $container.html(new InspectionsView().render().el).trigger('pagecreate');
         break;
-      case "#welcome":
+      case /^#inspection:(\d+)$/.test(urlObj.hash):
+          app.getCheckList(function(list){
+            $container.html(new InspectionView(list).render().el).trigger('pagecreate');
+          });
+        break;
+      case '#welcome' == urlObj.hash:
       default:
         $container.html(new WelcomeView().render().el).trigger('pagecreate');
         break;
@@ -259,14 +269,15 @@ var app = {
         arguments = [],
         self = this;
     data = data || {};
-
     u = $.mobile.path.parseUrl( ((typeof data == 'object') && (typeof data.toPage == 'string'))?
         data.toPage : window.location.href );
-
     if (app.token){
-       if (u.hash == "#login"){
+      if (u.hash == "#login"){
         u = $.mobile.path.parseUrl(u.hrefNoHash);
-       }
+      }
+      if (app.inspectionJobID){
+        u = $.mobile.path.parseUrl(u.hrefNoHash + "#inspection:" + app.inspectionJobID);
+      }
     } else {
       u = $.mobile.path.parseUrl(u.hrefNoHash + "#login");
     }
@@ -278,18 +289,58 @@ var app = {
     self.showContent(arguments);
   },
 
+  //get inspection check list of the current job
+  getCheckList: function(success_callback){
+    var success_getting_position = function(pos){
+      var token = app.token;
+      var job_id = app.inspectionJobID;
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/show_checklist.json',
+        data: {
+          id: token,
+          job: job_id,
+          gps: [{
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            time: (new Date()).toUTCString()
+          }]
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        success: function(data) {
+          if (data.token == token){
+            if (success_callback){
+              success_callback(data.list);
+            }
+          }
+          return false;
+        },
+        error: function(error){
+          alert(JSON.stringify(error));
+        }
+      });
+    };
+    var error_getting_position = function(error){};
+    navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
+
+  },
+
   //login
   getLoginToken: function(email, password){
-    var coordinates = app.coordinates;
-
-    if (app.coordinates.length > 0){
+    var success_getting_position = function(pos){
       $.ajax({
         type: "POST",
         url: app.site+'/mobile/login.json',
         data: {
           email: email,
           password: password,
-          gps: coordinates,
+          gps: [{
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            time: (new Date()).toUTCString()
+          }],
           device: {
             uuid: device.uuid,
             platform: device.platform
@@ -300,55 +351,80 @@ var app = {
         crossDomain: true,
         dataType: 'json',
         success: function(data) {
-          app.coordinates = app.coordinates.splice(0, coordinates.length);
           app.token = data.token;
           app.userInfo = $.extend(app.userInfo, data.user);
+          app.updatePosition();
           app.route();
-          app.checkAvailiableJobs();
+          app.check();
           return false;
         },
         error: function(error){
+//          alert(JSON.stringify(error));
           (new LoginView().showErrorMessage(error)).trigger('pagecreate');
         }
       });
-    }
+    };
+    var error_getting_position = function(error){
+      (new LoginView().showErrorMessage(error)).trigger('pagecreate');
+    };
+    navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
   },
 
   //logout
   logout: function(){
-    $.ajax({
-      type: "POST",
-      url: app.site+'/mobile/logout.json',
-      data: {
-        id: app.token,
-        gps: app.coordinates
-      },
-      cache: false,
-      crossDomain: true,
-      dataType: 'json',
-      success: function(data) {
-        app.token = false;
-        app.userInfo = {};
-        app.coordinates = [app.coordinates.slice(-1)[0]];
-        app.jobsAvailiableToInspect=[];
-        app.route();
-      },
-      error: function(error) {
-        console.log(error);
-      }
-    });
+    var logout_process = function(){
+      navigator.geolocation.clearWatch(app.watchID);
+      app.token = false;
+      app.userInfo = {};
+      app.coordinates = [];
+      app.jobsAvailiableToInspect=[];
+      app.route();
+    };
+    var success_getting_position = function(pos){
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/logout.json',
+        data: {
+          id: app.token,
+          gps: [{
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            time: (new Date()).toUTCString()
+          }]
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        success: function(data) {
+          logout_process();
+        },
+        error: function(error) {
+          logout_process();
+        }
+      });
+    };
+    var error_getting_position = function(err){
+      alert(JSON.stringify(err));
+    };
+
+    navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
   },
 
   backButton:function(){
-    app.showConfirm('exit', 'Quit?', app.exitFromApp);
+    app.showConfirm('exit', 'Quit?',
+      function(){
+        app.logout();
+        navigator.app.exitApp();
+      }
+    );
   },
 
-  exitFromApp: function(buttonIndex){
-    if (buttonIndex==2){
-      if (app.token!=''){
-        app.logOut();
-      }
-      navigator.app.exitApp();
-    }
+  showConfirm: function(title, question, on_submit_event) {
+    navigator.notification.confirm(
+        question,
+        on_submit_event,
+        title,
+        'Cancel,OK'
+    );
   }
 };

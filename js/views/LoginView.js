@@ -1,7 +1,12 @@
 var LoginView = function() {
 
   this.showErrorMessage = function(error){
-    var msg = jQuery.parseJSON(error.responseText);
+    var msg = {};
+    if (error.status == 0){
+      msg.message = "Service unavailable. Please try later.";
+    } else {
+      msg = jQuery.parseJSON(error.responseText);
+    }
     $('#login-form').prepend('<div>'+msg.message+'</div>');
     return this;
   };
