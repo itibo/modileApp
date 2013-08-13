@@ -247,8 +247,8 @@ var app = {
         $container.html(new InspectionsView().render().el).trigger('pagecreate');
         break;
       case /^#inspection:(\d+)$/.test(urlObj.hash):
-          app.getCheckList(function(list){
-            $container.html(new InspectionView(list).render().el).trigger('pagecreate');
+          app.getCheckList(function(list, checklist_id){
+            $container.html(new InspectionView(list, checklist_id).render().el).trigger('pagecreate');
           });
         break;
       case '#welcome' == urlObj.hash:
@@ -292,6 +292,7 @@ var app = {
   //get inspection check list of the current job
   getCheckList: function(success_callback){
     var success_getting_position = function(pos){
+//      alert("success_getting_position of getCheckList");
       var token = app.token;
       var job_id = app.inspectionJobID;
       $.ajax({
@@ -310,21 +311,71 @@ var app = {
         crossDomain: true,
         dataType: 'json',
         success: function(data) {
+//          alert("success of show_checklist");
+//          alert(JSON.stringify(data));
           if (data.token == token){
             if (success_callback){
-              success_callback(data.list);
+              success_callback(data.list, data.checklist_id);
             }
           }
           return false;
         },
         error: function(error){
-          alert(JSON.stringify(error));
+//          alert(JSON.stringify(error));
+          app.errorAlert(error, "Error", function(){} );
         }
       });
     };
-    var error_getting_position = function(error){};
+    var error_getting_position = function(error){
+      app.errorAlert(error, "Error getting position", function(){} );
+    };
     navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
+  },
 
+  // submit inspection to server
+  submitInspection: function(submit_data){
+    var submit_data = submit_data || [];
+    var success_getting_position = function(pos){
+//      alert("success_getting_position of submitInspection ");
+      var token = app.token;
+      var job_id = app.inspectionJobID;
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/update_checklist.json',
+        data: {
+          id: token,
+          job: job_id,
+          checklist_id: submit_data.checklist_id ? submit_data.checklist_id : "",
+          checklist_results: submit_data.list ? submit_data.list : [],
+          gps: [{
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            time: (new Date()).toUTCString()
+          }]
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        success: function(data) {
+          app.inspectionJobID = false;
+          var message = {
+            status: 200,
+            responseText: "Inspection submitted"
+          };
+          app.errorAlert(message, "Success", function(){} );
+          app.route();
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){} );
+//          alert(JSON.stringify(error));
+        }
+      });
+    };
+    var error_getting_position = function(error){
+      app.errorAlert(error, "Error getting position", function(){} );
+    };
+    navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
   },
 
   //login
@@ -360,12 +411,14 @@ var app = {
         },
         error: function(error){
 //          alert(JSON.stringify(error));
-          (new LoginView().showErrorMessage(error)).trigger('pagecreate');
+//          (new LoginView().showErrorMessage(error)).trigger('pagecreate');
+          app.errorAlert(error, "Error", function(){} );
         }
       });
     };
     var error_getting_position = function(error){
-      (new LoginView().showErrorMessage(error)).trigger('pagecreate');
+//      (new LoginView().showErrorMessage(error)).trigger('pagecreate');
+      app.errorAlert(error, "Error getting position", function(){} );
     };
     navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
   },
@@ -404,13 +457,14 @@ var app = {
       });
     };
     var error_getting_position = function(err){
-      alert(JSON.stringify(err));
+      app.errorAlert(error, "Error getting position", function(){} );
+//      alert(JSON.stringify(err));
     };
 
     navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
   },
 
-  backButton:function(){
+  backButton: function(){
     app.showConfirm('exit', 'Quit?',
       function(){
         app.logout();
@@ -426,5 +480,22 @@ var app = {
         title,
         'Cancel,OK'
     );
+  },
+
+  errorAlert: function(error, title, callback){
+    if (error.status == 0){
+      msg.message = "Service unavailable. Please try later.";
+    } else {
+      msg = jQuery.parseJSON(error.responseText);
+    }
+
+    navigator.notification.alert(
+        msg.message, // message
+        callback,    // callback
+        title,       // title
+        'Ok'         // buttonName
+    );
+
   }
+
 };
