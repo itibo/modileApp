@@ -25,7 +25,15 @@ var InspectionView = function(data, checklist_id) {
     });
 
     if (allow_to_submit){
-      self.submit_inspection();
+      navigator.notification.confirm('Do you want to submit the inspection?',
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              self.submit_inspection();
+            }
+          },
+          'Inspection submitting',
+          'No,Yes'
+      );
     } else {
       navigator.notification.confirm('Inspection is not completed yet. Do you want to submit it anyway?',
           function(buttonIndex){
@@ -55,13 +63,30 @@ var InspectionView = function(data, checklist_id) {
     app.submitInspection(submit_data);
   };
 
+  this.cancelInspection = function(){
+    navigator.notification.confirm("Do you want to cancel this inspection?",
+      function(buttonIndex){
+        if(2 == buttonIndex){
+          app.inspectionJobID = false;
+          app.route({
+            toPage: window.location.href + "#my_jobs"
+          });
+        }
+      },
+      "Inspection cancelling",
+      'No,Yes'
+    );
+  };
 
   this.initialize = function() {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
     this.el.on('click', 'a#submit_inspection', $.proxy(this.validateAndSubmit, self));
-
+    this.el.on('click', 'div[data-role="header"]', function(event){
+      event.preventDefault();
+      self.cancelInspection.call(self);
+    });
   };
   this.initialize();
 
@@ -80,7 +105,7 @@ Handlebars.registerHelper('checkListContent', function(items) {
           "<select id=\"" + question.subject_id + "\"" + " name=\"" + question.subject_id + "\">"+
           "<option value=\"\"></option>";
       for (var mark=0, max_mark = parseInt(question.total_points); mark <= max_mark; mark++){
-        out = out + "<option value=\"" + mark + "\""+ /* (mark == 1 ? " selected=\"selected\"":"") + */">"+ mark + "</option>";
+        out = out + "<option value=\"" + mark + "\""+ (mark == 1 ? " selected=\"selected\"":"") + ">"+ mark + "</option>";
       }
       out = out + "</select></div></li>";
     }

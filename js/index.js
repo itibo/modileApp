@@ -17,6 +17,7 @@ var app = {
     this.senderIDforPushMsg = "216199045656";
     // джобы, доступные к инспекции
     this.jobsAvailiableToInspect=[];
+    this.current_page = "";
 
     this.bindEvents();
   },
@@ -55,7 +56,7 @@ var app = {
     {
       pushNotification = window.plugins.pushNotification;
 
-      if (device.platform == 'android' || device.platform == 'Android') {
+      if ((/android/ig).test(device.platform)) {
         pushNotification.register(successHandler, errorHandler,
           {
             "senderID": app.senderIDforPushMsg,
@@ -269,6 +270,10 @@ var app = {
         arguments = [],
         self = this;
     data = data || {};
+/*    if (typeof data.toPage == 'string'){
+      alert(data.toPage);
+    }*/
+
     u = $.mobile.path.parseUrl( ((typeof data == 'object') && (typeof data.toPage == 'string'))?
         data.toPage : window.location.href );
     if (app.token){
@@ -281,7 +286,7 @@ var app = {
     } else {
       u = $.mobile.path.parseUrl(u.hrefNoHash + "#login");
     }
-
+    app.current_page = u.hash;
     arguments.push(u);
     if (typeof data.options === "object"){
       arguments.push(data.options);
@@ -358,14 +363,14 @@ var app = {
         crossDomain: true,
         dataType: 'json',
         success: function(data) {
-          app.inspectionJobID = false;
-          var message = {
-            status: 200,
-            responseText: "Inspection submitted"
-          };
-          app.errorAlert(message, "Success", function(){} );
-          app.route();
-          return false;
+          navigator.notification.alert( "Inspection submitted",
+            function(){
+              app.inspectionJobID = false;
+              app.route({
+                toPage: window.location.href + "#welcome"
+              });
+            },
+            "Success", 'Ok');
         },
         error: function(error){
           app.errorAlert(error, "Error", function(){} );
@@ -466,12 +471,39 @@ var app = {
   },
 
   backButton: function(){
-    app.showConfirm('exit', 'Quit?',
-      function(){
-        app.logout();
-        navigator.app.exitApp();
-      }
-    );
+    switch (true) {
+      case /^#inspection:(\d+)$/.test(app.current_page):
+        navigator.notification.confirm("Do you want to cancel this inspection?",
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              app.inspectionJobID = false;
+              app.route({
+                toPage: window.location.href + "#my_jobs"
+              });
+            }
+          },
+          "Inspection cancelling",
+          'No,Yes'
+        );
+        break;
+      case '#welcome' == app.current_page:
+      case '' == app.current_page:
+      case '#' == app.current_page:
+      case '#login' == app.current_page:
+        app.showConfirm('exit', 'Quit?',
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              app.logout();
+              navigator.app.exitApp();
+            }
+          }
+        );
+        break;
+
+      default:
+        app.route();
+        break;
+    }
   },
 
   showConfirm: function(title, question, on_submit_event) {
@@ -487,7 +519,7 @@ var app = {
     if (error.status == 0){
       msg.message = "Service unavailable. Please try later.";
     } else {
-      msg = jQuery.parseJSON(error.responseText);
+      msg = $.parseJSON(error.responseText);
     }
 
     navigator.notification.alert(
@@ -496,7 +528,6 @@ var app = {
         title,       // title
         'Ok'         // buttonName
     );
-
   }
 
 };
