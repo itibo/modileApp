@@ -3,7 +3,6 @@ var MyJobsView = function() {
   this.render = function() {
     var context = {};
     context.userInfo = app.userInfo;
-    context.checl_list = app
     context.jobsAvailiableToInspect = app.jobsAvailiableToInspect;
     this.el.html(MyJobsView.template(context));
     return this;
