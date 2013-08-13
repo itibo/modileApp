@@ -347,6 +347,7 @@ var app = {
           job: job_id,
           checklist_id: submit_data.checklist_id ? submit_data.checklist_id : "",
           checklist_results: submit_data.list ? submit_data.list : [],
+          comment: submit_data.comment,
           gps: [{
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
