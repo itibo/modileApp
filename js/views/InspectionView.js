@@ -20,7 +20,7 @@ var InspectionView = function(data, checklist_id) {
       checkList: self.data,
       location: location
     });
-    alert(JSON.stringify(context));
+//    alert(JSON.stringify(context));
     this.el.html(InspectionView.template(context));
     return this;
   };
