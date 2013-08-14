@@ -162,6 +162,7 @@ var app = {
           cache: false,
           crossDomain: true,
           dataType: 'json',
+          global: false,
           success: function(data) {
             app.coordinates = (app.coordinates).slice(coordinates.length)
             $.each(data.jobs, function(ind,v){
@@ -229,6 +230,47 @@ var app = {
     }
   },
 
+  getSitesList: function(success_callback){
+    var success_getting_position = function(pos){
+      var token = app.token;
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/jobs.json',
+        data: {
+          id: token,
+          gps: [{
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            time: (new Date()).toUTCString()
+          }]
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        success: function(data) {
+          if (data.token == token){
+            if (success_callback){
+              success_callback(data.jobs);
+            }
+          }
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              app.token = false;
+              app.route();
+            }
+          });
+        }
+      });
+    };
+    var error_getting_position = function(error){
+      app.errorAlert(error, "Error getting position", function(){} );
+    };
+    navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
+  },
+
   showContent: function(args_array){
     var urlObj, options,
       self = this,
@@ -244,8 +286,10 @@ var app = {
       case '#my_jobs' == urlObj.hash:
         $container.html(new MyJobsView().render().el).trigger('pagecreate');
         break;
-      case '#inspections' == urlObj.hash:
-        $container.html(new InspectionsView().render().el).trigger('pagecreate');
+      case '#siteslist' == urlObj.hash:
+        app.getSitesList(function(list){
+          $container.html(new SitesListView(list).render().el).trigger('pagecreate');
+        });
         break;
       case /^#inspection:(\d+)$/.test(urlObj.hash):
           app.getCheckList(function(list, checklist_id){
@@ -270,9 +314,6 @@ var app = {
         arguments = [],
         self = this;
     data = data || {};
-/*    if (typeof data.toPage == 'string'){
-      alert(data.toPage);
-    }*/
 
     u = $.mobile.path.parseUrl( ((typeof data == 'object') && (typeof data.toPage == 'string'))?
         data.toPage : window.location.href );
@@ -316,18 +357,23 @@ var app = {
         crossDomain: true,
         dataType: 'json',
         success: function(data) {
-//          alert("success of show_checklist");
-//          alert(JSON.stringify(data));
           if (data.token == token){
             if (success_callback){
               success_callback(data.list, data.checklist_id);
             }
+          } else {
+            app.token = false;
+            app.route();
           }
           return false;
         },
         error: function(error){
-//          alert(JSON.stringify(error));
-          app.errorAlert(error, "Error", function(){} );
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              app.token = false;
+              app.route();
+            }
+          });
         }
       });
     };
@@ -373,7 +419,12 @@ var app = {
             "Success", 'Ok');
         },
         error: function(error){
-          app.errorAlert(error, "Error", function(){} );
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              app.token = false;
+              app.route();
+            }
+          } );
 //          alert(JSON.stringify(error));
         }
       });
@@ -416,14 +467,11 @@ var app = {
           return false;
         },
         error: function(error){
-//          alert(JSON.stringify(error));
-//          (new LoginView().showErrorMessage(error)).trigger('pagecreate');
           app.errorAlert(error, "Error", function(){} );
         }
       });
     };
     var error_getting_position = function(error){
-//      (new LoginView().showErrorMessage(error)).trigger('pagecreate');
       app.errorAlert(error, "Error getting position", function(){} );
     };
     navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
@@ -531,3 +579,9 @@ var app = {
   }
 
 };
+
+$( document ).ajaxStart(function() {
+  $("#overlay").show();
+}).ajaxComplete(function() {
+  $("#overlay").hide();
+});

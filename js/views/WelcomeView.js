@@ -30,7 +30,7 @@ var WelcomeView = function() {
   this.initialize();
 
 }
-
+/*
 Handlebars.registerHelper('MyJobs', function() {
   return new Handlebars.SafeString(
     '<li>' + ((app.jobsAvailiableToInspect.length>0)? "<a href=\"#my_jobs\">":"") + 'My Jobs' +
@@ -38,5 +38,6 @@ Handlebars.registerHelper('MyJobs', function() {
         "</span></a>":"") + '</li>'
   );
 });
+*/
 
 WelcomeView.template = Handlebars.compile($("#welcome-tpl").html());
