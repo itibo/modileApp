@@ -55,7 +55,8 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function() {
         "</li>";
     for(var i=0, l=app.jobsAvailiableToInspect.length; i<l; i++) {
       out = out + "<li><a id=\""+app.jobsAvailiableToInspect[i].id+"\" class=\"inspectable\">" +
-          app.jobsAvailiableToInspect[i].location  + " (" + app.jobsAvailiableToInspect[i].address + ")</a></li>";
+          app.jobsAvailiableToInspect[i].location  + " (" + app.jobsAvailiableToInspect[i].address + ")<br />" +
+          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span></a></li>";
     }
     out = out + "</ul>";
   } else {

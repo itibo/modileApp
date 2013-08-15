@@ -26,7 +26,8 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function(items) {
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
         "<li data-role=\"list-divider\" role=\"heading\">There are a list of sites assigned to you</li>";
     for(var i=0, l=items.length; i<l; i++) {
-      out = out + "<li>" + items[i].location  + " (" + items[i].address + ")</li>";
+      out = out + "<li>" + items[i].location  + " (" + items[i].address + ")<br />" +
+          "<span style=\"font-size: 0.8em;\">Last inspection: " + ((items[i].last_inspection)? items[i].last_inspection : "never") + "</span></li>";
     }
   } else {
     out = out + "<p>There are no availiable sites assigned to you.</p>";

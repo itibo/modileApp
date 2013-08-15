@@ -13,7 +13,24 @@
   <body>
     <div data-role="page" id="main"></div>
     <div id="overlay">
-      <div>loading...</div>
+      <div id="floatingBarsG">
+        <div id="rotateG_01" class="blockG">
+        </div>
+        <div id="rotateG_02" class="blockG">
+        </div>
+        <div id="rotateG_03" class="blockG">
+        </div>
+        <div id="rotateG_04" class="blockG">
+        </div>
+        <div id="rotateG_05" class="blockG">
+        </div>
+        <div id="rotateG_06" class="blockG">
+        </div>
+        <div id="rotateG_07" class="blockG">
+        </div>
+        <div id="rotateG_08" class="blockG">
+        </div>
+      </div>
     </div>
     <script id="welcome-tpl" type="text/x-handlebars-template">
       <div data-role="header">
@@ -35,7 +52,7 @@
     </script>
     <script id="myjobs-tpl" type="text/x-handlebars-template">
       <div data-role="header">
-        <h1>My Jobs</h1>
+        <h1>Work Orders</h1>
         <a href="/#welcome" class="ui-btn-right" data-role="button">Back</a>
       </div><!-- /header -->
       <div data-role="content">
@@ -95,15 +112,18 @@
           <img style="width: 178px; height: 189px" src="img/DiamondContractServicesLogo.jpg">
         </div>
         <div style="width: 300px; text-align:center; margin: 0 auto;">
-          <form method="post">
+          <!--<form method="post">-->
+          <div id="login_form">
             <div data-role="fieldcontain">
               <input type="text" name="email" id="email" placeholder="Email or Username" />
             </div>
             <div data-role="fieldcontain">
               <input type="password" name="password" id="password" placeholder="Password" />
             </div>
-            <button type="submit" class="ui-btn-hidden" aria-disabled="false">Submit</button>
-          </form>
+            <!--<button type="submit" class="ui-btn-hidden" aria-disabled="false">Submit</button>-->
+            <button type="button" class="ui-btn-hidden" aria-disabled="false">Submit</button>
+          <!--</form>-->
+          </div>
         </div>
       </div><!-- /content -->
     </script>

@@ -27,13 +27,16 @@ var InspectionView = function(data, checklist_id) {
 
   this.validateAndSubmit = function(){
     var self = this,
-        allow_to_submit = true;
-
-    $.each($("select, input", $(self.el)), function(i, el){
-      if (""==$(el).val()){
-        allow_to_submit = false;
-      }
-    });
+        allow_to_submit = (function(){
+          var tmp = true;
+          $.each($("select", $(self.el)), function(i, elm){
+            if (null == $(elm).val() || "" == $(elm).val()){
+              tmp = false;
+              return false;
+            }
+          });
+          return tmp;
+        })();
 
     if (allow_to_submit){
       navigator.notification.confirm('Do you want to submit the inspection?',
@@ -42,11 +45,11 @@ var InspectionView = function(data, checklist_id) {
               self.submit_inspection();
             }
           },
-          'Inspection submitting',
+          'Inspection submission',
           'No,Yes'
       );
     } else {
-      navigator.notification.confirm('Inspection is not completed yet. Do you want to submit it anyway?',
+/*      navigator.notification.confirm('Inspection is not completed yet. Do you want to submit it anyway?',
           function(buttonIndex){
             if(2 == buttonIndex){
               self.submit_inspection();
@@ -54,6 +57,14 @@ var InspectionView = function(data, checklist_id) {
           },
           'Inspection is not completed!',
           'No,Yes'
+      );*/
+      navigator.notification.alert(
+          "The inspection is not completed. Please set rate on all items.",         // message
+          function(){                       //callback
+            // do nothing
+          },
+          "Inspection submission",          // title
+          'Ok'                              // buttonName
       );
     }
   };
@@ -62,7 +73,7 @@ var InspectionView = function(data, checklist_id) {
     var self = this,
         submit_array = [];
 
-    $.each($("select, input", $(self.el)), function(i, el){
+    $.each($("select", $(self.el)), function(i, el){
       var tmp = {};
       tmp[$(el).attr("id")] = $(el).val();
       submit_array.push(tmp);
@@ -98,6 +109,13 @@ var InspectionView = function(data, checklist_id) {
       event.preventDefault();
       self.cancelInspection.call(self);
     });
+
+    this.el.on('change', '.select-box select', function(event){
+      event.preventDefault();
+      $(event.currentTarget).parent(".select-box").addClass("normal").trigger("create");
+    });
+
+
 
 //    this.el.on('click', '.select-box', function(event){
 //      event.preventDefault();

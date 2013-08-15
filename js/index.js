@@ -12,7 +12,7 @@ var app = {
     this.coordinates = [];
     this.inspectionJobID = false;
     // как часто в милисекундах проверять геопозицию
-    this.watchPositionTimeout = 60000;
+    this.watchPositionTimeout = 300000;
 
     this.senderIDforPushMsg = "216199045656";
     // джобы, доступные к инспекции
@@ -166,15 +166,23 @@ var app = {
           success: function(data) {
             app.coordinates = (app.coordinates).slice(coordinates.length)
             $.each(data.jobs, function(ind,v){
-              var job_already_exist = false;
+              var job_already_exist = false,
+                  job_updated = false;
               for(var i=0; i < app.jobsAvailiableToInspect.length; i++) {
                 if(v.id == app.jobsAvailiableToInspect[i].id){
                   job_already_exist = true;
+                  if (v.last_inspection != app.jobsAvailiableToInspect[i].last_inspection){
+                    job_updated = i;
+                  }
                   break;
                 }
               }
               if (!job_already_exist){
                 app.jobsAvailiableToInspect.push(v);
+              }else{
+                if (job_updated !== false){
+                  app.jobsAvailiableToInspect[job_updated] = v;
+                }
               }
             });
             (new WelcomeView()).updateContent();
@@ -223,7 +231,7 @@ var app = {
         },
         {
           enableHighAccuracy: true,
-          maximumAge: 30000,
+//          maximumAge: 30000,
           timeout: app.watchPositionTimeout
         }
       );

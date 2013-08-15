@@ -15,7 +15,8 @@ var LoginView = function() {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div/>');
-    this.el.on('submit', 'form', function(event){
+//    this.el.on('submit', 'form', function(event){
+    this.el.on('click', '#login_form button', function(event){
       event.preventDefault();
       self.login.call(self);
     });
