@@ -231,8 +231,8 @@ var app = {
         },
         {
           enableHighAccuracy: true,
-//          maximumAge: 30000,
-          timeout: app.watchPositionTimeout
+          maximumAge: app.watchPositionTimeout,
+          timeout: 60000
         }
       );
     }

@@ -163,7 +163,7 @@ Handlebars.registerHelper('checkListContent', function(items) {
       out = out + "<div class=\"select-box\">" +
           "<p>" + question.name + "</p>" +
           "<select width=\"50\" style=\"float:right; width: 50px;\" id=\"" + question.subject_id + "\"" + " name=\"" + question.subject_id + "\" data-role=\"none\">"+
-          "<option selected=\"selected\" disabled=\"disabled\" value=\"\"></option>";
+          "<option disabled=\"disabled\" value=\"\"></option>";
       for (var mark=0, max_mark = parseInt(question.total_points); mark <= max_mark; mark++){
         out = out + "<option value=\"" + mark + "\">"+ translate[mark] + "</option>";
       }
