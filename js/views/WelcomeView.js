@@ -22,9 +22,21 @@ var WelcomeView = function() {
   }
 
   this.initialize = function() {
+    var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div id="welcome-container" />');
-    this.el.on('click', 'a[href="#logout"]', $.proxy(this.logout, self));
+    this.el.on('click', 'a[href="#logout"]', function(event){
+      event.preventDefault();
+      navigator.notification.confirm("Are you sure you want to log out?",
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              self.logout.call(self);
+            }
+          },
+          "Log out",
+          'Cancel,Confirm'
+      );
+    });
   };
 
   this.initialize();

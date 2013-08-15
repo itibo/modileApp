@@ -93,20 +93,48 @@ var InspectionView = function(data, checklist_id) {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
-//    this.el.on('click', '.submit', $.proxy(this.validateAndSubmit, self));
-    this.el.on('click', 'a#submit_inspection', $.proxy(this.validateAndSubmit, self));
-//    this.el.on('click', '#header a', function(event){
-    this.el.on('click', 'div[data-role="header"]', function(event){
+    this.el.on('click', '.submit', $.proxy(this.validateAndSubmit, self));
+    this.el.on('click', '#header a', function(event){
       event.preventDefault();
       self.cancelInspection.call(self);
     });
+
+//    this.el.on('click', '.select-box', function(event){
+//      event.preventDefault();
+//
+////      $('select', $(event.currentTarget)).trigger('change');
+//    });
+
+
+
+
+/*    this.el.on('click', '.notes-checkbox', function(event){
+      event.preventDefault();
+      var elm = $(event.currentTarget);
+      var input = elm.find("input").eq(0);
+      if (!input.attr("checked")){
+        elm.css("background-position","-31px 0px");
+        input.attr("checked", true);
+      } else {
+        elm.css("background-position","0 0");
+        input.attr("checked", false);
+      }
+    });*/
   };
   this.initialize();
 
 }
-/*
+
 Handlebars.registerHelper('checkListContent', function(items) {
 
+  var translate = {
+    0: "&nbsp;&ensp;&nbsp;0 - N/A",
+    1: "&nbsp;&ensp;&nbsp;1 - POOR (BELOW 65%)",
+    2: "&nbsp;&ensp;&nbsp;2 - FAIR (BETWEEN 65% AND 75%)",
+    3: "&nbsp;&ensp;&nbsp;3 - AVERAGE (BETWEEN 75% AND 85%)",
+    4: "&nbsp;&ensp;&nbsp;4 - GOOD (BETWEEN 85% AND 95%)",
+    5: "&nbsp;&ensp;&nbsp;5 - EXCELLENT (95% OR GREATER)"
+  };
   var out = "";
   for(var i=0, l=items.length; i<l; i++) {
     var devider = items[i];
@@ -116,10 +144,10 @@ Handlebars.registerHelper('checkListContent', function(items) {
       var question = devider.subjects[j];
       out = out + "<div class=\"select-box\">" +
           "<p>" + question.name + "</p>" +
-          "<select id=\"" + question.subject_id + "\"" + " name=\"" + question.subject_id + "\">"+
+          "<select width=\"50\" style=\"float:right; width: 50px;\" id=\"" + question.subject_id + "\"" + " name=\"" + question.subject_id + "\" data-role=\"none\">"+
           "<option selected=\"selected\" disabled=\"disabled\" value=\"\"></option>";
       for (var mark=0, max_mark = parseInt(question.total_points); mark <= max_mark; mark++){
-        out = out + "<option value=\"" + mark + "\">"+ mark + "</option>";
+        out = out + "<option value=\"" + mark + "\">"+ translate[mark] + "</option>";
       }
       out = out + "</select></div>";
     }
@@ -132,19 +160,20 @@ Handlebars.registerHelper('checkListContent', function(items) {
         "<div class=\"section-text\">" +
           "<div>" +
             "<p><b>Notes</b><br>(optional)</p>" +
-            "<span class=\"notes-checkbox\"><input type=\"checkbox\" value=\"urgent\"></span>urgent" +
+/*            "<span class=\"notes-checkbox\"><input type=\"checkbox\" value=\"urgent\"></span>urgent" +*/
           "</div>" +
-          "<textarea rows=\"10\" cols=\"45\" name=\"comment\" id=\"comment\"></textarea>" +
+          "<textarea rows=\"10\" cols=\"45\" name=\"comment\" id=\"comment\" data-role=\"none\"></textarea>" +
         "</div>" +
-        "<div class=\"submit\">" +
-          "<input type=\"button\" value=\"Submit\" >" +
-          "<span>Submit</span>" +
-        "</div>" +
+      "</div>" +
+      "<div class=\"submit\">" +
+        "<input type=\"button\" value=\"Submit\" data-role=\"none\">" +
+        "<span>Submit</span>" +
       "</div>";
   //end textarea and submit
   return new Handlebars.SafeString(out);
 });
-*/
+
+/*
 Handlebars.registerHelper('checkListContent', function(items) {
 
  var out = "";
@@ -165,5 +194,5 @@ Handlebars.registerHelper('checkListContent', function(items) {
  }
  return new Handlebars.SafeString(out);
  });
-
+*/
 InspectionView.template = Handlebars.compile($("#inspection-tpl").html());

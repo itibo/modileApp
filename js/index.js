@@ -292,9 +292,10 @@ var app = {
         });
         break;
       case /^#inspection:(\d+)$/.test(urlObj.hash):
-          app.getCheckList(function(list, checklist_id){
-            $container.html(new InspectionView(list, checklist_id).render().el).trigger('pagecreate');
-          });
+        app.getCheckList(function(list, checklist_id){
+          $container.html(new InspectionView(list, checklist_id).render().el).trigger('pagecreate');
+//            $('select', $container).selectbox();
+        });
         break;
       case '#welcome' == urlObj.hash:
       default:

@@ -63,7 +63,7 @@ body{
     width: auto;
     color: #fff;
     font-size: 135%;
-    font-weight: bold;
+    /*font-weight: bold;*/
     margin-top: 5px;
 }
 .selectbox{
@@ -143,7 +143,7 @@ body{
 }
 .selectbox .dropdown {
     top: 33px;
-    width: 225px !important;
+    width: 265px !important;
     right: 0 !important;
     margin: 0;
     padding: 0;
