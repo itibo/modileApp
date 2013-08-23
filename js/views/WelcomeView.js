@@ -10,7 +10,7 @@ var WelcomeView = function() {
 
   this.render = function() {
     var context = {};
-    context.userInfo = app.userInfo;
+    context.userInfo = app.getUserInfo();
     context.jobsAvailiableToInspect = app.jobsAvailiableToInspect;
 
     this.el.html(WelcomeView.template(context));
