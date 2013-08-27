@@ -1,6 +1,5 @@
-var InspectionView = function(data, checklist_id) {
+var InspectionView = function(data) {
   this.data = data || [];
-  this.checklist_id = checklist_id || "";
 
   this.render = function() {
     var self = this;
@@ -58,44 +57,24 @@ var InspectionView = function(data, checklist_id) {
 
     if (allow_to_submit){
       navigator.notification.confirm('Do you want to submit the inspection?',
-          function(buttonIndex){
-            if(2 == buttonIndex){
-              self.submit_inspection();
-            }
-          },
-          'Inspection submission',
-          'No,Yes'
+        function(buttonIndex){
+          if(2 == buttonIndex){
+            app.submitInspection();
+          }
+        },
+        'Inspection submission',
+        'No,Yes'
       );
     } else {
-/*      navigator.notification.confirm('Inspection is not completed yet. Do you want to submit it anyway?',
-          function(buttonIndex){
-            if(2 == buttonIndex){
-              self.submit_inspection();
-            }
-          },
-          'Inspection is not completed!',
-          'No,Yes'
-      );*/
       navigator.notification.alert(
-          "The inspection is not completed. Please set rate on all items.",         // message
-          function(){                       //callback
-            // do nothing
-          },
-          "Inspection submission",          // title
-          'Ok'                              // buttonName
+        "The inspection is not completed. Please set rate on all items.",         // message
+        function(){                       //callback
+          // do nothing
+        },
+        "Inspection submission",          // title
+        'Ok'                              // buttonName
       );
     }
-  };
-
-  this.submit_inspection = function(){
-    var self = this,
-        job_inspect_container = app.getJobInspectionContainer();
-
-    var submit_data = $.extend({
-        checklist_id: self.checklist_id,
-        comment: $('textarea#comment').val()
-      }, { list: job_inspect_container.container });
-    app.submitInspection(submit_data);
   };
 
   this.cancelInspection = function(){
@@ -124,6 +103,12 @@ var InspectionView = function(data, checklist_id) {
       $("#popup, .popup-overlay").remove();
       self.cancelInspection.call(self);
     });
+
+    this.el.on('change', '#comment', function(event){
+      event.preventDefault();
+      app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {comment: $(event.currentTarget).val()}));
+    });
+
 
     // третья верстка
     this.el.on('click', '.select-box', function(event){
@@ -288,7 +273,7 @@ var InspectionView = function(data, checklist_id) {
 
 
 // третья верстка
-Handlebars.registerHelper('checkListContent', function(items) {
+Handlebars.registerHelper('checkListContent', function(items, comment) {
   var out = "";
   for(var i=0, l=items.length; i<l; i++) {
     var devider = items[i];
@@ -312,7 +297,9 @@ Handlebars.registerHelper('checkListContent', function(items) {
       "<div>" +
       "<p><b>Notes</b><br>(optional)</p>" +
       "</div>" +
-      "<textarea rows=\"10\" cols=\"45\" name=\"comment\" id=\"comment\" data-role=\"none\"></textarea>" +
+      "<textarea rows=\"10\" cols=\"45\" name=\"comment\" id=\"comment\" data-role=\"none\">" +
+//      comment.length > 0 ? comment : "" +
+      "</textarea>" +
       "</div>" +
       "</div>" +
       "<div class=\"submit\">" +

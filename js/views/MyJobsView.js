@@ -46,6 +46,13 @@ var MyJobsView = function() {
 }
 
 Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
+  var unsubmitted_inspecion = (function(){
+    if(app.getJobInspectionContainer().status == "submitting"){
+      return app.getJobInspectionContainer().id;
+    }
+    return false;
+  })();
+
   var out="";
   if ( app.jobsAvailiableToInspect.length > 0 ){
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
@@ -55,6 +62,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
     for(var i=0, l=app.jobsAvailiableToInspect.length; i<l; i++) {
       out = out + "<li><a id=\""+app.jobsAvailiableToInspect[i].id+"\" class=\"inspectable\">" +
           app.jobsAvailiableToInspect[i].location  + " (" + app.jobsAvailiableToInspect[i].address + ")" +
+          ((unsubmitted_inspecion == app.jobsAvailiableToInspect[i].id) ? " (UNSUBMITTED)": "") +
 //          "<br />" +
 //          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
           "</a></li>";

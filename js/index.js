@@ -232,6 +232,19 @@ var app = {
     if (app.online_flag && coordinates.length > 0){
       var token = app.token();
       if (token){
+
+        if (app.getJobInspectionContainer().status == "submitting"){
+          app.submitInspection(function(){
+              app.inspectionJobID = false;
+              app.setJobInspectionContainer(false);
+            },
+            function(error){
+              // do nothing
+            },
+            coordinates
+          );
+        }
+
         $.ajax({
           type: "POST",
           url: app.site+'/mobile/check.json',
@@ -393,8 +406,8 @@ var app = {
       case /^#inspection:(\d+)$/.test(urlObj.hash):
         var job_id = parseInt(urlObj.hash.match(/\d+$/g));
         app.getCheckList(job_id, function(list, checklist_id){
-          $container.html(new InspectionView(list, checklist_id).render().el).trigger('pagecreate');
-//            $('select', $container).selectbox();
+          app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {checklist_id: checklist_id} ));
+          $container.html(new InspectionView(list).render().el).trigger('pagecreate');
         });
         break;
       case '#welcome' == urlObj.hash:
@@ -423,7 +436,7 @@ var app = {
       if (u.hash == "#login"){
         u = $.mobile.path.parseUrl(u.hrefNoHash);
       }
-      if (app.inspectionJobID){
+      if (app.inspectionJobID && app.getJobInspectionContainer().status == "pending" ){
         u = $.mobile.path.parseUrl(u.hrefNoHash + "#inspection:" + app.inspectionJobID);
       }
     } else {
@@ -483,15 +496,40 @@ var app = {
           }
         });
       }
-      if (app.online_flag){
-        app.inspectionJobID = job_id;
-        if (app.getJobInspectionContainer().id != job_id){
-          app.setJobInspectionContainer({id: job_id, status: "pending"});
-        }
-        ajax_call();
+
+      if (app.getJobInspectionContainer().id && app.getJobInspectionContainer().status == "submitting" ){
+        navigator.notification.alert(
+            "There is an unsubmitted inspection. Please, wait until submission will finish and try again.",
+            function(){
+              app.route({
+                toPage: window.location.href + "#my_jobs"
+              });
+            },
+            "Error inspection starting",
+            'Ok'
+        );
       } else {
-        app.connecting_error("There is internet connection problem.", "Refresh");
+        if (app.online_flag){
+          app.inspectionJobID = job_id;
+          if (app.getJobInspectionContainer().id != job_id){
+            app.setJobInspectionContainer({id: job_id, status: "pending"});
+          }
+          ajax_call();
+        } else {
+          navigator.notification.alert(
+            "There is an internet connection problem.",
+            function(){
+              app.route({
+                toPage: window.location.href + "#my_jobs"
+              });
+            },
+            "Internet connection problem",
+            "Ok"
+          );
+        }
       }
+
+
     };
     var error_getting_position = function(error){
       app.errorAlert(error, "Error getting position", function(){} );
@@ -500,11 +538,52 @@ var app = {
   },
 
   // submit inspection to server
-  submitInspection: function(submit_data){
-    var submit_data = submit_data || [];
+  submitInspection: function(success_clb, error_clb, position){
+    var submit_data = app.getJobInspectionContainer();
+    var success_ajax_call = function(){
+      navigator.notification.alert( "Inspection submitted",
+        function(){
+          app.inspectionJobID = false;
+          app.setJobInspectionContainer(false);
+          app.route({
+            toPage: window.location.href + "#welcome"
+          });
+        },
+        "Success", 'Ok');
+    };
+
+    var error_ajax_call = function(error){
+      app.errorAlert(error, "Error", function(){
+        app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {status: "submitting"}));
+        if (error.status == 401){
+          app.setToken(false);
+          app.route();
+        } else {
+          app.errorAlert(error, "Error", function(){
+            app.route();
+          });
+        }
+      });
+    };
+
+
     var success_getting_position = function(pos){
       var token = app.token();
       var job_id = app.inspectionJobID;
+      var get_position_arr = function(pos){
+        var arr = [];
+        if ($.isArray(pos)){
+          arr = pos;
+        } else {
+          arr = [{
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            time: (new Date()).toUTCString()
+          }];
+        }
+        return arr;
+      };
+
       var ajax_call = function(){
         $.ajax({
           type: "POST",
@@ -513,52 +592,54 @@ var app = {
             id: token,
             job: job_id,
             checklist_id: submit_data.checklist_id ? submit_data.checklist_id : "",
-            checklist_results: submit_data.list ? submit_data.list : [],
+            checklist_results: submit_data.container ? submit_data.container : [],
             comment: submit_data.comment,
-            gps: [{
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-              time: (new Date()).toUTCString()
-            }]
+            gps: get_position_arr(pos)
           },
           cache: false,
           crossDomain: true,
           dataType: 'json',
-          success: function(data) {
-            navigator.notification.alert( "Inspection submitted",
-              function(){
-                app.inspectionJobID = false;
-                app.setJobInspectionContainer(false);
-                app.route({
-                  toPage: window.location.href + "#welcome"
-                });
-              },
-              "Success", 'Ok');
+          success: function() {
+            if (success_clb && typeof success_clb == "function"){
+              success_clb();
+            } else {
+              success_ajax_call();
+            }
           },
           error: function(error){
-            app.errorAlert(error, "Error", function(){
-              if (error.status == 401){
-                app.setToken(false);
-                app.route();
-              } else {
-                app.errorAlert(error, "Error", function(){
-                  app.route();
-                });
-              }
-            });
+            if (error_clb && typeof error_clb == "function"){
+              error_clb(error);
+            } else {
+              error_ajax_call(error);
+            }
           }
         });
       }
       if(app.online_flag){
         ajax_call();
       } else {
-        app.connecting_error("There is internet connection problem.", "Refresh");
+        navigator.notification.alert(
+          "There was an inspection submitting error. The inspection will be submitted as soon as the internet connection resumes.",
+          function(){
+            app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {status: "submitting"}));
+            app.route({
+              toPage: window.location.href
+            });
+          },
+          "Error inspection submitting",
+          'Ok'
+        );
       }
     };
     var error_getting_position = function(error){
       app.errorAlert(error, "Error getting position", function(){} );
     };
-    navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
+
+    if (typeof position != "undefined"){
+      success_getting_position(position);
+    } else {
+      navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
+    }
   },
 
   //login
@@ -617,6 +698,9 @@ var app = {
       app.setToken(false);
       app.coordinates = [];
       app.jobsAvailiableToInspect=[];
+      app.inspectionJobID = false;
+      app.setJobInspectionContainer(false);
+
       app.route();
     };
     var success_getting_position = function(pos){
