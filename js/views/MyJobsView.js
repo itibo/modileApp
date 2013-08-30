@@ -8,23 +8,23 @@ var MyJobsView = function() {
     return this;
   };
 
-  this.inspect = function(job_id){
-    var job_id = job_id || "";
+  this.inspect = function(id){
+    id = id || "";
     var site_name = (function(site_id){
         var tmp = "";
         $.each(app.jobsAvailiableToInspect, function(i, v){
           if (v.id == site_id){
-            tmp = v.location;
+            tmp = v.site;
             return false;
           }
         });
       return tmp;
-    })(job_id);
+    })(id);
 
-    navigator.notification.confirm("Do you want to start the inspection for '" + site_name + "' location?",
+    navigator.notification.confirm("Do you want to start the inspection for '" + site_name + "' site?",
       function(buttonIndex){
         if(2 == buttonIndex){
-          app.route({toPage: window.location.href + "#inspection:" + job_id});
+          app.route({toPage: window.location.href + "#inspection:" + id});
         }
       },
       'Inspection', 'Cancel,Yes'
@@ -36,8 +36,8 @@ var MyJobsView = function() {
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
     this.el.on('click', 'a.inspectable', function(event){
-      var job_id = $(event.currentTarget).attr("id");
-      self.inspect.call(self, job_id);
+      var id = $(event.currentTarget).attr("id");
+      self.inspect.call(self, id);
     });
 
   };
@@ -57,11 +57,11 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
   if ( app.jobsAvailiableToInspect.length > 0 ){
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
         "<li data-role=\"list-divider\" role=\"heading\">" +
-        "Below are the list of sites (locations) available for inspection in current position. Please click on site name to start the inspection." +
+        "Below are the list of sites available for inspection in current position. Please click on site name to start the inspection." +
         "</li>";
     for(var i=0, l=app.jobsAvailiableToInspect.length; i<l; i++) {
       out = out + "<li><a id=\""+app.jobsAvailiableToInspect[i].id+"\" class=\"inspectable\">" +
-          app.jobsAvailiableToInspect[i].location  + " (" + app.jobsAvailiableToInspect[i].address + ")" +
+          app.jobsAvailiableToInspect[i].site  + " (" + app.jobsAvailiableToInspect[i].address + ")" +
           ((unsubmitted_inspecion == app.jobsAvailiableToInspect[i].id) ? " (UNSUBMITTED)": "") +
 //          "<br />" +
 //          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
@@ -69,7 +69,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
     }
     out = out + "</ul>";
   } else {
-    out = out + "<p>There are no sites (locations) available for inspection in current position.</p>";
+    out = out + "<p>There are no sites available for inspection in current position.</p>";
   }
 
   return new Handlebars.SafeString(out);

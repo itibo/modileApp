@@ -4,11 +4,14 @@ var InspectionView = function(data) {
   this.render = function() {
     var self = this;
     var context = {};
+    var job_inspect_container = app.getJobInspectionContainer();
+
     context.userInfo = app.getUserInfo();
-    var location = (function(){
+    var site = (function(){
       var obj = {};
+
       $.each(app.jobsAvailiableToInspect, function(i,v){
-        if (app.inspectionJobID == v.id){
+        if (job_inspect_container.id == v.id){
           obj = v;
           return false;
         }
@@ -18,14 +21,13 @@ var InspectionView = function(data) {
 
     var populated_data = (function(defaults){
       var data = defaults;
-      var job_inspect_container = app.getJobInspectionContainer();
-      if (app.inspectionJobID == job_inspect_container.id && "pending" == job_inspect_container.status){
+      if ("pending" == job_inspect_container.status){
         $.each(defaults, function(i,v){
-          $.each(v.subjects, function(k, quest){
+          $.each(v.items, function(k, quest){
             for(var j = 0, len = job_inspect_container.container.length; j < len; j++){
               var curr_obj_cont_id = Object.keys(job_inspect_container.container[j])[0];
-              if (quest.subject_id == curr_obj_cont_id){
-                data[i]["subjects"][k]["saved_value"] = job_inspect_container.container[j][curr_obj_cont_id];
+              if (quest.item_id == curr_obj_cont_id){
+                data[i]["items"][k]["saved_value"] = job_inspect_container.container[j][curr_obj_cont_id];
                 break;
               }
             }
@@ -35,8 +37,11 @@ var InspectionView = function(data) {
       return data;
     })(self.data);
     context = $.extend(context, {
-      checkList: populated_data,
-      location: location
+      controls: {
+        checkList: populated_data,
+        commentVal: (job_inspect_container.comment) ? job_inspect_container.comment : ""
+      },
+      site: site
     });
     this.el.html(InspectionView.template(context));
     return this;
@@ -81,7 +86,6 @@ var InspectionView = function(data) {
     navigator.notification.confirm("Do you want to cancel this inspection?",
       function(buttonIndex){
         if(2 == buttonIndex){
-          app.inspectionJobID = false;
           app.setJobInspectionContainer(false);
           app.route({
             toPage: window.location.href + "#my_jobs"
@@ -97,8 +101,8 @@ var InspectionView = function(data) {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
-    this.el.on('click', '.submit', $.proxy(this.validateAndSubmit, self));
-    this.el.on('click', '#header a', function(event){
+    this.el.on('click', '.block-submit input[type=submit]', $.proxy(this.validateAndSubmit, self));
+    this.el.on('click', 'div[data-role=header] a', function(event){
       event.preventDefault();
       $("#popup, .popup-overlay").remove();
       self.cancelInspection.call(self);
@@ -109,48 +113,110 @@ var InspectionView = function(data) {
       app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {comment: $(event.currentTarget).val()}));
     });
 
-
-    // третья верстка
-    this.el.on('click', '.select-box', function(event){
+    this.el.on('click', '.block>a', function(event){
       event.preventDefault();
+/*
+
       $("#popup, .popup-overlay").remove();
 
       var translate = {
-        0: "0 - N/A",
-        1: "1 - POOR (BELOW 65%)",
-        2: "2 - FAIR (BETWEEN 65% AND 75%)",
-        3: "3 - AVERAGE (BETWEEN 75% AND 85%)",
-        4: "4 - GOOD (BETWEEN 85% AND 95%)",
-        5: "5 - EXCELLENT (95% OR GREATER)"
+        0: "N/A",
+        1: "1 - POOR <font>(</font>Below 65%<font>)</font>",
+        2: "2 - FAIR <font>(</font>65% to 75%<font>)</font>",
+        3: "3 - AVERAGE <font>(</font>75% to 85%<font>)</font>",
+        4: "4 - GOOD <font>(</font>85% to 95%<font>)</font>",
+        5: "5 - EXCELLENT <font>(</font>95% or Greater<font>)</font>"
       };
 
-      var popup_overlay = $("<div class=\"popup-overlay\"></div>");
-      var popup = $("<div id=\"popup\"><a href=\"#\" class=\"close-btn\">Close</a></div>");
-      var str = "<div class=\"popup_content\">"+
-          "<p>" + $("div:first-child", $(event.currentTarget)).html() +
-          "</p><input type=\"hidden\" id=\"ectimated_question\" value=\"" +
-          $("input", $(event.currentTarget)).attr("id") + "\">" + "<ul><li>" +
-          (($("input", $(event.currentTarget)).val().length > 0 ) ? "<a data-value=\"\" href=\"#\">" :"") +
-          "Clear" + (($("input", $(event.currentTarget)).val().length > 0 ) ? "</a></li>" :"</li>");
+      var $popup = $("<div />").popup({
+        overlayTheme : "a",
+        positionTo: "window"
+      }).on("popupafterclose", function(){
+        $(this).remove();
+      });
+      var clicked_block = $(event.currentTarget).parent(".block");
 
-      for(var i = 0, l = parseInt($(".mark", $(event.currentTarget)).attr('total-scores')); i<=l; i++){
-        str = str + "<li><a data-value=\"" + i + "\" href=\"#\">" + translate[i] + "</a></li>";
+      $("<p/>", {
+        text : "Clear Score (N/A)"
+      }).appendTo($popUp);
+
+*/
+/*      $("<input/>", {
+        type : "hidden",
+        id : "ectimated_question",
+        value: $("input", clicked_block).attr("id")
+      }).appendTo($popUp);
+
+
+
+      $("<a/>", {
+        "data-value": "",
+        "href": "#",
+        "data-role":"button",
+        class: "clear" + ($("input", clicked_block).val().length > 0 ) ? "": " ui-disabled",
+        text : "Clear Score (N/A)"
+      }).on("click", function(){
+            alert("closing");
+            $popUp.popup("close");
+          }).appendTo($popUp);*//*
+
+
+      $popUp.popup("open").trigger("create");
+*/
+
+/*
+      var str = "<input type=\"hidden\" id=\"ectimated_question\" value=\"" + $("input", clicked_block).attr("id") + "\">" +
+          "<a data-value=\"\" href=\"#\" data-role=\"button\" class=\"clear" + ($("input", clicked_block).val().length > 0 ) ? "": " ui-disabled" + "\">Clear Score (N/A)</a>"+
+          "<a href=\"#\" data-role=\"button\" data-theme=\"a\" data-icon=\"delete\" data-iconpos=\"notext\" class=\"ui-btn-right close-btn\">Close</a>" +
+          "<h2><font>" + $("h2", $(clicked_block).parents(".content").eq(0)).html() + "</font><br /> " + $("div", $(event.currentTarget)).html() + "</h2>" +
+          "<div class=\"listing\">";
+
+      for(var i = 0, l = parseInt($(".number", clicked_block).attr('total-scores')); i<=l; i++){
+        str = str + "<a data-role=\"button\" data-value=\"" + i + "\" href=\"#\">" + translate[i] + "</a>";
       }
-      str = str + "</ul></div>";
-      $(popup).append(str);
+      str = str + "</div>";
+*/
 
-      $(popup_overlay).appendTo("body").trigger("create");
-      $(popup).appendTo("body").trigger("create");
+
+/*
+//      var popup_overlay = $("<div class=\"popup-overlay\"></div>");
+      var popup = $("<div data-role=\"popup\" id=\"popup\"></div>");
+
+      var clicked_block = $(event.currentTarget).parent(".block");
+      var str = "<input type=\"hidden\" id=\"ectimated_question\" value=\"" + $("input", clicked_block).attr("id") + "\">" +
+          "<a data-value=\"\" href=\"#\" data-role=\"button\" class=\"clear" + ($("input", clicked_block).val().length > 0 ) ? "": " ui-disabled" + "\">Clear Score (N/A)</a>"+
+          "<a href=\"#\" data-role=\"button\" data-theme=\"a\" data-icon=\"delete\" data-iconpos=\"notext\" class=\"ui-btn-right close-btn\">Close</a>" +
+          "<h2><font>" + $("h2", $(clicked_block).parents(".content").eq(0)).html() + "</font><br /> " + $("div", $(event.currentTarget)).html() + "</h2>" +
+          "<div class=\"listing\">";
+
+      for(var i = 0, l = parseInt($(".number", clicked_block).attr('total-scores')); i<=l; i++){
+        str = str + "<a data-role=\"button\" data-value=\"" + i + "\" href=\"#\">" + translate[i] + "</a>";
+      }
+      str = str + "</div>";
+
+          $(popup).append(str);
+
+//      $(popup_overlay).appendTo("body").trigger("create");
+//      $(popup).appendTo("body").trigger("create");
+
+        $(popup).appendTo("div[]").trigger("create");
+        $.mobile.activePage.append( $(popup) ).trigger( "pagecreate" );
+
+        $("#popup").popup("open", {
+          positionTo: "window",
+          overlayTheme: "a"
+        });
 
       var popup_width = (function(){
         var max_width = 0;
-        $.each($("#popup li a"), function(i,v){
-          if ($(v).width() > max_width) {
+        $.each($("#popup div.listing a"), function(i,v){
+          if ($(v).width() > max_width){
             max_width = $(v).width();
           }
         });
         return max_width;
       })();
+
 
       if (popup_width > $(window).width() ){
         popup_width = $(window).width();
@@ -167,6 +233,7 @@ var InspectionView = function(data) {
       $("#popup").css( "top",  $(document).scrollTop() + Math.round(($(window).height() - popup_height)/2) + "px" );
 
 
+
       $("#popup").css("visibility", "visible");
 
       $("#popup a").unbind();
@@ -176,96 +243,52 @@ var InspectionView = function(data) {
         $("#popup, .popup-overlay").remove();
       });
 
-      $('#popup li a').on('click', function(event){
+      $('#popup .listing a').on('click', function(event){
         event.preventDefault();
+
+        // update local storage by the mark
         var tmp = {},
             saved_inspection = app.getJobInspectionContainer(),
             new_mark = $(event.currentTarget).attr("data-value"),
-            estimated_question_id = $("input#ectimated_question", $(event.currentTarget).parents(".popup_content")).val(),
-            changed_raw = $("input[type=hidden][id="+estimated_question_id+"]").parent(".select-box");
+            estimated_question_id = $("input#ectimated_question", $(event.currentTarget).parents("#popup")).val(),
+            changed_raw = $("input[type=hidden][id="+estimated_question_id+"]").parent(".block");
 
-        if (saved_inspection.id == app.inspectionJobID){
-          var update = false,
-              index = 0;
-          for(var i = 0, l = saved_inspection.container.length; i<l; i++){
-            var curr_obj_cont_id = Object.keys(saved_inspection.container[i])[0];
-            if (curr_obj_cont_id == estimated_question_id){
-              update = true;
-              index = i;
-            }
-          }
-
-          tmp[estimated_question_id] = new_mark;
-          if (update){
-            if (new_mark != ""){
-              saved_inspection.container[index] = tmp;
-            } else {
-              saved_inspection.container.splice( index, 1 );
-            }
-          } else {
-            if (new_mark != ""){
-              saved_inspection.container.push(tmp);
-            }
-          }
-          app.setJobInspectionContainer(saved_inspection);
-        }
-
-        $("input", changed_raw).val(new_mark);
-        $("span", changed_raw).html(new_mark);
-        if (new_mark != ""){
-          $(changed_raw).addClass("normal").trigger("create");
-        } else {
-          $(changed_raw).removeClass("normal").trigger("create");
-        }
-        $("#popup, .popup-overlay").remove();
-      });
-
-    });
-
-
-/*
-    // вторая верстка
-    this.el.on('change', '.select-box select', function(event){
-      event.preventDefault();
-
-      var tmp = {},
-          saved_inspection = app.getJobInspectionContainer();
-      if (saved_inspection.id == app.inspectionJobID){
         var update = false,
             index = 0;
         for(var i = 0, l = saved_inspection.container.length; i<l; i++){
-          if (saved_inspection.container[i].id == $(event.currentTarget).attr("id")){
+          var curr_obj_cont_id = Object.keys(saved_inspection.container[i])[0];
+          if (curr_obj_cont_id == estimated_question_id){
             update = true;
             index = i;
           }
         }
 
-        tmp[$(event.currentTarget).attr("id")] = $(event.currentTarget).val();
+        tmp[estimated_question_id] = new_mark;
         if (update){
-          saved_inspection.container[index] = tmp;
+          if (new_mark != ""){
+            saved_inspection.container[index] = tmp;
+          } else {
+            saved_inspection.container.splice( index, 1 );
+          }
         } else {
-          saved_inspection.container.push(tmp);
+          if (new_mark != ""){
+            saved_inspection.container.push(tmp);
+          }
         }
         app.setJobInspectionContainer(saved_inspection);
-      }
-      $(event.currentTarget).parent(".select-box").addClass("normal").trigger("create");
-    });*/
 
-
-    /*
-    // первая верстка
-    this.el.on('click', '.notes-checkbox', function(event){
-      event.preventDefault();
-      var elm = $(event.currentTarget);
-      var input = elm.find("input").eq(0);
-      if (!input.attr("checked")){
-        elm.css("background-position","-31px 0px");
-        input.attr("checked", true);
-      } else {
-        elm.css("background-position","0 0");
-        input.attr("checked", false);
-      }
-    });*/
+        // rerender marked elm
+        $("input", changed_raw).val(new_mark);
+        $("span", changed_raw).html((new_mark == 0)? "N/A": new_mark);
+        if (new_mark != ""){
+          $(changed_raw).addClass("active").trigger("create");
+        } else {
+          $(changed_raw).removeClass("active").trigger("create");
+        }
+        $("#popup, .popup-overlay").remove();
+      });
+ */
+    });
   };
   this.initialize();
 
@@ -273,18 +296,20 @@ var InspectionView = function(data) {
 
 
 // третья верстка
-Handlebars.registerHelper('checkListContent', function(items, comment) {
+Handlebars.registerHelper('checkListContent', function(container){
   var out = "";
-  for(var i=0, l=items.length; i<l; i++) {
-    var devider = items[i];
+  var _items = container.checkList;
+  var comment = container.commentVal;
+  for(var i=0, l=_items.length; i<l; i++) {
+    var devider = _items[i];
     //begin of section
-    out = out + "<div class=\"section\"><h2>" + devider.attr.subject_group +"</h2>";
-    for (var j=0, sl = devider.subjects.length; j<sl; j++){
-      var question = devider.subjects[j];
-      out = out + "<div class=\"select-box" + ((question.saved_value)? " normal":"") + "\">" +
-          "<div>" + question.name + "</div>" +
-          "<span class=\"mark\" total-scores=\"" + parseInt(question.total_points) + "\">" + (typeof question.saved_value != "undefined" ? question.saved_value: "") + " </span>" +
-          "<input type=\"hidden\" id=\"" + question.subject_id + "\" value=\"" + (typeof question.saved_value != "undefined" ? question.saved_value: "") + "\" />" +
+    out = out + "<div data-role=\"content\"><h2>" + devider.attr.item_group +"</h2>";
+    for (var j=0, sl = devider.items.length; j<sl; j++){
+      var question = devider.items[j];
+      out = out + "<div class=\"block" + ((question.saved_value)? " active":"") + "\">" +
+          "<a class=\"btn-main\"><div data-role=\"button\">" + question.name + "</div></a>" +
+          "<div class=\"number" + (typeof question.saved_value != "undefined" && question.saved_value == "0" ? " na":"") + "\" total-scores=\"" + parseInt(question.total_points) + "\"><span>" + (typeof question.saved_value != "undefined" ? question.saved_value : "") + "</span></div>" +
+          "<input type=\"hidden\" id=\"" + question.item_id + "\" value=\"" + (typeof question.saved_value != "undefined" ? question.saved_value: "") + "\" />" +
           "</div>";
     }
     out = out + "</div>";
@@ -292,95 +317,15 @@ Handlebars.registerHelper('checkListContent', function(items, comment) {
   }
   //begin of textarea and submit
   out = out +
-      "<div class=\"section\">" +
-      "<div class=\"section-text\">" +
-      "<div>" +
-      "<p><b>Notes</b><br>(optional)</p>" +
-      "</div>" +
-      "<textarea rows=\"10\" cols=\"45\" name=\"comment\" id=\"comment\" data-role=\"none\">" +
-//      comment.length > 0 ? comment : "" +
-      "</textarea>" +
-      "</div>" +
-      "</div>" +
-      "<div class=\"submit\">" +
-      "<input type=\"button\" value=\"Submit\" data-role=\"none\">" +
-      "<span>Submit</span>" +
+      "<div data-role=\"content\">" +
+      "<h3>Notes <br /><font>(optional):</font></h3>" +
+        "<div class=\"block-submit\">" +
+          "<textarea id=\"comment\" name=\"comment\">" + comment + "</textarea>" +
+          "<input type=\"submit\" value=\"Submit\" />"+
+        "</div>" +
       "</div>";
   //end textarea and submit
   return new Handlebars.SafeString(out);
 });
 
-
-/*
-// вторая верстка
-Handlebars.registerHelper('checkListContent', function(items) {
-
-  var translate = {
-    0: "&nbsp;&ensp;&nbsp;0 - N/A",
-    1: "&nbsp;&ensp;&nbsp;1 - POOR (BELOW 65%)",
-    2: "&nbsp;&ensp;&nbsp;2 - FAIR (BETWEEN 65% AND 75%)",
-    3: "&nbsp;&ensp;&nbsp;3 - AVERAGE (BETWEEN 75% AND 85%)",
-    4: "&nbsp;&ensp;&nbsp;4 - GOOD (BETWEEN 85% AND 95%)",
-    5: "&nbsp;&ensp;&nbsp;5 - EXCELLENT (95% OR GREATER)"
-  };
-  var out = "";
-  for(var i=0, l=items.length; i<l; i++) {
-    var devider = items[i];
-    //begin of section
-    out = out + "<div class=\"section\"><h2>" + devider.attr.subject_group +"</h2>";
-    for (var j=0, sl = devider.subjects.length; j<sl; j++){
-      var question = devider.subjects[j];
-      out = out + "<div class=\"select-box" + ((question.saved_value)? " normal":"") + "\">" +
-          "<p>" + question.name + "</p>" +
-          "<select width=\"50\" style=\"float:right; width: 50px;\" id=\"" + question.subject_id + "\"" + " name=\"" + question.subject_id + "\" data-role=\"none\">"+
-          "<option disabled=\"disabled\" value=\"\"></option>";
-      for (var mark=0, max_mark = parseInt(question.total_points); mark <= max_mark; mark++){
-        out = out + "<option value=\"" + mark + "\"" + ((question.saved_value && question.saved_value == mark)? " selected=\"selected\"":"") + ">"+ translate[mark] + "</option>";
-      }
-      out = out + "</select></div>";
-    }
-    out = out + "</div>";
-    //end of section
-  }
-  //begin of textarea and submit
-  out = out +
-      "<div class=\"section\">" +
-        "<div class=\"section-text\">" +
-          "<div>" +
-            "<p><b>Notes</b><br>(optional)</p>" +
-          "</div>" +
-          "<textarea rows=\"10\" cols=\"45\" name=\"comment\" id=\"comment\" data-role=\"none\"></textarea>" +
-        "</div>" +
-      "</div>" +
-      "<div class=\"submit\">" +
-        "<input type=\"button\" value=\"Submit\" data-role=\"none\">" +
-        "<span>Submit</span>" +
-      "</div>";
-  //end textarea and submit
-  return new Handlebars.SafeString(out);
-});*/
-
-/*
-// первая верстка
-Handlebars.registerHelper('checkListContent', function(items) {
-
- var out = "";
- for(var i=0, l=items.length; i<l; i++) {
- var devider = items[i];
- out = out + "<li data-role=\"list-divider\" role=\"heading\">" + devider.attr.subject_group +"</li>";
- for (var j=0, sl = devider.subjects.length; j<sl; j++){
- var question = devider.subjects[j];
- out = out + "<li><div data-role=\"fieldcontain\">" +
- "<label for=\"" + question.subject_id + "\">" + question.name + "</label>" +
- "<select id=\"" + question.subject_id + "\"" + " name=\"" + question.subject_id + "\">"+
- "<option value=\"\"></option>";
- for (var mark=0, max_mark = parseInt(question.total_points); mark <= max_mark; mark++){
- out = out + "<option value=\"" + mark + "\""+ (mark == 1 ? " selected=\"selected\"":"") + ">"+ mark + "</option>";
- }
- out = out + "</select></div></li>";
- }
- }
- return new Handlebars.SafeString(out);
- });
-*/
 InspectionView.template = Handlebars.compile($("#inspection-tpl").html());
