@@ -1,3 +1,4 @@
+div[data-role=page]{  background: url(../img/section_bg.jpg) repeat-x top #cbcbcb; border-top:1px solid #000; }
 .ui-mobile-viewport .ui-page .ui-header { background:transparent; background-color:#c2d7d6; border:0 none; text-shadow:none; }
 .ui-header h1.ui-title { border-left:1em solid #e2d3c8; color:#757575; margin:0px; padding:0px; text-align:left; }
 h1.ui-title span.address { float:left; padding:0.4em 0 0.3em 1em; }
@@ -334,7 +335,7 @@ div.block.active .number.na { font-size:1.6em; top:0px; }
 
 
 /* my styles */
-/*
+
 #overlay{
     background-color: #a8a8a8;
     display: none;
@@ -347,7 +348,7 @@ div.block.active .number.na { font-size:1.6em; top:0px; }
     position: fixed;
 }
 
-
+/*
 
 body .popup-overlay {
     background-color: #A8A8A8;

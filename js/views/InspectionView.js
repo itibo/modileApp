@@ -97,6 +97,47 @@ var InspectionView = function(data) {
     );
   };
 
+  this.update_ls = function(elm, popup){
+    // update local storage by the mark
+    var tmp = {},
+        saved_inspection = app.getJobInspectionContainer(),
+        new_mark = $(elm).attr("data-value"),
+        estimated_question_id = $("input#ectimated_question", popup).val(),
+        changed_raw = $("input[type=hidden][id="+estimated_question_id+"]").parent(".block");
+
+    var update = false,
+        index = 0;
+    for(var i = 0, l = saved_inspection.container.length; i<l; i++){
+      var curr_obj_cont_id = Object.keys(saved_inspection.container[i])[0];
+      if (curr_obj_cont_id == estimated_question_id){
+        update = true;
+        index = i;
+      }
+    }
+
+    tmp[estimated_question_id] = new_mark;
+    if (update){
+      if (new_mark != ""){
+        saved_inspection.container[index] = tmp;
+      } else {
+        saved_inspection.container.splice( index, 1 );
+      }
+    } else {
+      if (new_mark != ""){
+        saved_inspection.container.push(tmp);
+      }
+    }
+    app.setJobInspectionContainer(saved_inspection);
+
+    $("input", changed_raw).val(new_mark);
+    $(".number span", changed_raw).html((new_mark == 0)? "N/A": new_mark);
+    if (new_mark != ""){
+      $(changed_raw).addClass("active").trigger("create");
+    } else {
+      $(changed_raw).removeClass("active").trigger("create");
+    }
+  };
+
   this.initialize = function() {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
@@ -115,9 +156,8 @@ var InspectionView = function(data) {
 
     this.el.on('click', '.block>a', function(event){
       event.preventDefault();
-/*
 
-      $("#popup, .popup-overlay").remove();
+      var clicked_block = $(event.currentTarget).parent(".block");
 
       var translate = {
         0: "N/A",
@@ -131,163 +171,59 @@ var InspectionView = function(data) {
       var $popup = $("<div />").popup({
         overlayTheme : "a",
         positionTo: "window"
-      }).on("popupafterclose", function(){
-        $(this).remove();
       });
-      var clicked_block = $(event.currentTarget).parent(".block");
 
-      $("<p/>", {
-        text : "Clear Score (N/A)"
-      }).appendTo($popUp);
-
-*/
-/*      $("<input/>", {
-        type : "hidden",
-        id : "ectimated_question",
+      $('<input />',{
+        type:'hidden',
+        id:'ectimated_question',
         value: $("input", clicked_block).attr("id")
-      }).appendTo($popUp);
+      }).appendTo($popup);
 
-
-
-      $("<a/>", {
-        "data-value": "",
-        "href": "#",
+      $('<a>',{
+        text:'Clear Score (N/A)',
+        href:'#',
         "data-role":"button",
-        class: "clear" + ($("input", clicked_block).val().length > 0 ) ? "": " ui-disabled",
-        text : "Clear Score (N/A)"
-      }).on("click", function(){
-            alert("closing");
-            $popUp.popup("close");
-          }).appendTo($popUp);*//*
+        class: ($("input", clicked_block).val().length > 0 ) ? "clear": "clear ui-disabled"
+      }).on("click", function(e){
+        e.preventDefault();
+        self.update_ls.call(self, $(e.currentTarget), $popup);
+        $popup.popup("close");
+        $popup.remove();
+        return false;
+      }).appendTo($popup);
 
+      $('<a>',{
+        text:'Close',
+        href:'#',
+        "data-role":"button",
+        "data-theme": "a",
+        "data-icon": "delete",
+        "data-iconpos": "notext",
+        class: "ui-btn-right close-btn"
+      }).on("click", function(e){
+        e.preventDefault();
+        $popup.popup("close");
+        $popup.remove();
+        return false;
+      }).appendTo($popup);
 
-      $popUp.popup("open").trigger("create");
-*/
-
-/*
-      var str = "<input type=\"hidden\" id=\"ectimated_question\" value=\"" + $("input", clicked_block).attr("id") + "\">" +
-          "<a data-value=\"\" href=\"#\" data-role=\"button\" class=\"clear" + ($("input", clicked_block).val().length > 0 ) ? "": " ui-disabled" + "\">Clear Score (N/A)</a>"+
-          "<a href=\"#\" data-role=\"button\" data-theme=\"a\" data-icon=\"delete\" data-iconpos=\"notext\" class=\"ui-btn-right close-btn\">Close</a>" +
-          "<h2><font>" + $("h2", $(clicked_block).parents(".content").eq(0)).html() + "</font><br /> " + $("div", $(event.currentTarget)).html() + "</h2>" +
-          "<div class=\"listing\">";
-
-      for(var i = 0, l = parseInt($(".number", clicked_block).attr('total-scores')); i<=l; i++){
-        str = str + "<a data-role=\"button\" data-value=\"" + i + "\" href=\"#\">" + translate[i] + "</a>";
-      }
-      str = str + "</div>";
-*/
-
-
-/*
-//      var popup_overlay = $("<div class=\"popup-overlay\"></div>");
-      var popup = $("<div data-role=\"popup\" id=\"popup\"></div>");
-
-      var clicked_block = $(event.currentTarget).parent(".block");
-      var str = "<input type=\"hidden\" id=\"ectimated_question\" value=\"" + $("input", clicked_block).attr("id") + "\">" +
-          "<a data-value=\"\" href=\"#\" data-role=\"button\" class=\"clear" + ($("input", clicked_block).val().length > 0 ) ? "": " ui-disabled" + "\">Clear Score (N/A)</a>"+
-          "<a href=\"#\" data-role=\"button\" data-theme=\"a\" data-icon=\"delete\" data-iconpos=\"notext\" class=\"ui-btn-right close-btn\">Close</a>" +
-          "<h2><font>" + $("h2", $(clicked_block).parents(".content").eq(0)).html() + "</font><br /> " + $("div", $(event.currentTarget)).html() + "</h2>" +
-          "<div class=\"listing\">";
+      $('<h2 />').append("<font>" + $("h2", $(clicked_block).parents("div[data-role=content]").eq(0)).html() + "</font><br />" + $("div", $(event.currentTarget)).html()).appendTo($popup);
 
       for(var i = 0, l = parseInt($(".number", clicked_block).attr('total-scores')); i<=l; i++){
-        str = str + "<a data-role=\"button\" data-value=\"" + i + "\" href=\"#\">" + translate[i] + "</a>";
+        $('<a>',{
+          href:'#',
+          "data-role":"button",
+          "data-value": i
+        }).html(translate[i]).on("click", function(e){
+          e.preventDefault();
+          self.update_ls.call(self, $(e.currentTarget), $popup);
+          $popup.popup("close");
+          $popup.remove();
+          return false;
+        }).appendTo($popup);
       }
-      str = str + "</div>";
 
-          $(popup).append(str);
-
-//      $(popup_overlay).appendTo("body").trigger("create");
-//      $(popup).appendTo("body").trigger("create");
-
-        $(popup).appendTo("div[]").trigger("create");
-        $.mobile.activePage.append( $(popup) ).trigger( "pagecreate" );
-
-        $("#popup").popup("open", {
-          positionTo: "window",
-          overlayTheme: "a"
-        });
-
-      var popup_width = (function(){
-        var max_width = 0;
-        $.each($("#popup div.listing a"), function(i,v){
-          if ($(v).width() > max_width){
-            max_width = $(v).width();
-          }
-        });
-        return max_width;
-      })();
-
-
-      if (popup_width > $(window).width() ){
-        popup_width = $(window).width();
-      }
-      $("#popup").width(popup_width);
-      $("#popup").css( "left",  Math.round( ($(window).width() - popup_width)/2 ) );
-
-      var popup_height = $("#popup .popup_content").height();
-
-      if (popup_height> $(window).height()){
-        popup_height = $(window).height();
-      }
-      $("#popup").height(popup_height);
-      $("#popup").css( "top",  $(document).scrollTop() + Math.round(($(window).height() - popup_height)/2) + "px" );
-
-
-
-      $("#popup").css("visibility", "visible");
-
-      $("#popup a").unbind();
-
-      $('a.close-btn, .popup-overlay').on('click', function(event){
-        event.preventDefault();
-        $("#popup, .popup-overlay").remove();
-      });
-
-      $('#popup .listing a').on('click', function(event){
-        event.preventDefault();
-
-        // update local storage by the mark
-        var tmp = {},
-            saved_inspection = app.getJobInspectionContainer(),
-            new_mark = $(event.currentTarget).attr("data-value"),
-            estimated_question_id = $("input#ectimated_question", $(event.currentTarget).parents("#popup")).val(),
-            changed_raw = $("input[type=hidden][id="+estimated_question_id+"]").parent(".block");
-
-        var update = false,
-            index = 0;
-        for(var i = 0, l = saved_inspection.container.length; i<l; i++){
-          var curr_obj_cont_id = Object.keys(saved_inspection.container[i])[0];
-          if (curr_obj_cont_id == estimated_question_id){
-            update = true;
-            index = i;
-          }
-        }
-
-        tmp[estimated_question_id] = new_mark;
-        if (update){
-          if (new_mark != ""){
-            saved_inspection.container[index] = tmp;
-          } else {
-            saved_inspection.container.splice( index, 1 );
-          }
-        } else {
-          if (new_mark != ""){
-            saved_inspection.container.push(tmp);
-          }
-        }
-        app.setJobInspectionContainer(saved_inspection);
-
-        // rerender marked elm
-        $("input", changed_raw).val(new_mark);
-        $("span", changed_raw).html((new_mark == 0)? "N/A": new_mark);
-        if (new_mark != ""){
-          $(changed_raw).addClass("active").trigger("create");
-        } else {
-          $(changed_raw).removeClass("active").trigger("create");
-        }
-        $("#popup, .popup-overlay").remove();
-      });
- */
+      $popup.popup("open").trigger("create");
     });
   };
   this.initialize();
@@ -308,7 +244,9 @@ Handlebars.registerHelper('checkListContent', function(container){
       var question = devider.items[j];
       out = out + "<div class=\"block" + ((question.saved_value)? " active":"") + "\">" +
           "<a class=\"btn-main\"><div data-role=\"button\">" + question.name + "</div></a>" +
-          "<div class=\"number" + (typeof question.saved_value != "undefined" && question.saved_value == "0" ? " na":"") + "\" total-scores=\"" + parseInt(question.total_points) + "\"><span>" + (typeof question.saved_value != "undefined" ? question.saved_value : "") + "</span></div>" +
+          "<div class=\"number" + (typeof question.saved_value != "undefined" && question.saved_value == "0" ? " na":"") + "\" total-scores=\"" + parseInt(question.total_points) + "\"><span>" +
+          (typeof question.saved_value != "undefined" ? ((question.saved_value == 0 )? "N/A": question.saved_value) : "") +
+          "</span></div>" +
           "<input type=\"hidden\" id=\"" + question.item_id + "\" value=\"" + (typeof question.saved_value != "undefined" ? question.saved_value: "") + "\" />" +
           "</div>";
     }
