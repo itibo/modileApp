@@ -205,7 +205,7 @@ var InspectionView = function(data) {
       $popup.css( "left",  Math.round( ($(window).width() - $popup.width())/2 ) );
 
       if ($popup.height() > ($(window).height() - 30)){
-        $popup.css("top", "25px");
+        $popup.css("top", $(document).scrollTop() + parseInt(25) + "px");
       } else {
         $popup.css("top", $(document).scrollTop() + Math.round(($(window).height() - $popup.height())/2) + "px");
       }
