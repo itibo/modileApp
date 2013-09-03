@@ -945,9 +945,9 @@ var app = {
   },
 
   backButton: function(){
-
-    if ($("#popup").length > 0 ){
-      $("#popup, .popup-overlay").remove();
+    if ($(".pop_up").css('visibility') == 'visible'){
+      $(".pop_up").css("visibility", "hidden");
+      $(".popup-overlay").remove();
     }else{
       switch (true) {
         case /^#inspection:(\d+)$/.test(app.current_page):
@@ -985,8 +985,6 @@ var app = {
           break;
       }
     }
-
-
   },
 
   showConfirm: function(title, question, on_submit_event) {

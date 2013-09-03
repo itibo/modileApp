@@ -86,6 +86,20 @@
       </div><!-- /content -->
     </script>
     <script id="inspection-tpl" type="text/x-handlebars-template">
+      <div class="pop_up">
+        <input type="hidden" id="estimated_question" />
+        <a href="#" data-value="" class="clear"><span>Clear Score</span></a>
+        <a href="#" class="close"><span>Close</span><span>&nbsp;</span></a>
+        <div class="popup_content">
+          <h2></h2>
+          <a href="#" data-value="0">N/A</a>
+          <a href="#" data-value="1">1 - POOR <font>(</font>Below 65%<font>)</font></a>
+          <a href="#" data-value="2">2 - FAIR <font>(</font>65% to 75%<font>)</font></a>
+          <a href="#" data-value="3">3 - AVERAGE <font>(</font>75% to 85%<font>)</font></a>
+          <a href="#" data-value="4">4 - GOOD <font>(</font>85% to 95%<font>)</font></a>
+          <a href="#" data-value="5">5 - EXCELLENT <font>(</font>95% or Greater<font>)</font></a>
+        </div>
+      </div>
       <div data-role="header">
         <h1>
           <span class="address">{{site.site}}<br />{{site.address}}</span>

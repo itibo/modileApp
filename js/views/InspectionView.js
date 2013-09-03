@@ -52,7 +52,7 @@ var InspectionView = function(data) {
         allow_to_submit = (function(){
           var tmp = true;
           $.each($("input", $(self.el)), function(i, elm){
-            if (null == $(elm).val() || "" == $(elm).val()){
+            if ( ( null == $(elm).val() || "" == $(elm).val() ) && "estimated_question" != $(elm).attr("id") ){
               tmp = false;
               return false;
             }
@@ -99,10 +99,11 @@ var InspectionView = function(data) {
 
   this.update_ls = function(elm, popup){
     // update local storage by the mark
+    popup = popup || $(".pop_up");
     var tmp = {},
         saved_inspection = app.getJobInspectionContainer(),
         new_mark = $(elm).attr("data-value"),
-        estimated_question_id = $("input#ectimated_question", popup).val(),
+        estimated_question_id = $("input#estimated_question", popup).val(),
         changed_raw = $("input[type=hidden][id="+estimated_question_id+"]").parent(".block");
 
     var update = false,
@@ -130,12 +131,27 @@ var InspectionView = function(data) {
     app.setJobInspectionContainer(saved_inspection);
 
     $("input", changed_raw).val(new_mark);
-    $(".number span", changed_raw).html((new_mark == 0)? "N/A": new_mark);
+    $(".number", changed_raw).html((new_mark == 0)? "<span>N/A</span>": new_mark);
     if (new_mark != ""){
+      if(0 == new_mark){
+        $(".number", changed_raw).addClass("na");
+      } else {
+        $(".number", changed_raw).removeClass("na");
+      }
       $(changed_raw).addClass("active").trigger("create");
     } else {
+      $(".number", changed_raw).removeClass("na");
       $(changed_raw).removeClass("active").trigger("create");
     }
+  };
+
+  this.close_and_clean_popup = function(){
+    var $popup = $(".pop_up");
+    $("a.clear", $popup).removeClass("disabled");
+    $("input[id=estimated_question][type=hidden]", $popup).val("");
+    $("h2", $popup).html();
+    $(".popup-overlay").remove();
+    $popup.css("visibility", "hidden");
   };
 
   this.initialize = function() {
@@ -145,8 +161,13 @@ var InspectionView = function(data) {
     this.el.on('click', '.block-submit input[type=submit]', $.proxy(this.validateAndSubmit, self));
     this.el.on('click', 'div[data-role=header] a', function(event){
       event.preventDefault();
-      $("#popup, .popup-overlay").remove();
+      self.close_and_clean_popup.call(self);
       self.cancelInspection.call(self);
+    });
+
+    this.el.on('click', '.pop_up .close', function(event){
+      event.preventDefault();
+      self.close_and_clean_popup.call(self);
     });
 
     this.el.on('change', '#comment', function(event){
@@ -154,76 +175,42 @@ var InspectionView = function(data) {
       app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {comment: $(event.currentTarget).val()}));
     });
 
+    this.el.on('click', '.pop_up .popup_content a, .pop_up a.clear', function(event){
+      event.preventDefault();
+      if (!$(event.currentTarget).hasClass('disabled')){
+        self.update_ls.call(self, $(event.currentTarget));
+        self.close_and_clean_popup.call(self);
+      }
+    });
+
     this.el.on('click', '.block>a', function(event){
       event.preventDefault();
 
       var clicked_block = $(event.currentTarget).parent(".block");
-
-      var translate = {
-        0: "N/A",
-        1: "1 - POOR <font>(</font>Below 65%<font>)</font>",
-        2: "2 - FAIR <font>(</font>65% to 75%<font>)</font>",
-        3: "3 - AVERAGE <font>(</font>75% to 85%<font>)</font>",
-        4: "4 - GOOD <font>(</font>85% to 95%<font>)</font>",
-        5: "5 - EXCELLENT <font>(</font>95% or Greater<font>)</font>"
-      };
-
-      var $popup = $("<div />").popup({
-        overlayTheme : "a",
-        positionTo: "window"
+      var $popup = $(".pop_up");
+      var $overlay = $("<div />", {
+        class: "popup-overlay"
+      }).on("click", function(e){
+        e.preventDefault();
+        self.close_and_clean_popup.call(self);
       });
 
-      $('<input />',{
-        type:'hidden',
-        id:'ectimated_question',
-        value: $("input", clicked_block).attr("id")
-      }).appendTo($popup);
+      if ($("input", clicked_block).val() == ""){
+        $("a.clear", $popup).addClass("disabled");
+      }
+      $("input[type=hidden]", $popup).val($("input", clicked_block).attr("id"));
+      $("h2", $popup).html("<font>" + $("h2", $(clicked_block).parents("div[data-role=content]").eq(0)).html() + "</font><br />" + $("div", $(event.currentTarget)).html());
+      $overlay.appendTo("body").trigger("create");
 
-      $('<a>',{
-        text:'Clear Score (N/A)',
-        href:'#',
-        "data-role":"button",
-        class: ($("input", clicked_block).val().length > 0 ) ? "clear": "clear ui-disabled"
-      }).on("click", function(e){
-        e.preventDefault();
-        self.update_ls.call(self, $(e.currentTarget), $popup);
-        $popup.popup("close");
-        $popup.remove();
-        return false;
-      }).appendTo($popup);
+      $popup.css( "left",  Math.round( ($(window).width() - $popup.width())/2 ) );
 
-      $('<a>',{
-        text:'Close',
-        href:'#',
-        "data-role":"button",
-        "data-theme": "a",
-        "data-icon": "delete",
-        "data-iconpos": "notext",
-        class: "ui-btn-right close-btn"
-      }).on("click", function(e){
-        e.preventDefault();
-        $popup.popup("close");
-        $popup.remove();
-        return false;
-      }).appendTo($popup);
-
-      $('<h2 />').append("<font>" + $("h2", $(clicked_block).parents("div[data-role=content]").eq(0)).html() + "</font><br />" + $("div", $(event.currentTarget)).html()).appendTo($popup);
-
-      for(var i = 0, l = parseInt($(".number", clicked_block).attr('total-scores')); i<=l; i++){
-        $('<a>',{
-          href:'#',
-          "data-role":"button",
-          "data-value": i
-        }).html(translate[i]).on("click", function(e){
-          e.preventDefault();
-          self.update_ls.call(self, $(e.currentTarget), $popup);
-          $popup.popup("close");
-          $popup.remove();
-          return false;
-        }).appendTo($popup);
+      if ($popup.height() > ($(window).height() - 30)){
+        $popup.css("top", "25px");
+      } else {
+        $popup.css("top", $(document).scrollTop() + Math.round(($(window).height() - $popup.height())/2) + "px");
       }
 
-      $popup.popup("open").trigger("create");
+      $popup.css("visibility","visible");
     });
   };
   this.initialize();
