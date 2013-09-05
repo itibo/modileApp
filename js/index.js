@@ -237,10 +237,12 @@ var app = {
     }
   },
 
+  //TODO: refactor, refactor and refactor again
   check: function(use_geofence, callback){
     var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
-    if (app.online_flag && coordinates.length > 0){
+
+    if (app.online_flag){
       var token = app.token();
       if (token){
         if (app.getJobInspectionContainer().status == "submitting"){
@@ -254,56 +256,100 @@ var app = {
           );
         }
 
-        $.ajax({
-          type: "POST",
-          url: app.site+'/mobile/check.json',
-          data: {
-            id: token,
-            use_geofence: use_geofence,
-            all_jobs: (typeof callback == "function")? true : false,
-            gps: coordinates
-          },
-          cache: false,
-          crossDomain: true,
-          dataType: 'json',
-          global: (typeof callback == "function")? true : false,
-          success: function(data) {
-            app.coordinates = (app.coordinates).slice(coordinates.length);
-            $.each(data.jobs, function(ind,v){
-              var job_already_exist = false,
-                  job_updated = false;
-              for(var i=0; i < app.jobsAvailiableToInspect.length; i++) {
-                if(v.id == app.jobsAvailiableToInspect[i].id){
-                  job_already_exist = true;
-                  if (v.last_inspection != app.jobsAvailiableToInspect[i].last_inspection){
-                    job_updated = i;
-                  }
-                  break;
+        if ( use_geofence ){
+          $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+            $.ajax({
+              type: "POST",
+              url: app.site+'/mobile/check.json',
+              data: {
+                id: token,
+                use_geofence: use_geofence,
+                all_jobs: (typeof callback == "function")? true : false,
+                gps: obj1.position
+              },
+              cache: false,
+              crossDomain: true,
+              dataType: 'json',
+              global: (typeof callback == "function")? true : false,
+              success: function(data) {
+                app.jobsAvailiableToInspect = [];
+                $.each(data.jobs, function(ind,v){
+                  app.jobsAvailiableToInspect.push(v);
+                });
+                (new WelcomeView()).updateContent();
+
+                if(typeof callback == "function"){
+                  callback();
                 }
-              }
-              if (!job_already_exist){
-                app.jobsAvailiableToInspect.push(v);
-              }else{
-                if (job_updated !== false){
-                  app.jobsAvailiableToInspect[job_updated] = v;
+              },
+              error: function(error){
+                if (error.status == 401){
+                  app.setToken(false);
+                  app.route();
+                } else{
+                  // do nothing
                 }
               }
             });
-            (new WelcomeView()).updateContent();
 
-            if(typeof callback == "function"){
-              callback();
+          }).fail(function(obj){
+            app.connecting_error(obj.error.message);
+            if ($("#overlay").is(':visible')){
+              $("#overlay").hide();
             }
-          },
-          error: function(error){
-            if (error.status == 401){
-              app.setToken(false);
-              app.route();
-            } else{
-              // do nothing
+          });
+        } else if (coordinates.length > 0 ) {
+          $.ajax({
+            type: "POST",
+            url: app.site+'/mobile/check.json',
+            data: {
+              id: token,
+              use_geofence: use_geofence,
+              all_jobs: (typeof callback == "function")? true : false,
+              gps: coordinates
+            },
+            cache: false,
+            crossDomain: true,
+            dataType: 'json',
+            global: (typeof callback == "function")? true : false,
+            success: function(data) {
+              app.coordinates = (app.coordinates).slice(coordinates.length);
+              $.each(data.jobs, function(ind,v){
+                var job_already_exist = false,
+                    job_updated = false;
+                for(var i=0; i < app.jobsAvailiableToInspect.length; i++) {
+                  if(v.id == app.jobsAvailiableToInspect[i].id){
+                    job_already_exist = true;
+                    if (v.last_inspection != app.jobsAvailiableToInspect[i].last_inspection){
+                      job_updated = i;
+                    }
+                    break;
+                  }
+                }
+                if (!job_already_exist){
+                  app.jobsAvailiableToInspect.push(v);
+                }else{
+                  if (job_updated !== false){
+                    app.jobsAvailiableToInspect[job_updated] = v;
+                  }
+                }
+              });
+              (new WelcomeView()).updateContent();
+
+              if(typeof callback == "function"){
+                callback();
+              }
+            },
+            error: function(error){
+              if (error.status == 401){
+                app.setToken(false);
+                app.route();
+              } else{
+                // do nothing
+              }
             }
-          }
-        });
+          });
+        }
       } else {
         app.route();
       }
@@ -560,7 +606,7 @@ var app = {
         $container.html(new LoginView().render().el).trigger('pagecreate');
         break;
       case '#my_jobs' == urlObj.hash:
-        app.check(false, function(){
+        app.check(true, function(){
           $container.html(new MyJobsView().render().el).trigger('pagecreate');
         });
 
@@ -600,7 +646,6 @@ var app = {
         arguments = [],
         self = this;
     data = data || {};
-
     u = $.mobile.path.parseUrl( ((typeof data == 'object') && (typeof data.toPage == 'string'))?
         data.toPage : window.location.href );
 

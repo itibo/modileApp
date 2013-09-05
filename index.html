@@ -39,14 +39,12 @@
         </h1>
       </div><!-- /header -->
       <div data-role="content">
+        <h5>User: {{userInfo.display_name}}, {{userInfo.role}}</h5>
         <div style="text-align:center; margin: 0 auto;">
-          <img style="width: 178px; height: 189px" src="img/DiamondContractServicesLogo.jpg">
+          <img src="img/dcs-logo.png">
         </div>
-        <h5>
-          You are logged in as {{userInfo.display_name}} ({{userInfo.role}})
-        </h5>
         <ul data-role="listview" data-inset="true">
-          <li><a href="#my_jobs">Work Orders</a></li>
+          <li><a href="#my_jobs">Start QA Inspection</a></li>
           <li><a href="#siteslist">Sites list</a></li>
           <li><a href="#inspectionslog">Inspections Log</a></li>
           <li data-icon="delete"><a href="#logout">Logout</a></li>
@@ -56,17 +54,16 @@
     <script id="myjobs-tpl" type="text/x-handlebars-template">
       <div data-role="header">
         <h1>
-          <span class="address">Work Orders<br/>&nbsp;</span>
+          <span class="address">Start QA Inspection<br/>&nbsp;</span>
           <span class="btn-back">
             <a href="/#welcome" class="ui-btn-right" data-role="button">Back</a>
           </span>
         </h1>
       </div><!-- /header -->
       <div data-role="content">
-        <h5>
-          You are logged in as {{userInfo.display_name}} ({{userInfo.role}})
-        </h5>
+        <h5>User: {{userInfo.display_name}}, {{userInfo.role}}</h5>
         {{ListOfAvailiableJobsContent}}
+        <p><input type="button" id="recheck" value="Re-check"/></p>
       </div><!-- /content -->
     </script>
     <script id="siteslist-tpl" type="text/x-handlebars-template">
@@ -79,9 +76,7 @@
         </h1>
       </div><!-- /header -->
       <div data-role="content">
-        <h5>
-          You are logged in as {{userInfo.display_name}} ({{userInfo.role}})
-        </h5>
+        <h5>User: {{userInfo.display_name}}, {{userInfo.role}}</h5>
         {{#ListOfAvailiableSitesContent sites}}{{/ListOfAvailiableSitesContent}}
       </div><!-- /content -->
     </script>
@@ -118,7 +113,7 @@
       </div><!-- /header -->
       <div data-role="content">
         <div style="text-align:center; margin: 0 auto;">
-          <img style="width: 178px; height: 189px" src="img/DiamondContractServicesLogo.jpg">
+          <img src="img/dcs-logo-2.png">
         </div>
         <div style="width: 300px; text-align:center; margin: 0 auto;">
           <!--<form method="post">-->
@@ -146,9 +141,7 @@
         </h1>
       </div><!-- /header -->
       <div data-role="content">
-        <h5>
-          You are logged in as {{userInfo.display_name}} ({{userInfo.role}})
-        </h5>
+        <h5>User: {{userInfo.display_name}}, {{userInfo.role}}</h5>
         {{#ListInspectionsLog inspectionsLog}}{{/ListInspectionsLog}}
       </div><!-- /content -->
     </script>

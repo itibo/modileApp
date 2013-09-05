@@ -41,19 +41,24 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
   var items = inspectionsLog.log;
   if (items.length>0 || inspectionsLog.unsubmitted){
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
-        "<li data-role=\"list-divider\" role=\"heading\">There is a log of assigned to you inspections</li>";
+        "<li data-role=\"list-divider\" role=\"heading\">Last accomplished inspections:</li>";
 
     if (inspectionsLog.unsubmitted){
       out = out + "<li>" + inspectionsLog.unsubmitted.site  + " (" + inspectionsLog.unsubmitted.address + ") (UNSUBMITTED)</li>";
     }
 
     for(var i=0, l=items.length; i<l; i++) {
-      out = out + "<li>" + items[i].site  + " (" + items[i].address + ") " +
+      out = out + "<li>" + items[i].site  + " (<span style=\"font-size: 0.8em; font-style: italic;\">" + items[i].address + "&nbsp;</span>) " +
           "<br />" +
-          "<span style=\"font-size: 0.8em;\">Percent: " + items[i].percent + " %</span>" +
+          "<span style=\"font-size: 0.8em;\">Total points: " + items[i].total_points + "</span>" +
           "<br />" +
-          "<span style=\"font-size: 0.8em;\">Inspection started: " + items[i].arrival_time + "</span>&nbsp;" +
-          "<span style=\"font-size: 0.8em;\">Inspection submitted: " + items[i].departure_time + "</span>" +
+          "<span style=\"font-size: 0.8em;\">Points: " + items[i].points + "</span>" +
+          "<br />" +
+          "<span style=\"font-size: 0.8em;\">Percent: " + items[i].percent + "%</span>" +
+          "<br />" +
+          "<span style=\"font-size: 0.8em;\">Arrival time: " + items[i].arrival_time + "</span>" +
+          "<br />" +
+          "<span style=\"font-size: 0.8em;\">Departure time: " + items[i].departure_time + "</span>" +
         "</li>";
     }
   } else {

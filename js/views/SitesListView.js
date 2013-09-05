@@ -24,7 +24,7 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function(items) {
   var out = "";
   if (items.length>0){
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
-        "<li data-role=\"list-divider\" role=\"heading\">There are a list of sites assigned to you</li>";
+        "<li data-role=\"list-divider\" role=\"heading\">The following sites are assigned to you:</li>";
     for(var i=0, l=items.length; i<l; i++) {
       out = out + "<li>" + items[i].site  + " (" + items[i].address + ") " +
 //          "<br />" +

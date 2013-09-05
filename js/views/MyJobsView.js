@@ -40,6 +40,13 @@ var MyJobsView = function() {
       self.inspect.call(self, id);
     });
 
+    this.el.on('click', '#recheck', function(event){
+      event.preventDefault();
+      app.jobsAvailiableToInspect = [];
+      app.check(true, function(){
+        $('body>div#main').html(new MyJobsView().render().el).trigger('pagecreate');
+      });
+    });
   };
 
   this.initialize();
@@ -53,21 +60,54 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
     return false;
   })();
 
+  var sites_for_inspect = (function(){
+    var tmp = {
+      assigned: [],
+      not_assigned: []
+    };
+
+    $.each(app.jobsAvailiableToInspect, function(i,v){
+      if(v.assigned){
+        tmp.assigned.push(v);
+      } else {
+        tmp.not_assigned.push(v);
+      }
+    });
+
+    return tmp;
+  })();
+
   var out="";
   if ( app.jobsAvailiableToInspect.length > 0 ){
+    out="<p>Below are the list of sites available for inspection in current position. Please click on site name to start the inspection.</p>";
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
         "<li data-role=\"list-divider\" role=\"heading\">" +
-        "Below are the list of sites available for inspection in current position. Please click on site name to start the inspection." +
+        "Sites assigned to you" +
         "</li>";
-    for(var i=0, l=app.jobsAvailiableToInspect.length; i<l; i++) {
-      out = out + "<li><a id=\""+app.jobsAvailiableToInspect[i].id+"\" class=\"inspectable\">" +
-          app.jobsAvailiableToInspect[i].site  + " (" + app.jobsAvailiableToInspect[i].address + ")" +
-          ((unsubmitted_inspecion == app.jobsAvailiableToInspect[i].id) ? " (UNSUBMITTED)": "") +
+    if (sites_for_inspect.assigned.length > 0){
+      for(var i=0, l=sites_for_inspect.assigned.length; i<l; i++) {
+        out = out + "<li><a id=\""+sites_for_inspect.assigned[i].id+"\" class=\"inspectable\">" +
+            sites_for_inspect.assigned[i].site  + " (" + sites_for_inspect.assigned[i].address + ")" +
+            ((unsubmitted_inspecion == sites_for_inspect.assigned[i].id) ? " (UNSUBMITTED)": "") +
 //          "<br />" +
 //          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
-          "</a></li>";
+            "</a></li>";
+      }
+    }
+
+    if (sites_for_inspect.not_assigned.length > 0){
+      out = out + "<li data-role=\"list-divider\" role=\"heading\">Other sites</li>";
+      for(var i=0, l=sites_for_inspect.not_assigned.length; i<l; i++) {
+        out = out + "<li><a id=\""+sites_for_inspect.not_assigned[i].id+"\" class=\"inspectable\">" +
+            sites_for_inspect.not_assigned[i].site  + " (" + sites_for_inspect.not_assigned[i].address + ")" +
+            ((unsubmitted_inspecion == sites_for_inspect.not_assigned[i].id) ? " (UNSUBMITTED)": "") +
+//          "<br />" +
+//          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
+            "</a></li>";
+      }
     }
     out = out + "</ul>";
+
   } else {
     out = out + "<p>There are no sites available for inspection in current position.</p>";
   }
