@@ -199,7 +199,7 @@ var InspectionView = function(data) {
         $("a.clear", $popup).addClass("disabled");
       }
       $("input[type=hidden]", $popup).val($("input", clicked_block).attr("id"));
-      $("h2", $popup).html("<font>" + $("h2", $(clicked_block).parents("div[data-role=content]").eq(0)).html() + "</font><br />" + $("div", $(event.currentTarget)).html());
+      $("h2", $popup).html("<font>" + $("h2", $(clicked_block).parents("div[data-role=content]").eq(0)).text() + "</font><br />" + $("div", $(event.currentTarget)).text());
       $overlay.appendTo("body").trigger("create");
 
       $popup.css( "left",  Math.round( ($(window).width() - $popup.width())/2 ) );
