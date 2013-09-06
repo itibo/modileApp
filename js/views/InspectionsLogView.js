@@ -7,7 +7,7 @@ var InspectionsLogView = function(data) {
       var result = null;
       var saved_inspection = app.getJobInspectionContainer();
       if ("submitting" == saved_inspection.status){
-        $.each(app.jobsAvailiableToInspect, function(i,v){
+        $.each(app.sitesToInspect(), function(i,v){
           if (saved_inspection.id == v.id){
             result = v;
             return false;

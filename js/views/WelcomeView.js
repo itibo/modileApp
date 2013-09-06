@@ -11,7 +11,7 @@ var WelcomeView = function() {
   this.render = function() {
     var context = {};
     context.userInfo = app.getUserInfo();
-    context.jobsAvailiableToInspect = app.jobsAvailiableToInspect;
+//    context.jobsAvailiableToInspect = app.sitesToInspect();
 
     this.el.html(WelcomeView.template(context));
     return this;

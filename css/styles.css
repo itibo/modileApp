@@ -80,7 +80,11 @@ div.block.active .number.na { font-size:1.6em; top:0px; }
 
 /* = Textarea + Submit button = */
 .ui-content h3 { padding-right:1em; }
-.ui-content h3, .block-submit { float:left; }
+.ui-content h3, .block-textarea { float:left; }
+.ui-content h3{ width: 20%; }
+.block-textarea { width: 70%; }
+.ui-content .block-submit { clear: both; width: 160px; margin: 0 auto; }
+
 .ui-content h3 font { font-weight:normal; }
 .ui-submit {
     border: 1px solid #044062;

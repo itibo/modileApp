@@ -3,7 +3,6 @@ var MyJobsView = function() {
   this.render = function() {
     var context = {};
     context.userInfo = app.getUserInfo();
-    context.jobsAvailiableToInspect = app.jobsAvailiableToInspect;
     this.el.html(MyJobsView.template(context));
     return this;
   };
@@ -12,7 +11,7 @@ var MyJobsView = function() {
     id = id || "";
     var site_name = (function(site_id){
         var tmp = "";
-        $.each(app.jobsAvailiableToInspect, function(i, v){
+        $.each(app.sitesToInspect(), function(i, v){
           if (v.id == site_id){
             tmp = v.site;
             return false;
@@ -42,7 +41,6 @@ var MyJobsView = function() {
 
     this.el.on('click', '#recheck', function(event){
       event.preventDefault();
-      app.jobsAvailiableToInspect = [];
       app.check(true, function(){
         $('body>div#main').html(new MyJobsView().render().el).trigger('pagecreate');
       });
@@ -66,7 +64,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
       not_assigned: []
     };
 
-    $.each(app.jobsAvailiableToInspect, function(i,v){
+    $.each(app.sitesToInspect(), function(i,v){
       if(v.assigned){
         tmp.assigned.push(v);
       } else {
@@ -78,7 +76,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
   })();
 
   var out="";
-  if ( app.jobsAvailiableToInspect.length > 0 ){
+  if ( (app.sitesToInspect()).length > 0 ){
     out="<p>Below are the list of sites available for inspection in current position. Please click on site name to start the inspection.</p>";
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
         "<li data-role=\"list-divider\" role=\"heading\">" +

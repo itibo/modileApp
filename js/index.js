@@ -11,11 +11,29 @@ var app = {
     // как часто в милисекундах проверять геопозицию
     this.watchPositionTimeout = 300000;
     this.senderIDforPushMsg = "216199045656";
-    // джобы, доступные к инспекции
-    this.jobsAvailiableToInspect=[];
     this.current_page = "";
     this.online_flag = true;
     this.check_interval_flag = false;
+
+
+    // сайты, доступные к инспекции
+    this.sitesToInspect = function(){
+      return window.localStorage.getItem("sitesToInspect") ? JSON.parse(window.localStorage.getItem("sitesToInspect")) : [];
+    };
+
+    this.setSitesToInspect = function(data, i){
+      if (typeof i != "undefined"){
+        var savetSitesToInspect = app.sitesToInspect();
+        if ( "last" == i ){
+          data = savetSitesToInspect.push(data);
+        } else {
+          savetSitesToInspect[i] = data;
+          data = savetSitesToInspect;
+        }
+      }
+      window.localStorage.setItem("sitesToInspect", JSON.stringify(data));
+      return;
+    };
 
     this.token = function(){
       return window.localStorage.getItem("token") ? window.localStorage.getItem("token") : false;
@@ -271,11 +289,9 @@ var app = {
               crossDomain: true,
               dataType: 'json',
               global: (typeof callback == "function")? true : false,
+              timeout: 3000,
               success: function(data) {
-                app.jobsAvailiableToInspect = [];
-                $.each(data.jobs, function(ind,v){
-                  app.jobsAvailiableToInspect.push(v);
-                });
+                app.setSitesToInspect(data.jobs);
                 (new WelcomeView()).updateContent();
 
                 if(typeof callback == "function"){
@@ -314,24 +330,20 @@ var app = {
             global: (typeof callback == "function")? true : false,
             success: function(data) {
               app.coordinates = (app.coordinates).slice(coordinates.length);
+              var savedSitesToInspect = app.sitesToInspect();
               $.each(data.jobs, function(ind,v){
-                var job_already_exist = false,
-                    job_updated = false;
-                for(var i=0; i < app.jobsAvailiableToInspect.length; i++) {
-                  if(v.id == app.jobsAvailiableToInspect[i].id){
-                    job_already_exist = true;
-                    if (v.last_inspection != app.jobsAvailiableToInspect[i].last_inspection){
-                      job_updated = i;
+                var new_site = true;
+                for(var i=0; i < savedSitesToInspect.length; i++) {
+                  if(v.id == savedSitesToInspect[i].id){
+                    new_site = false;
+                    if (v.last_inspection != savedSitesToInspect[i].last_inspection){
+                      app.setSitesToInspect(v, i);
                     }
                     break;
                   }
                 }
-                if (!job_already_exist){
-                  app.jobsAvailiableToInspect.push(v);
-                }else{
-                  if (job_updated !== false){
-                    app.jobsAvailiableToInspect[job_updated] = v;
-                  }
+                if (new_site){
+                  app.setSitesToInspect(v, "last");
                 }
               });
               (new WelcomeView()).updateContent();
@@ -507,6 +519,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
+        timeout: 3000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -557,6 +570,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
+        timeout: 3000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -690,6 +704,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
+        timeout: 3000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -733,7 +748,7 @@ var app = {
         if (inspect_job_cont.id != id_in_job_avail_to_inspect){
           var job_info = (function(id){
             var tmp = {};
-            $.each(app.jobsAvailiableToInspect, function(i,v){
+            $.each(app.sitesToInspect(), function(i,v){
               if(v.id == id){
                 tmp = {
                   job_id: v.job_id,
@@ -828,6 +843,7 @@ var app = {
           cache: false,
           crossDomain: true,
           dataType: 'json',
+          timeout: 3000,
           success: function() {
             if (success_clb && typeof success_clb == "function"){
               success_clb();
@@ -948,7 +964,7 @@ var app = {
       app.stopCheckInterval();
       app.setToken(false);
       app.coordinates = [];
-      app.jobsAvailiableToInspect=[];
+      app.setSitesToInspect([]);
       app.setJobInspectionContainer(false);
 
       app.route();
@@ -969,6 +985,7 @@ var app = {
           cache: false,
           crossDomain: true,
           dataType: 'json',
+          timeout: 3000,
           success: function(data) {
             logout_process();
           },
@@ -1042,12 +1059,12 @@ var app = {
   },
 
   errorAlert: function(error, title, callback){
+    var msg = {};
     if (error.status == 0){
       msg.message = "Service unavailable. Please try later.";
     } else {
       msg = $.parseJSON(error.responseText);
     }
-
     navigator.notification.alert(
         msg.message, // message
         callback,    // callback

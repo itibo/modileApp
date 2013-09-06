@@ -10,7 +10,7 @@ var InspectionView = function(data) {
     var site = (function(){
       var obj = {};
 
-      $.each(app.jobsAvailiableToInspect, function(i,v){
+      $.each(app.sitesToInspect(), function(i,v){
         if (job_inspect_container.id == v.id){
           obj = v;
           return false;
@@ -217,8 +217,6 @@ var InspectionView = function(data) {
 
 }
 
-
-// третья верстка
 Handlebars.registerHelper('checkListContent', function(container){
   var out = "";
   var _items = container.checkList;
@@ -243,9 +241,11 @@ Handlebars.registerHelper('checkListContent', function(container){
   //begin of textarea and submit
   out = out +
       "<div data-role=\"content\">" +
-      "<h3>Notes <br /><font>(optional):</font></h3>" +
-        "<div class=\"block-submit\">" +
+        "<h3>Notes <br /><font>(optional):</font></h3>" +
+        "<div class=\"block-textarea\">" +
           "<textarea id=\"comment\" name=\"comment\">" + comment + "</textarea>" +
+        "</div>" +
+        "<div class=\"block-submit\">" +
           "<input type=\"submit\" value=\"Submit\" />"+
         "</div>" +
       "</div>";
