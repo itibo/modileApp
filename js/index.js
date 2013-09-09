@@ -270,8 +270,15 @@ var app = {
   check: function(use_geofence, callback){
     var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
-    var autoconnect = app.autoconnect_flag;
-    var cancell_inspection = app.cancell_inspection();
+    var status = (function(){
+      if (app.cancell_inspection()){
+        return 2;
+      } else if (app.autoconnect_flag) {
+        return 1;
+      } else {
+        return 0;
+      }
+    })();
 
     var ajax_call = function(position, success_callback, error_callback){
       $.ajax({
@@ -285,7 +292,7 @@ var app = {
         data: {
           id: token,
           use_geofence: use_geofence,
-          status: autoconnect ? (cancell_inspection ? 2 : 1) : 0,
+          status: status,
           all_jobs: (typeof callback == "function")? true : false,
           gps: position
         },
@@ -385,7 +392,6 @@ var app = {
           });
         } else {
           $.when( app.get_position(), app.check_online() ).done(function(_obj1, _obj2){
-            alert("success _obj: " + JSON.stringify(_obj1));
             ajax_call(
                 _obj1.position,
                 function(data) {
@@ -781,17 +787,16 @@ var app = {
           return false;
         },
         error: function(error){
-          alert(JSON.stringify(error));
-//          app.errorAlert(error, "Error", function(){
-//            if (error.status == 401){
-//              app.setToken(false);
-//              app.route();
-//            } else {
-//              app.errorAlert(error, "Error", function(){
-//                app.route();
-//              });
-//            }
-//          });
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              app.setToken(false);
+              app.route();
+            } else {
+              app.errorAlert(error, "Error", function(){
+                app.route();
+              });
+            }
+          });
         }
       });
     };
