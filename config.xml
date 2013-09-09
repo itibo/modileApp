@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <widget id="com.azati.dcsmobilen" version="0.0.2" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>DCS - QA Inspections</name>
     <description>
@@ -7,8 +7,13 @@
     <author email="stepan.kravtsevich@azati.com" href="http://azati.com">
         azati team
     </author>
-	
+
 	<cdv:plugin name="GenericPush" /> <!-- latest release -->
+
+    <access origin="*" />
+    <preference name="fullscreen" value="false" />
+    <preference name="webviewbounce" value="true" />
+    <preference name="prerendered-icon"           value="true" />           <!-- ios: if icon is prerendered, iOS will not apply it's gloss to the app's icon on the user's home screen -->
 
     <!-- Define app icon for each platform. -->
     <icon src="icon.png" />
@@ -16,9 +21,13 @@
     <icon src="res/icon/android/icon-48-mdpi.png"   gap:platform="android"    gap:density="mdpi" />
     <icon src="res/icon/android/icon-72-hdpi.png"   gap:platform="android"    gap:density="hdpi" />
     <icon src="res/icon/android/icon-96-xhdpi.png"  gap:platform="android"    gap:density="xhdpi" />
-
-    <access origin="*" />
-    <preference name="fullscreen" value="false" />
-    <preference name="webviewbounce" value="true" />
-
+    <icon src="res/icon/blackberry/icon-80.png"     gap:platform="blackberry" />
+    <icon src="res/icon/blackberry/icon-80.png"     gap:platform="blackberry" gap:state="hover"/>
+    <icon src="res/icon/ios/icon-57.png"            gap:platform="ios"        width="57" height="57" />
+    <icon src="res/icon/ios/icon-72.png"            gap:platform="ios"        width="72" height="72" />
+    <icon src="res/icon/ios/icon-57-2x.png"         gap:platform="ios"        width="114" height="114" />
+    <icon src="res/icon/ios/icon-72-2x.png"         gap:platform="ios"        width="144" height="144" />
+    <icon src="res/icon/webos/icon-64.png"          gap:platform="webos" />
+    <icon src="res/icon/windows-phone/icon-48.png"  gap:platform="winphone" />
+    <icon src="res/icon/windows-phone/icon-173.png" gap:platform="winphone"   gap:role="background" />
 </widget>
