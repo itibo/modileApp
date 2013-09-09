@@ -78,6 +78,12 @@ div.block.active .number {
 }
 div.block.active .number.na { font-size:1.6em; top:0px; }
 
+
+ul[data-role=listview] li a.inspectable {
+    white-space:normal !important;
+    overflow: visible !important;
+}
+
 /* = Textarea + Submit button = */
 .ui-content h3 { padding-right:1em; }
 .ui-content h3, .block-textarea { float:left; }
@@ -413,11 +419,16 @@ div.block.active .number.na { font-size:1.6em; top:0px; }
     padding: 0 20px 20px 20px;
 }
 
+.pop_up .popup_content h2{
+    font-size: 0.9em;
+}
+
 .pop_up .popup_content h2 font{
     color: #757575;
-    font-size: 0.7em;
+    font-size: 0.9em;
     font-weight: normal;
 }
+
 
 .pop_up .popup_content a {
     background-image: linear-gradient(to bottom, #FFFFFF 0%, #E4E4E4 100%);

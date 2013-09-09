@@ -377,11 +377,17 @@ var app = {
                   if(typeof callback == "function"){
                     callback();
                   }
+                  if ($("#overlay").is(':visible')){
+                    $("#overlay").hide();
+                  }
                 },
                 function(error){
                   if (error.status == 401){
                     app.setToken(false);
                     app.route();
+                  }
+                  if ($("#overlay").is(':visible')){
+                    $("#overlay").hide();
                   }
                 }
             );
@@ -419,11 +425,17 @@ var app = {
                   if(typeof callback == "function"){
                     callback();
                   }
+                  if ($("#overlay").is(':visible')){
+                    $("#overlay").hide();
+                  }
                 },
                 function(error){
                   if (error.status == 401){
                     app.setToken(false);
                     app.route();
+                  }
+                  if ($("#overlay").is(':visible')){
+                    $("#overlay").hide();
                   }
                 }
             );
