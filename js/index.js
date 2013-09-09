@@ -15,8 +15,15 @@ var app = {
     this.online_flag = true;
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
-    this.cancell_inspection = false;
 
+    this.cancell_inspection = function(data){
+      if (typeof data != "undefined"){
+        window.localStorage.setItem("cancellInspection", JSON.stringify(data));
+        return;
+      } else {
+        return window.localStorage.getItem("cancellInspection") ? JSON.parse(window.localStorage.getItem("cancellInspection")) : false;
+      }
+    };
 
     // сайты, доступные к инспекции
     this.sitesToInspect = function(){
@@ -254,6 +261,7 @@ var app = {
 
   startCheckInterval: function(){
     if(app.token() && !app.check_interval_flag){
+      app.check();
       app.check_interval_flag = setInterval(app.check, app.watchPositionTimeout);
     }
   },
@@ -263,50 +271,61 @@ var app = {
     var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
     var autoconnect = app.autoconnect_flag;
-    var cancell_inspection = app.cancell_inspection;
+    var cancell_inspection = app.cancell_inspection();
 
-    if (app.online_flag){
-      var token = app.token();
-      if (token){
-        if (app.getJobInspectionContainer().status == "submitting"){
-          app.submitInspection(function(){
+    var ajax_call = function(position, success_callback, error_callback){
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/check.json',
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        global: (typeof callback == "function")? true : false,
+        timeout: 10000,
+        data: {
+          id: token,
+          use_geofence: use_geofence,
+          status: autoconnect ? (cancell_inspection ? 2 : 1) : 0,
+          all_jobs: (typeof callback == "function")? true : false,
+          gps: position
+        },
+        success: function(data){
+          success_callback(data);
+        },
+        error: function(error){
+          error_callback(error);
+        }
+      });
+    };
+
+
+    var token = app.token();
+    if (token){
+      if (app.getJobInspectionContainer().status == "submitting"){
+        app.submitInspection(function(){
               app.setJobInspectionContainer(false);
             },
             function(error){
               // do nothing
             },
             coordinates
-          );
-        }
+        );
+      }
 
-        if ( use_geofence ){
-          $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
-            $.ajax({
-              type: "POST",
-              url: app.site+'/mobile/check.json',
-              data: {
-                id: token,
-                use_geofence: use_geofence,
-                status: autoconnect ? (cancell_inspection ? 2 : 1) : 0,
-                all_jobs: (typeof callback == "function")? true : false,
-                gps: obj1.position
-              },
-              cache: false,
-              crossDomain: true,
-              dataType: 'json',
-              global: (typeof callback == "function")? true : false,
-              timeout: 10000,
-              success: function(data) {
+      if ( use_geofence ){
+        $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2){
+          ajax_call(
+              obj1.position,
+              function(data) {
                 app.autoconnect_flag = false;
-                app.cancell_inspection = false;
+                app.cancell_inspection(false);
                 app.setSitesToInspect(data.jobs);
                 (new WelcomeView()).updateContent();
-
                 if(typeof callback == "function"){
                   callback();
                 }
               },
-              error: function(error){
+              function(error){
                 if (error.status == 401){
                   app.setToken(false);
                   app.route();
@@ -314,70 +333,104 @@ var app = {
                   app.route();
                 }
               }
+          );
+        }).fail(function(obj){
+              app.connecting_error(obj.error.message);
+              if ($("#overlay").is(':visible')){
+                $("#overlay").hide();
+              }
             });
+      } else {
+        if (coordinates.length > 0){
+          $.when(app.check_online()).done(function(_obj){
+            ajax_call(
+                coordinates,
+                function(data) {
+                  app.autoconnect_flag = false;
+                  app.cancell_inspection(false);
+                  app.coordinates = (app.coordinates).slice(coordinates.length);
+                  var savedSitesToInspect = app.sitesToInspect();
+                  $.each(data.jobs, function(ind,v){
+                    var new_site = true;
+                    for(var i=0; i < savedSitesToInspect.length; i++) {
+                      if(v.id == savedSitesToInspect[i].id){
+                        new_site = false;
+                        if (v.last_inspection != savedSitesToInspect[i].last_inspection){
+                          app.setSitesToInspect(v, i);
+                        }
+                        break;
+                      }
+                    }
+                    if (new_site){
+                      app.setSitesToInspect(v, "last");
+                    }
+                  });
+                  (new WelcomeView()).updateContent();
 
-          }).fail(function(obj){
-            app.connecting_error(obj.error.message);
+                  if(typeof callback == "function"){
+                    callback();
+                  }
+                },
+                function(error){
+                  if (error.status == 401){
+                    app.setToken(false);
+                    app.route();
+                  }
+                }
+            );
+          }).fail(function(_obj){
             if ($("#overlay").is(':visible')){
               $("#overlay").hide();
             }
           });
-        } else if (coordinates.length > 0 ) {
-          $.ajax({
-            type: "POST",
-            url: app.site+'/mobile/check.json',
-            data: {
-              id: token,
-              use_geofence: use_geofence,
-              status: autoconnect ? (cancell_inspection ? 2 : 1) : 0,
-              all_jobs: (typeof callback == "function")? true : false,
-              gps: coordinates
-            },
-            cache: false,
-            crossDomain: true,
-            dataType: 'json',
-            global: (typeof callback == "function")? true : false,
-            success: function(data) {
-              app.autoconnect_flag = false;
-              app.cancell_inspection = false;
-              app.coordinates = (app.coordinates).slice(coordinates.length);
-              var savedSitesToInspect = app.sitesToInspect();
-              $.each(data.jobs, function(ind,v){
-                var new_site = true;
-                for(var i=0; i < savedSitesToInspect.length; i++) {
-                  if(v.id == savedSitesToInspect[i].id){
-                    new_site = false;
-                    if (v.last_inspection != savedSitesToInspect[i].last_inspection){
-                      app.setSitesToInspect(v, i);
+        } else {
+          $.when( app.get_position(), app.check_online() ).done(function(_obj1, _obj2){
+            alert("success _obj: " + JSON.stringify(_obj1));
+            ajax_call(
+                _obj1.position,
+                function(data) {
+                  app.autoconnect_flag = false;
+                  app.cancell_inspection(false);
+                  app.coordinates = (app.coordinates).slice(coordinates.length);
+                  var savedSitesToInspect = app.sitesToInspect();
+                  $.each(data.jobs, function(ind,v){
+                    var new_site = true;
+                    for(var i=0; i < savedSitesToInspect.length; i++) {
+                      if(v.id == savedSitesToInspect[i].id){
+                        new_site = false;
+                        if (v.last_inspection != savedSitesToInspect[i].last_inspection){
+                          app.setSitesToInspect(v, i);
+                        }
+                        break;
+                      }
                     }
-                    break;
+                    if (new_site){
+                      app.setSitesToInspect(v, "last");
+                    }
+                  });
+                  (new WelcomeView()).updateContent();
+
+                  if(typeof callback == "function"){
+                    callback();
+                  }
+                },
+                function(error){
+                  if (error.status == 401){
+                    app.setToken(false);
+                    app.route();
                   }
                 }
-                if (new_site){
-                  app.setSitesToInspect(v, "last");
-                }
-              });
-              (new WelcomeView()).updateContent();
-
-              if(typeof callback == "function"){
-                callback();
-              }
-            },
-            error: function(error){
-              if (error.status == 401){
-                app.setToken(false);
-                app.route();
-              } else{
-                // do nothing
-              }
+            );
+          }).fail(function(_obj){
+            app.connecting_error(_obj.error.message);
+            if ($("#overlay").is(':visible')){
+              $("#overlay").hide();
             }
           });
         }
-      } else {
-        app.route();
       }
-    } else if (typeof callback == "function" && !app.online_flag) {
-      app.connecting_error();
+    } else {
+      app.route();
     }
   },
 
@@ -728,16 +781,17 @@ var app = {
           return false;
         },
         error: function(error){
-          app.errorAlert(error, "Error", function(){
-            if (error.status == 401){
-              app.setToken(false);
-              app.route();
-            } else {
-              app.errorAlert(error, "Error", function(){
-                app.route();
-              });
-            }
-          });
+          alert(JSON.stringify(error));
+//          app.errorAlert(error, "Error", function(){
+//            if (error.status == 401){
+//              app.setToken(false);
+//              app.route();
+//            } else {
+//              app.errorAlert(error, "Error", function(){
+//                app.route();
+//              });
+//            }
+//          });
         }
       });
     };
@@ -1027,6 +1081,7 @@ var app = {
           navigator.notification.confirm("Do you want to cancel this inspection?",
               function(buttonIndex){
                 if(2 == buttonIndex){
+                  app.cancell_inspection(true);
                   app.setJobInspectionContainer(false);
                   app.route({
                     toPage: window.location.href + "#my_jobs"

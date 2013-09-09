@@ -86,6 +86,7 @@ var InspectionView = function(data) {
     navigator.notification.confirm("Do you want to cancel this inspection?",
       function(buttonIndex){
         if(2 == buttonIndex){
+          app.cancell_inspection(true);
           app.setJobInspectionContainer(false);
           app.route({
             toPage: window.location.href + "#my_jobs"
