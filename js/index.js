@@ -14,6 +14,8 @@ var app = {
     this.current_page = "";
     this.online_flag = true;
     this.check_interval_flag = false;
+    this.autoconnect_flag = false;
+    this.cancell_inspection = false;
 
 
     // сайты, доступные к инспекции
@@ -135,6 +137,7 @@ var app = {
     }
 
     if(self.token()){
+      self.autoconnect_flag = true;
       self.updatePosition();
       self.startCheckInterval();
     }
@@ -259,6 +262,8 @@ var app = {
   check: function(use_geofence, callback){
     var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
+    var autoconnect = app.autoconnect_flag;
+    var cancell_inspection = app.cancell_inspection;
 
     if (app.online_flag){
       var token = app.token();
@@ -282,6 +287,7 @@ var app = {
               data: {
                 id: token,
                 use_geofence: use_geofence,
+                status: autoconnect ? (cancell_inspection ? 2 : 1) : 0,
                 all_jobs: (typeof callback == "function")? true : false,
                 gps: obj1.position
               },
@@ -289,8 +295,10 @@ var app = {
               crossDomain: true,
               dataType: 'json',
               global: (typeof callback == "function")? true : false,
-              timeout: 3000,
+              timeout: 10000,
               success: function(data) {
+                app.autoconnect_flag = false;
+                app.cancell_inspection = false;
                 app.setSitesToInspect(data.jobs);
                 (new WelcomeView()).updateContent();
 
@@ -303,7 +311,7 @@ var app = {
                   app.setToken(false);
                   app.route();
                 } else{
-                  // do nothing
+                  app.route();
                 }
               }
             });
@@ -321,6 +329,7 @@ var app = {
             data: {
               id: token,
               use_geofence: use_geofence,
+              status: autoconnect ? (cancell_inspection ? 2 : 1) : 0,
               all_jobs: (typeof callback == "function")? true : false,
               gps: coordinates
             },
@@ -329,6 +338,8 @@ var app = {
             dataType: 'json',
             global: (typeof callback == "function")? true : false,
             success: function(data) {
+              app.autoconnect_flag = false;
+              app.cancell_inspection = false;
               app.coordinates = (app.coordinates).slice(coordinates.length);
               var savedSitesToInspect = app.sitesToInspect();
               $.each(data.jobs, function(ind,v){
@@ -519,7 +530,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
-        timeout: 3000,
+        timeout: 10000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -570,7 +581,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
-        timeout: 3000,
+        timeout: 10000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -704,7 +715,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
-        timeout: 3000,
+        timeout: 10000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -843,7 +854,7 @@ var app = {
           cache: false,
           crossDomain: true,
           dataType: 'json',
-          timeout: 3000,
+          timeout: 10000,
           success: function() {
             if (success_clb && typeof success_clb == "function"){
               success_clb();
@@ -985,7 +996,7 @@ var app = {
           cache: false,
           crossDomain: true,
           dataType: 'json',
-          timeout: 3000,
+          timeout: 10000,
           success: function(data) {
             logout_process();
           },
