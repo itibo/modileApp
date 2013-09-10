@@ -455,7 +455,6 @@ var app = {
     var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
     var status = (function(){
-      alert(JSON.stringify(app.cancell_inspection()));
       if (app.cancell_inspection()){
         return 2;
       } else if (app.autoconnect_flag) {
@@ -522,7 +521,6 @@ var app = {
                 }
               });
         } else if (coordinates.length > 0 ) {
-          alert("check with coordinates.length > 0");
           $.ajax({
             type: "POST",
             url: app.site+'/mobile/check.json',
@@ -1213,7 +1211,6 @@ var app = {
             return false;
           },
           error: function(error){
-            alert("error ajax");
             app.errorAlert(error, "Error", function(){} );
           }
         });
