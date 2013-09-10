@@ -742,7 +742,7 @@ var app = {
                   error: error
                 });
               },
-              { maximumAge: 0, timeout: 1000 }
+              { maximumAge: 0, timeout: 3000 }
           );
         } else {
           $deferred.reject({
@@ -769,6 +769,7 @@ var app = {
         $deferred.reject({
           status: 'error',
           error: {
+            code: 4,
             message: "connection error"
           }
         });
@@ -1187,11 +1188,7 @@ var app = {
           data: {
             email: email,
             password: password,
-            gps: [{
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-              time: (new Date()).toUTCString()
-            }],
+            gps: pos,
             device: {
               uuid: device.uuid,
               platform: device.platform
@@ -1221,10 +1218,18 @@ var app = {
         app.connecting_error();
       }
     };
-    var error_getting_position = function(error){
-      app.errorAlert(error, "Error getting position", function(){} );
-    };
-    navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
+
+    $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+      success_getting_position(obj1.position);
+    }).fail(function(err_obj){
+      navigator.notification.alert(
+          (2 == err_obj.error.code) ? "Unable to determine your location. To continue you need to have at least 'Use wireless networks' option enabled in GPS settings." : err_obj.error.message, //message
+          function(){},    // callback
+          (4 == err_obj.error.code) ? "Internet connection error" : "GPS error", // title
+          'Ok'         // buttonName
+      );
+      $("#overlay").hide();
+    });
   },
 
   //logout
@@ -1357,9 +1362,10 @@ var app = {
     app.stopCheckInterval();
   },
 
-  connecting_error: function(msg, buttons){
-    var msg = msg || "There is internet connection problem.";
-    var buttons = buttons || "Refresh, Back to Main Page";
+  connecting_error: function(msg, buttons, title){
+    msg = msg || "There is internet connection problem.";
+    buttons = buttons || "Refresh, Back to Main Page";
+    title = title || "Internet connection problem";
     navigator.notification.confirm(
         msg,
         function(buttonIndex){
@@ -1371,7 +1377,7 @@ var app = {
             app.route();
           }
         },
-        "Internet connection problem",
+        title,
         buttons
     );
   }
