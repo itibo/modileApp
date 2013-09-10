@@ -268,7 +268,8 @@ var app = {
 
   //TODO: refactor, refactor and refactor again
   check: function(use_geofence, callback){
-    var use_geofence = use_geofence || false;
+
+/*    var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
     var status = (function(){
       if (app.cancell_inspection()){
@@ -449,6 +450,195 @@ var app = {
       }
     } else {
       app.route();
+    }*/
+
+    var use_geofence = use_geofence || false;
+    var coordinates = app.coordinates;
+    var status = (function(){
+      alert(JSON.stringify(app.cancell_inspection()));
+      if (app.cancell_inspection()){
+        return 2;
+      } else if (app.autoconnect_flag) {
+        return 1;
+      } else {
+        return 0;
+      }
+    })();
+
+    if (app.online_flag){
+      var token = app.token();
+      if (token){
+        if (app.getJobInspectionContainer().status == "submitting"){
+          app.submitInspection(function(){
+                app.setJobInspectionContainer(false);
+              },
+              function(error){
+                // do nothing
+              },
+              coordinates
+          );
+        }
+
+        if ( use_geofence ){
+          $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+            $.ajax({
+              type: "POST",
+              url: app.site+'/mobile/check.json',
+              data: {
+                id: token,
+                use_geofence: use_geofence,
+                status: status,
+                all_jobs: (typeof callback == "function")? true : false,
+                gps: obj1.position
+              },
+              cache: false,
+              crossDomain: true,
+              dataType: 'json',
+              global: (typeof callback == "function")? true : false,
+              timeout: 10000,
+              success: function(data) {
+                app.autoconnect_flag = false;
+                app.cancell_inspection(false);
+                app.setSitesToInspect(data.jobs);
+                (new WelcomeView()).updateContent();
+
+                if(typeof callback == "function"){
+                  callback();
+                }
+              },
+              error: function(error){
+                if (error.status == 401){
+                  app.setToken(false);
+                  app.route();
+                } else{
+                  app.route();
+                }
+              }
+            });
+          }).fail(function(obj){
+                app.connecting_error(obj.error.message);
+                if ($("#overlay").is(':visible')){
+                  $("#overlay").hide();
+                }
+              });
+        } else if (coordinates.length > 0 ) {
+          alert("check with coordinates.length > 0");
+          $.ajax({
+            type: "POST",
+            url: app.site+'/mobile/check.json',
+            data: {
+              id: token,
+              use_geofence: use_geofence,
+              status: status,
+              all_jobs: (typeof callback == "function")? true : false,
+              gps: coordinates
+            },
+            cache: false,
+            crossDomain: true,
+            dataType: 'json',
+            global: (typeof callback == "function")? true : false,
+            success: function(data) {
+              app.autoconnect_flag = false;
+              app.cancell_inspection(false);
+              app.coordinates = (app.coordinates).slice(coordinates.length);
+              var savedSitesToInspect = app.sitesToInspect();
+              $.each(data.jobs, function(ind,v){
+                var new_site = true;
+                for(var i=0; i < savedSitesToInspect.length; i++) {
+                  if(v.id == savedSitesToInspect[i].id){
+                    new_site = false;
+                    if (v.last_inspection != savedSitesToInspect[i].last_inspection){
+                      app.setSitesToInspect(v, i);
+                    }
+                    break;
+                  }
+                }
+                if (new_site){
+                  app.setSitesToInspect(v, "last");
+                }
+              });
+              (new WelcomeView()).updateContent();
+
+              if(typeof callback == "function"){
+                callback();
+              }
+            },
+            error: function(error){
+              if (error.status == 401){
+                app.setToken(false);
+                app.route();
+              } else{
+                // do nothing
+              }
+            }
+          });
+        } else if ( coordinates.length == 0 ) {
+          navigator.geolocation.getCurrentPosition(
+              function(position){
+                $.ajax({
+                  type: "POST",
+                  url: app.site+'/mobile/check.json',
+                  data: {
+                    id: token,
+                    use_geofence: use_geofence,
+                    status: status,
+                    all_jobs: (typeof callback == "function")? true : false,
+                    gps: [{
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude,
+                      time: (new Date()).toUTCString()
+                    }]
+                  },
+                  cache: false,
+                  crossDomain: true,
+                  dataType: 'json',
+                  global: (typeof callback == "function")? true : false,
+                  success: function(data) {
+                    app.autoconnect_flag = false;
+                    app.cancell_inspection(false);
+                    var savedSitesToInspect = app.sitesToInspect();
+                    $.each(data.jobs, function(ind,v){
+                      var new_site = true;
+                      for(var i=0; i < savedSitesToInspect.length; i++) {
+                        if(v.id == savedSitesToInspect[i].id){
+                          new_site = false;
+                          if (v.last_inspection != savedSitesToInspect[i].last_inspection){
+                            app.setSitesToInspect(v, i);
+                          }
+                          break;
+                        }
+                      }
+                      if (new_site){
+                        app.setSitesToInspect(v, "last");
+                      }
+                    });
+                    (new WelcomeView()).updateContent();
+
+                    if(typeof callback == "function"){
+                      callback();
+                    }
+                  },
+                  error: function(error){
+                    if (error.status == 401){
+                      app.setToken(false);
+                      app.route();
+                    } else{
+                      // do nothing
+                    }
+                  }
+                });
+              },
+              function(error){
+                // do nothing
+              },
+              {timeout:30000, maximumAge: 0}
+          );
+        }
+      } else {
+        app.route();
+      }
+    } else if (typeof callback == "function" && !app.online_flag) {
+      app.connecting_error();
     }
   },
 
@@ -1018,10 +1208,12 @@ var app = {
             app.setUserInfo($.extend({}, data.user));
             app.updatePosition();
             app.startCheckInterval();
+            app.cancell_inspection(false);
             app.route();
             return false;
           },
           error: function(error){
+            alert("error ajax");
             app.errorAlert(error, "Error", function(){} );
           }
         });
@@ -1048,6 +1240,8 @@ var app = {
       app.coordinates = [];
       app.setSitesToInspect([]);
       app.setJobInspectionContainer(false);
+      app.autoconnect_flag = false;
+      app.cancell_inspection(false);
 
       app.route();
     };

@@ -7,9 +7,14 @@
     <author email="stepan.kravtsevich@azati.com" href="http://azati.com">
         azati team
     </author>
-	
+
+    <icon src="res/icon/android/icon-36-ldpi.png" width="36" height="36" />
+    <icon src="res/icon/android/icon-48-mdpi.png" width="48" height="48" />
+    <icon src="res/icon/android/icon-72-hdpi.png" width="72" height="72" />
+    <icon src="res/icon/android/icon-96-xhdpi.png" width="96" height="96" />
+
 	<cdv:plugin name="GenericPush" /> <!-- latest release -->
-	
+
     <access origin="*" />
     <preference name="fullscreen" value="false" />
     <preference name="webviewbounce" value="true" />
