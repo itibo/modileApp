@@ -515,11 +515,11 @@ var app = {
               }
             });
           }).fail(function(obj){
-                app.connecting_error(obj.error.message);
-                if ($("#overlay").is(':visible')){
-                  $("#overlay").hide();
-                }
-              });
+            app.connecting_error(obj.error.message);
+            if ($("#overlay").is(':visible')){
+              $("#overlay").hide();
+            }
+          });
         } else if (coordinates.length > 0 ) {
           $.ajax({
             type: "POST",
