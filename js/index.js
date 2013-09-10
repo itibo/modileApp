@@ -1222,10 +1222,21 @@ var app = {
     $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
       success_getting_position(obj1.position);
     }).fail(function(err_obj){
+      var msg = (function(){
+        var message = "";
+        if (2 == err_obj.error.code){
+          message = "Unable to determine your location. To continue you need to have at least 'Use wireless networks' option enabled in GPS settings.";
+        } else if (4 == err_obj.error.code){
+          message = "Sorry, login failed to reach the Inspection server. Please check your network connection or try again later.";
+        } else {
+          message = err_obj.error.message;
+        }
+        return message;
+      })();
       navigator.notification.alert(
-          (2 == err_obj.error.code) ? "Unable to determine your location. To continue you need to have at least 'Use wireless networks' option enabled in GPS settings." : err_obj.error.message, //message
+          msg, //message
           function(){},    // callback
-          (4 == err_obj.error.code) ? "Internet connection error" : "GPS error", // title
+          (4 == err_obj.error.code) ? "Login Failed" : "GPS error", // title
           'Ok'         // buttonName
       );
       $("#overlay").hide();
