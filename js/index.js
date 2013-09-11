@@ -647,7 +647,6 @@ var app = {
       app.watchID = geolocation.watchPosition(
         function(position){
           if (app.watchID != null) {
-
             if (app.token()){
               if (typeof app.coordinates[app.coordinates.length - 1] != "undefined"){
                 var prev_loc = app.coordinates[app.coordinates.length - 1];
@@ -687,8 +686,7 @@ var app = {
         },
         {
           enableHighAccuracy: true,
-          maximumAge: 3000,
-          timeout: 2700
+          timeout: app.watchPositionTimeout
         }
       );
     }

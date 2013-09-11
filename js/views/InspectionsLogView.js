@@ -1,6 +1,19 @@
 var InspectionsLogView = function(data) {
   this.data = data || [];
 
+  this.test = (function(){
+    navigator.globalization.dateToString(
+        new Date(),
+        function(res) {
+          alert(JSON.stringify(res));
+        },
+        function() {
+          alert("error");
+        },
+        {selector:"date"}
+    );
+  })();
+
   this.render = function() {
     var self = this;
     var unsubmitted = (function(){
