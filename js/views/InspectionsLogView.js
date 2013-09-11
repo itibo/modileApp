@@ -61,6 +61,7 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
           "<span style=\"font-size: 0.8em;\">Departure time: " + items[i].departure_time + "</span>" +
         "</li>";
     }
+    out = out + "</ul>";
   } else {
     out = out + "<p>You haven't made any inspection yet.</p>";
   }

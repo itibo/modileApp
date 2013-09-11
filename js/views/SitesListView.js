@@ -31,6 +31,7 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function(items) {
 //          "<span style=\"font-size: 0.8em;\">Last inspection: " + ((items[i].last_inspection)? items[i].last_inspection : "never") + "</span>" +
           "</li>";
     }
+    out = out + "</ul>";
   } else {
     out = out + "<p>There are no availiable sites assigned to you.</p>";
   }

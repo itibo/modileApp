@@ -289,7 +289,7 @@ var app = {
         crossDomain: true,
         dataType: 'json',
         global: (typeof callback == "function")? true : false,
-        timeout: 10000,
+        timeout: 60000,
         data: {
           id: token,
           use_geofence: use_geofence,
@@ -494,7 +494,7 @@ var app = {
               crossDomain: true,
               dataType: 'json',
               global: (typeof callback == "function")? true : false,
-              timeout: 10000,
+              timeout: 60000,
               success: function(data) {
                 app.autoconnect_flag = false;
                 app.cancell_inspection(false);
@@ -742,7 +742,7 @@ var app = {
                   error: error
                 });
               },
-              { maximumAge: 0, timeout: 5000 }
+              { maximumAge: 0, timeout: 60000 }
           );
         } else {
           $deferred.reject({
@@ -790,7 +790,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
-        timeout: 10000,
+        timeout: 60000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -841,7 +841,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
-        timeout: 10000,
+        timeout: 60000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -975,7 +975,7 @@ var app = {
         cache: false,
         crossDomain: true,
         dataType: 'json',
-        timeout: 10000,
+        timeout: 60000,
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
@@ -1114,7 +1114,7 @@ var app = {
           cache: false,
           crossDomain: true,
           dataType: 'json',
-          timeout: 10000,
+          timeout: 60000,
           success: function() {
             if (success_clb && typeof success_clb == "function"){
               success_clb();
@@ -1274,7 +1274,7 @@ var app = {
           cache: false,
           crossDomain: true,
           dataType: 'json',
-          timeout: 10000,
+          timeout: 60000,
           success: function(data) {
             logout_process();
           },
