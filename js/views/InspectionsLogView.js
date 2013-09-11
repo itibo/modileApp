@@ -1,7 +1,7 @@
 var InspectionsLogView = function(data) {
   this.data = data || [];
 
-  this.test = (function(){
+/*  this.test = (function(){
     navigator.globalization.dateToString(
         new Date(),
         function(res) {
@@ -12,7 +12,7 @@ var InspectionsLogView = function(data) {
         },
         {selector:"date"}
     );
-  })();
+  })();*/
 
   this.render = function() {
     var self = this;
