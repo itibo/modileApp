@@ -570,7 +570,7 @@ var app = {
               }
             }
           });
-        } else if ( coordinates.length == 0 ) {
+        } else if ( 0 == coordinates.length && 1 == status ) {
           navigator.geolocation.getCurrentPosition(
               function(position){
                 $.ajax({
@@ -742,7 +742,7 @@ var app = {
                   error: error
                 });
               },
-              { maximumAge: 0, timeout: 3000 }
+              { maximumAge: 0, timeout: 5000 }
           );
         } else {
           $deferred.reject({
