@@ -467,8 +467,6 @@ var app = {
     var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
 
-    var status = app.getCheckStatus();
-
     if (app.online_flag){
       var token = app.token();
       if (token){
@@ -575,7 +573,7 @@ var app = {
               }
             }
           });
-        } else if ( 0 == coordinates.length && 1 == status ) {
+        } else if ( 0 == coordinates.length && 1 == app.getCheckStatus() ) {
           navigator.geolocation.getCurrentPosition(
               function(position){
                 $.ajax({
@@ -590,7 +588,7 @@ var app = {
                       lat: position.coords.latitude,
                       lng: position.coords.longitude,
                       time: (new Date()).toUTCString(),
-                      application_status: status
+                      application_status: 1
                     }]
                   },
                   cache: false,
