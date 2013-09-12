@@ -15,6 +15,7 @@ var app = {
     this.online_flag = true;
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
+    this.application_version = "0.0.2";
 
     this.cancell_inspection = function(data){
       if (typeof data != "undefined"){
@@ -1207,7 +1208,7 @@ var app = {
           dataType: 'json',
           success: function(data) {
             app.setToken(data.token);
-            app.setUserInfo($.extend({}, data.user));
+            app.setUserInfo(data.user);
             app.updatePosition();
             app.startCheckInterval();
             app.cancell_inspection(false);

@@ -1,18 +1,71 @@
 var InspectionsLogView = function(data) {
   this.data = data || [];
 
-/*  this.test = (function(){
-    navigator.globalization.dateToString(
-        new Date(),
-        function(res) {
-          alert(JSON.stringify(res));
-        },
-        function() {
-          alert("error");
-        },
-        {selector:"date"}
-    );
-  })();*/
+/*  this.data1 = (function(data1){
+    var return_arr = [];
+    $.each(data1, function(i,log_obj){
+      var return_data = {};
+      var transformed_dates = (function(){
+
+        $.extend(return_data,
+            $.Deferred(function(defer) {
+                  navigator.globalization.dateToString(
+                      new Date(log_obj.arrival_time),
+                      function(res) {
+                        defer.resolve({arrival_time: res.value});
+                      },
+                      function() {
+                        defer.resolve({arrival_time: log_obj.arrival_time});
+                      },
+                      {formatLength:'short', selector:"date and time"}
+                  )
+                }
+            )
+        );
+        $.extend(return_data,
+            $.Deferred(function(defer) {
+                  navigator.globalization.dateToString(
+                      new Date(log_obj.departure_time),
+                      function(res) {
+                        defer.resolve({departure_time: res.value});
+                      },
+                      function() {
+                        defer.resolve({departure_time: log_obj.departure_time});
+                      },
+                      {formatLength:'short', selector:"date and time"}
+                  )
+                }
+            )
+        );
+        $.extend(return_data,
+            $.Deferred(function(defer) {
+                  navigator.globalization.dateToString(
+                      new Date(log_obj.last_inspection_time),
+                      function(res) {
+                        defer.resolve({last_inspection_time: res.value});
+                      },
+                      function() {
+                        defer.resolve({last_inspection_time: log_obj.last_inspection_time});
+                      },
+                      {formatLength:'short', selector:"date and time"}
+                  )
+                }
+            )
+        );
+        return return_data;
+      })();
+
+      $.when.apply(null, transformed_dates).then(function(result){
+        var args = arguments;
+        alert("in then result: " + JSON.stringify(result));
+        alert("in then args: " + JSON.stringify(args));
+      }, function(err){
+        alert("in then err: " + JSON.stringify(err));
+      });
+      return false;
+    });
+    return return_arr;
+  })(data || []);*/
 
   this.render = function() {
     var self = this;
@@ -53,25 +106,25 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
   var out = "";
   var items = inspectionsLog.log;
   if (items.length>0 || inspectionsLog.unsubmitted){
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
-        "<li data-role=\"list-divider\" role=\"heading\">Last accomplished inspections:</li>";
-
+    out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
     if (inspectionsLog.unsubmitted){
-      out = out + "<li>" + inspectionsLog.unsubmitted.site  + " (" + inspectionsLog.unsubmitted.address + ") (UNSUBMITTED)</li>";
+      out = out + "<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + " (<span class=\"adress\">" + inspectionsLog.unsubmitted.address + "</span>) (UNSUBMITTED)</div></li>";
     }
 
     for(var i=0, l=items.length; i<l; i++) {
-      out = out + "<li>" + items[i].site  + " (<span style=\"font-size: 0.8em; font-style: italic;\">" + items[i].address + "&nbsp;</span>) " +
+      out = out + "<li><div class=\"left_points\">" + items[i].site  + " (<span class=\"adress\">" + items[i].address + "&nbsp;</span>) " +
           "<br />" +
-          "<span style=\"font-size: 0.8em;\">Total points: " + items[i].total_points + "</span>" +
-          "<br />" +
-          "<span style=\"font-size: 0.8em;\">Points: " + items[i].points + "</span>" +
-          "<br />" +
-          "<span style=\"font-size: 0.8em;\">Percent: " + items[i].percent + "%</span>" +
-          "<br />" +
-          "<span style=\"font-size: 0.8em;\">Arrival time: " + items[i].arrival_time + "</span>" +
-          "<br />" +
-          "<span style=\"font-size: 0.8em;\">Departure time: " + items[i].departure_time + "</span>" +
+          "<div class=\"points_time\">" +
+            "<span class=\"time\">Initiated: <font >" + items[i].arrival_time + "</font></span><br />" +
+            "<span class=\"time\">Completed: <font >" + items[i].departure_time + "</font></span>" +
+          "</div>" +
+          "</div>" +
+          "<div class=\"points\">" +
+            "<span class=\"points_class\">Points</span><br />" +
+            "<span class=\"big_points\">" + items[i].points + "</span><br />" +
+            "<span>of " + items[i].total_points + "</span><br />" +
+            "<span class=\"procent\">( " + items[i].percent + "%)</span>" +
+          "</div>" +
         "</li>";
     }
     out = out + "</ul>";

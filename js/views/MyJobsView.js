@@ -77,12 +77,10 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
 
   var out="";
   if ( (app.sitesToInspect()).length > 0 ){
-    out="<p>Below are the list of sites available for inspection in current position. Please click on site name to start the inspection.</p>";
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
-        "<li data-role=\"list-divider\" role=\"heading\">" +
-        "Sites assigned to you" +
-        "</li>";
+    out="<p>Site(s) available for inspection, based on your current position. Select site to start inspection.</p>";
     if (sites_for_inspect.assigned.length > 0){
+      out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
+      out = out + "<li data-role=\"list-divider\" role=\"heading\">Site(s) Assigned to You</li>";
       for(var i=0, l=sites_for_inspect.assigned.length; i<l; i++) {
         out = out + "<li><a id=\""+sites_for_inspect.assigned[i].id+"\" class=\"inspectable\">" +
             sites_for_inspect.assigned[i].site  + " (" + sites_for_inspect.assigned[i].address + ")" +
@@ -91,9 +89,11 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
 //          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
             "</a></li>";
       }
+      out = out + "</ul>";
     }
 
     if (sites_for_inspect.not_assigned.length > 0){
+      out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
       out = out + "<li data-role=\"list-divider\" role=\"heading\">Other sites</li>";
       for(var i=0, l=sites_for_inspect.not_assigned.length; i<l; i++) {
         out = out + "<li><a id=\""+sites_for_inspect.not_assigned[i].id+"\" class=\"inspectable\">" +
@@ -103,11 +103,10 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
 //          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
             "</a></li>";
       }
+      out = out + "</ul>";
     }
-    out = out + "</ul>";
-
   } else {
-    out = out + "<p>There are no sites available for inspection in current position.</p>";
+    out = out + "<p>No site(s) available for inspection, based on your current position.</p>";
   }
 
   return new Handlebars.SafeString(out);

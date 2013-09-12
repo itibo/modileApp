@@ -35,49 +35,56 @@
     <script id="welcome-tpl" type="text/x-handlebars-template">
       <div data-role="header">
         <h1>
-          <span class="address">Welcome <font style="color:orange;">ALPHA BUILD</font><br/>&nbsp;</span>
+          <span class="address">Welcome</span>
+          <span class="logout">
+            <a href="#logout" data-role="button">Logout</a>
+          </span>
         </h1>
       </div><!-- /header -->
-      <div data-role="content">
-        <h5>User: {{userInfo.display_name}}, {{userInfo.role}}</h5>
-        <div style="text-align:center; margin: 0 auto;">
-          <img src="img/dcs-logo.png">
+      <div data-role="content" class="welcome_content">
+        <h5><font color="black">{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
+        <div class="logo_img">
+          <img src="img/bg_logo4.png">
+          <span class="beta">ALPHA 0.0.2</span>
         </div>
-        <ul data-role="listview" data-inset="true">
-          <li><a href="#my_jobs">Start QA Inspection</a></li>
-          <li><a href="#siteslist">Sites list</a></li>
-          <li><a href="#inspectionslog">Inspections Log</a></li>
-          <li data-icon="delete"><a href="#logout">Logout</a></li>
+        <ul data-role="listview" data-inset="true" class="welcome">
+          <li data-icon="gear"><a href="#my_jobs">Start QA Inspection</a></li>
+          <li data-icon="grid"><a href="#siteslist">Sites Assigned to You</a></li>
+          <li data-icon="grid"><a href="#inspectionslog">Completed Inspections</a></li>
         </ul>
       </div><!-- /content -->
     </script>
     <script id="myjobs-tpl" type="text/x-handlebars-template">
       <div data-role="header">
         <h1>
-          <span class="address">Start QA Inspection <font style="color:orange;">ALPHA BUILD</font><br/>&nbsp;</span>
+          <span class="address">Start QA Inspection<br/>&nbsp;</span>
           <span class="btn-back">
             <a href="/#welcome" class="ui-btn-right" data-role="button">Back</a>
           </span>
         </h1>
       </div><!-- /header -->
-      <div data-role="content">
-        <h5>User: {{userInfo.display_name}}, {{userInfo.role}}</h5>
-        {{ListOfAvailiableJobsContent}}
-        <p><input type="button" id="recheck" value="Re-check"/></p>
+      <div class="inspect">
+        <div data-role="content">
+          <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
+          {{ListOfAvailiableJobsContent}}
+          <p class="check"><input type="button" id="recheck" value="Re-check"/></p>
+        </div>
       </div><!-- /content -->
     </script>
     <script id="siteslist-tpl" type="text/x-handlebars-template">
       <div data-role="header">
         <h1>
-          <span class="address">Sites List <font style="color:orange;">ALPHA BUILD</font><br/>&nbsp;</span>
+          <span class="address">Sites Assigned to You<br/>&nbsp;</span>
           <span class="btn-back">
             <a href="/#welcome" class="ui-btn-right" data-role="button" >Back</a>
           </span>
         </h1>
       </div><!-- /header -->
-      <div data-role="content">
-        <h5>User: {{userInfo.display_name}}, {{userInfo.role}}</h5>
-        {{#ListOfAvailiableSitesContent sites}}{{/ListOfAvailiableSitesContent}}
+      <div class="site_list">
+        <div data-role="content">
+          <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
+          {{#ListOfAvailiableSitesContent sites}}{{/ListOfAvailiableSitesContent}}
+        </div>
       </div><!-- /content -->
     </script>
     <script id="inspection-tpl" type="text/x-handlebars-template">
@@ -96,9 +103,9 @@
         </div>
       </div>
       <div data-role="header">
-        <h1>
-          <span class="address">{{site.site}} <font style="color:orange;">ALPHA BUILD</font><br />{{site.address}}</span>
-          <span class="btn-back">
+        <h1 class="cancel_inspect">
+          <span class="address">{{site.site}}<br />{{site.address}}</span>
+          <span class="btn-back_inspect">
             <a href="/#my_jobs" data-role="button">Back</a>cancel<br />inspection
           </span>
         </h1>
@@ -108,25 +115,25 @@
     <script id="login-tpl" type="text/x-handlebars-template">
       <div data-role="header">
         <h1>
-          <span class="address">Login <font style="color:orange;">ALPHA BUILD</font><br/>&nbsp;</span>
+          <span class="address">Login<br/>&nbsp;</span>
         </h1>
       </div><!-- /header -->
-      <div data-role="content">
-        <div style="text-align:center; margin: 0 auto;">
-          <img src="img/dcs-logo-2.png">
-        </div>
-        <div style="width: 300px; text-align:center; margin: 0 auto;">
-          <!--<form method="post">-->
-          <div id="login_form">
-            <div data-role="fieldcontain">
-              <input type="text" name="email" id="email" placeholder="Email or Username"/>
+      <div class="main">
+        <div data-role="content">
+          <div class="logo_img">
+            <img src="img/bg_logo4.png">
+            <span class="beta">ALPHA 0.0.2</span>
+          </div>
+          <div class="all_input">
+            <div id="login_form">
+              <div data-role="fieldcontain" class="input_text">
+                <input type="text" name="email" id="email" placeholder="Email or Username"/>
+              </div>
+              <div data-role="fieldcontain" class="input_text">
+                <input type="password" name="password" id="password" placeholder="Password"/>
+              </div>
+              <button type="button" class="ui-btn-hidden" aria-disabled="false">Submit</button>
             </div>
-            <div data-role="fieldcontain">
-              <input type="password" name="password" id="password" placeholder="Password"/>
-            </div>
-            <!--<button type="submit" class="ui-btn-hidden" aria-disabled="false">Submit</button>-->
-            <button type="button" class="ui-btn-hidden" aria-disabled="false">Submit</button>
-          <!--</form>-->
           </div>
         </div>
       </div><!-- /content -->
@@ -134,15 +141,17 @@
     <script id="inspectionslog-tpl" type="text/x-handlebars-template">
       <div data-role="header">
         <h1>
-          <span class="address">Inspections Log <font style="color:orange;">ALPHA BUILD</font><br/>&nbsp;</span>
+          <span class="address">Completed Inspections<br/>&nbsp;</span>
           <span class="btn-back">
             <a href="/#welcome" class="ui-btn-right" data-role="button" >Back</a>
           </span>
         </h1>
       </div><!-- /header -->
-      <div data-role="content">
-        <h5>User: {{userInfo.display_name}}, {{userInfo.role}}</h5>
-        {{#ListInspectionsLog inspectionsLog}}{{/ListInspectionsLog}}
+      <div class="log">
+        <div data-role="content">
+          <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
+          {{#ListInspectionsLog inspectionsLog}}{{/ListInspectionsLog}}
+        </div>
       </div><!-- /content -->
     </script>
     <script type="text/javascript" src="cordova.js"></script>

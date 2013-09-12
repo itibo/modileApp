@@ -23,8 +23,7 @@ var SitesListView = function(data) {
 Handlebars.registerHelper('ListOfAvailiableSitesContent', function(items) {
   var out = "";
   if (items.length>0){
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\">" +
-        "<li data-role=\"list-divider\" role=\"heading\">The following sites are assigned to you:</li>";
+    out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
     for(var i=0, l=items.length; i<l; i++) {
       out = out + "<li>" + items[i].site  + " (" + items[i].address + ") " +
 //          "<br />" +
@@ -33,7 +32,7 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function(items) {
     }
     out = out + "</ul>";
   } else {
-    out = out + "<p>There are no availiable sites assigned to you.</p>";
+    out = out + "<p>There are no sites assigned to you.</p>";
   }
   return new Handlebars.SafeString(out);
 });
