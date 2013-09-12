@@ -25,6 +25,18 @@ var app = {
       }
     };
 
+    this.getCheckStatus = function(){
+      if (app.autoconnect_flag) {
+        return 1;
+      } else if (app.cancell_inspection()){
+        return 2;
+      } else if ("pending" == app.getJobInspectionContainer().status){
+        return 3;
+      } else {
+        return 0;
+      }
+    };
+
     // сайты, доступные к инспекции
     this.sitesToInspect = function(){
       return window.localStorage.getItem("sitesToInspect") ? JSON.parse(window.localStorage.getItem("sitesToInspect")) : [];
@@ -454,15 +466,8 @@ var app = {
 
     var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
-    var status = (function(){
-      if (app.cancell_inspection()){
-        return 2;
-      } else if (app.autoconnect_flag) {
-        return 1;
-      } else {
-        return 0;
-      }
-    })();
+
+    var status = app.getCheckStatus();
 
     if (app.online_flag){
       var token = app.token();
@@ -486,7 +491,7 @@ var app = {
               data: {
                 id: token,
                 use_geofence: use_geofence,
-                status: status,
+//                status: status,
                 all_jobs: (typeof callback == "function")? true : false,
                 gps: obj1.position
               },
@@ -527,7 +532,7 @@ var app = {
             data: {
               id: token,
               use_geofence: use_geofence,
-              status: status,
+//              status: status,
               all_jobs: (typeof callback == "function")? true : false,
               gps: coordinates
             },
@@ -579,12 +584,13 @@ var app = {
                   data: {
                     id: token,
                     use_geofence: use_geofence,
-                    status: status,
+//                    status: status,
                     all_jobs: (typeof callback == "function")? true : false,
                     gps: [{
                       lat: position.coords.latitude,
                       lng: position.coords.longitude,
-                      time: (new Date()).toUTCString()
+                      time: (new Date()).toUTCString(),
+                      application_status: status
                     }]
                   },
                   cache: false,
@@ -652,7 +658,7 @@ var app = {
                 var prev_loc = app.coordinates[app.coordinates.length - 1];
                 var R = 6371; // km
                 var dLat = (position.coords.latitude - prev_loc.lat).toRad();
-                var dLon = (position.coords.longitude-prev_loc.lng).toRad();
+                var dLon = (position.coords.longitude - prev_loc.lng).toRad();
                 var lat1 = prev_loc.lat.toRad();
                 var lat2 = position.coords.latitude.toRad();
                 var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
@@ -662,21 +668,24 @@ var app = {
                   app.coordinates.push({
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
-                    time: (new Date()).toUTCString()
+                    time: (new Date()).toUTCString(),
+                    application_status: app.getCheckStatus()
                   });
                 }
               } else {
                 app.coordinates.push({
                   lat: position.coords.latitude,
                   lng: position.coords.longitude,
-                  time: (new Date()).toUTCString()
+                  time: (new Date()).toUTCString(),
+                  application_status: app.getCheckStatus()
                 });
               }
             } else {
               app.coordinates = [{
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
-                time: (new Date()).toUTCString()
+                time: (new Date()).toUTCString(),
+                application_status: app.getCheckStatus()
               }];
             }
           }
@@ -710,7 +719,8 @@ var app = {
             position: [{
               lat: defined_position.coords.latitude,
               lng: defined_position.coords.longitude,
-              time: (new Date()).toUTCString()
+              time: (new Date()).toUTCString(),
+              application_status: app.getCheckStatus()
             }]
           });
         } else {
@@ -730,7 +740,8 @@ var app = {
                   position: [{
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
-                    time: (new Date()).toUTCString()
+                    time: (new Date()).toUTCString(),
+                    application_status: app.getCheckStatus()
                   }]
                 });
               },
