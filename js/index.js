@@ -15,7 +15,7 @@ var app = {
     this.online_flag = true;
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
-    this.application_version = "0.0.2";
+    this.application_version = "0.2.1";
 
     this.cancell_inspection = function(data){
       if (typeof data != "undefined"){
@@ -490,7 +490,7 @@ var app = {
               data: {
                 id: token,
                 use_geofence: use_geofence,
-//                status: status,
+                version: app.application_version,
                 all_jobs: (typeof callback == "function")? true : false,
                 gps: obj1.position
               },
@@ -531,7 +531,7 @@ var app = {
             data: {
               id: token,
               use_geofence: use_geofence,
-//              status: status,
+              version: app.application_version,
               all_jobs: (typeof callback == "function")? true : false,
               gps: coordinates
             },
@@ -583,7 +583,7 @@ var app = {
                   data: {
                     id: token,
                     use_geofence: use_geofence,
-//                    status: status,
+                    version: app.application_version,
                     all_jobs: (typeof callback == "function")? true : false,
                     gps: [{
                       lat: position.coords.latitude,
@@ -1201,7 +1201,8 @@ var app = {
               uuid: device.uuid,
               platform: device.platform
             },
-            push_id: app.getPushID()
+            push_id: app.getPushID(),
+            version: app.application_version
           },
           cache: false,
           crossDomain: true,

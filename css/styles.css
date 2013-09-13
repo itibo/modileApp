@@ -161,8 +161,14 @@ border: 1px solid #a0a0a2;
 }
 
 /* main */
-
-.logo_img, .all_input{
+.logo_img{
+	background: url(../img/logo_387x134.png) no-repeat ;
+	width: 400px;
+	height: 140px;
+	text-align: center;
+	margin: 0 auto;
+}
+.all_input{	
 	text-align:center; 
 	margin: 0 auto;
 	width:300px;
@@ -240,7 +246,7 @@ border: 1px solid #a0a0a2;
 	background: none;
 	background-image: url(images/icons_sprite.png);
 	background-repeat: no-repeat;
-	background-position: -177px center;
+	background-position: -110px center;
 	width: 37px;
 	height: 33px;
 	border-radius:0px;
@@ -269,6 +275,10 @@ border: 1px solid #a0a0a2;
 /* end welcome */
 
 /* inspect */
+.inspect .ui-corner-all{
+	background-clip:border-box;
+	-webkit-background-clip:border-box;
+}
 .inspect .ui-bar-b,.site_list .ui-bar-b, .log .ui-bar-b{
 	background:#92b0af;
 	border:none;
@@ -765,9 +775,29 @@ h5 {
     width: 100%;
     text-align: right;
 }
-@media screen and (max-width:980px) {
-
-
+@media screen and (max-width:390px) {
+	.logo_img{
+		background: url(../img/logo_280x108.png) no-repeat ;
+		width: 300px;
+		height: 108px;
+		text-align: center;
+		margin: 0 auto;
+	}
+}
+@media screen and (max-width:240px) {
+	.logo_img{
+		background: url(../img/logo_200x69.png) no-repeat ;
+		width: 210px;
+		height: 69px;
+		text-align: center;
+		margin: 0 auto;
+	}
+	.ui-btn{
+		width:210px;
+	}
+	.input_text{
+		width:210px;
+	}
 }
 .beta{
 	font-size:23px;

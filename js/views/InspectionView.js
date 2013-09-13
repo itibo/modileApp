@@ -132,7 +132,7 @@ var InspectionView = function(data) {
     app.setJobInspectionContainer(saved_inspection);
 
     $("input", changed_raw).val(new_mark);
-    $(".number", changed_raw).html((new_mark == 0)? "<span>N/A</span>": new_mark);
+    $(".number", changed_raw).html("<span>" + ((new_mark === "0")? "N/A": new_mark ) + "</span>");
     if (new_mark != ""){
       if(0 == new_mark){
         $(".number", changed_raw).addClass("na");

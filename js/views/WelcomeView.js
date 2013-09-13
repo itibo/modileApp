@@ -11,6 +11,7 @@ var WelcomeView = function() {
   this.render = function() {
     var context = {};
     context.userInfo = app.getUserInfo();
+    context.version = "BETA<br />" + app.application_version;
 //    context.jobsAvailiableToInspect = app.sitesToInspect();
 
     this.el.html(WelcomeView.template(context));
