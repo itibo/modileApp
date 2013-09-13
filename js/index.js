@@ -1110,13 +1110,11 @@ var app = {
         if ($.isArray(pos)){
           arr = pos;
         } else {
-          arr = [{
+          arr = [$.extend({
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
-            time: (new Date()).toUTCString() ,
-            site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-            job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-          }];
+            time: (new Date()).toUTCString()
+          }, job_fields)];
         }
         return arr;
       };
@@ -1227,9 +1225,10 @@ var app = {
           success: function(data) {
             app.setToken(data.token);
             app.setUserInfo(data.user);
+            app.cancell_inspection(false);
+            app.setJobInspectionContainer(false);
             app.updatePosition();
             app.startCheckInterval();
-            app.cancell_inspection(false);
             app.route();
             return false;
           },

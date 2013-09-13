@@ -346,6 +346,7 @@ border-bottom-right-radius:4px;
 }
 .inspect .ui-btn-text a{
 	border-left: 20px solid #edded2;
+    padding-left: 15px !important;
 }
 .inspect .ui-shadow,.site_list .ui-shadow, .log .ui-shadow{
 	box-shadow:none;
