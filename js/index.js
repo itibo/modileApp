@@ -79,6 +79,7 @@ var app = {
         job_id: null,
         site_id: null,
         status: "",
+        started_at: false,
         completed_at: false,
         container: []
       };
@@ -97,6 +98,7 @@ var app = {
         job_id: null,
         site_id: null,
         status: "",
+        started_at: false,
         completed_at: false,
         container: []
       };
@@ -545,7 +547,8 @@ var app = {
               app.coordinates = (app.coordinates).slice(coordinates.length);
               var savedSitesToInspect = app.sitesToInspect();
               $.each(data.jobs, function(ind,v){
-                var new_site = true;
+                var new_site = t
+                rue;
                 for(var i=0; i < savedSitesToInspect.length; i++) {
                   if(v.id == savedSitesToInspect[i].id){
                     new_site = false;
@@ -653,6 +656,7 @@ var app = {
         function(position){
           if (app.watchID != null) {
             if (app.token()){
+              var job_inspect_container = app.getJobInspectionContainer();
               if (typeof app.coordinates[app.coordinates.length - 1] != "undefined"){
                 var prev_loc = app.coordinates[app.coordinates.length - 1];
                 var R = 6371; // km
@@ -668,7 +672,9 @@ var app = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                     time: (new Date()).toUTCString(),
-                    application_status: app.getCheckStatus()
+                    application_status: app.getCheckStatus(),
+                    site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                    job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
                   });
                 }
               } else {
@@ -676,7 +682,9 @@ var app = {
                   lat: position.coords.latitude,
                   lng: position.coords.longitude,
                   time: (new Date()).toUTCString(),
-                  application_status: app.getCheckStatus()
+                  application_status: app.getCheckStatus(),
+                  site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                  job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
                 });
               }
             } else {
@@ -702,6 +710,8 @@ var app = {
 
   get_position: function(defined_position){
     return $.Deferred(function($deferred){
+      var job_inspect_container = app.getJobInspectionContainer();
+
       if ($("#overlay").is(':hidden')){
         $("#overlay").show();
       }
@@ -719,7 +729,9 @@ var app = {
               lat: defined_position.coords.latitude,
               lng: defined_position.coords.longitude,
               time: (new Date()).toUTCString(),
-              application_status: app.getCheckStatus()
+              application_status: app.getCheckStatus(),
+              site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+              job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
             }]
           });
         } else {
@@ -740,7 +752,9 @@ var app = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                     time: (new Date()).toUTCString(),
-                    application_status: app.getCheckStatus()
+                    application_status: app.getCheckStatus(),
+                    site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                    job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
                   }]
                 });
               },
@@ -912,7 +926,7 @@ var app = {
       case /^#inspection:(\d+)$/.test(urlObj.hash):
         var id = parseInt(urlObj.hash.match(/\d+$/g));
         app.getCheckList(id, function(list, checklist_id){
-          app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {checklist_id: checklist_id} ));
+          app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {started_at: (new Date()).toUTCString(), checklist_id: checklist_id} ));
           $container.html(new InspectionView(list).render().el).trigger('pagecreate');
         });
         break;
@@ -1038,7 +1052,7 @@ var app = {
             });
             return tmp;
           })(id_in_job_avail_to_inspect);
-          app.setJobInspectionContainer($.extend({id: id_in_job_avail_to_inspect, status: "pending"}, job_info));
+          app.setJobInspectionContainer($.extend({id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString(), status: "pending"}, job_info));
         }
         ajax_call.call(self, obj1.position);
       }

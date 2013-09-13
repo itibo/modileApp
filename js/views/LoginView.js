@@ -8,7 +8,7 @@ var LoginView = function() {
 
   this.render = function() {
     var context = {};
-    context.version = "BETA<br />" + app.application_version;
+    context.version = "ALPHA " + app.application_version;
     this.el.html(LoginView.template(context));
     return this;
   };
