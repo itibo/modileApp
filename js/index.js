@@ -15,7 +15,7 @@ var app = {
     this.online_flag = true;
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
-    this.application_version = "0.2.1";
+    this.application_version = "0.2.2";
 
     this.cancell_inspection = function(data){
       if (typeof data != "undefined"){
@@ -1113,7 +1113,9 @@ var app = {
           arr = [{
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
-            time: (new Date()).toUTCString()
+            time: (new Date()).toUTCString() ,
+            site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+            job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
           }];
         }
         return arr;
@@ -1126,6 +1128,7 @@ var app = {
             id: token,
             job_id: job_fields.job_id,
             site_id: job_fields.site_id,
+            started_at: submit_data.started_at,
             completed_at: submit_data.completed_at ? submit_data.completed_at : (new Date()).toUTCString(),
             gps: get_position_arr(pos),
             checklist_id: submit_data.checklist_id ? submit_data.checklist_id : "",
