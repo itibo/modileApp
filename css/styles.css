@@ -5,9 +5,8 @@ div[data-role=page]{  background: url(../img/section_bg.jpg) repeat-x top #cbcbc
 .ui-br{
 	border-style:none !important;
 }
-
 .ui-mobile-viewport .ui-page .ui-header { background:transparent; background-color:#c2d7d6; border:0 none; text-shadow:none; }
-.ui-header h1.ui-title { border-left:1em solid #e2d3c8; color:#757575; margin:0px; padding:0px; text-align:left; /* height:46px; */}
+.ui-header h1.ui-title { border-left:1em solid #e2d3c8; color:#757575; margin:0px; padding:0px; text-align:left; min-height:36px; }
 .ui-header h1.ui-title.cancel_inspect { border-left:1em solid #e2d3c8; color:#757575; margin:0px; padding:0px; text-align:left; }
 h1.ui-title span.address { float:left; padding: 0.4em 0 0 1em; width: 53%; white-space:normal; }
 h1.ui-title span.logout{ background-color:#f0f0f0; color:#7d7d7d; float:right; font-size:smaller; padding:0.2em 1.2em; text-align:center; /* min-height:46px; *//* width: 20%; */}
@@ -39,7 +38,7 @@ span.btn-back a,span.logout a,span.btn-back_inspect a{
 	border: 1px solid #a0a0a2;
 }
 span.btn-back a:hover ,span.logout a:hover , span.btn-back_inspect a:hover { color:gray; }
-span.btn-back a span , span.logout a span ,span.btn-back_inspect a span { font: bold 1.4em Helvetica,Arial,sans-serif; padding:0 0.7em; }
+span.btn-back a span , span.logout a span ,span.btn-back_inspect a span { font: bold 1.5em Helvetica,Arial,sans-serif; padding:0 0.7em; }
 
 .ui-content { background: url(../img/section_bg.jpg) repeat-x top #cbcbcb; border-top:1px solid #000; padding:0 15px;}
 .ui-content h2 { margin:0px; padding:0px; }
@@ -91,7 +90,7 @@ div.block { padding-right:3em; position:relative; }
 div.block .number { display:none; }
 div.block.active .number {
     display:block;
-    font-size:3em;
+    font-size:3.6em;
     margin:0px; padding:0px;
     position:absolute;
     right:-5px;
@@ -131,7 +130,7 @@ div.block .number{
 
 ul[data-role=listview] li a.inspectable {
     white-space:normal !important;
-    overflow: visible !important;
+    overflow: hidden !important;
 }
 
 /* = Textarea + Submit button = */
@@ -335,7 +334,8 @@ border-bottom-right-radius:4px;
 	top:35%;
 }
 .inspect .ui-li-has-thumb .ui-btn-inner a.ui-link-inherit, .ui-li-static.ui-li-has-thumb{
-	min-height:0px;
+	min-height:20px;
+	display: inline-block;
 }
 .inspect ul,.site_list ul, .log ul{
 	border: 1px solid #666666;
@@ -356,14 +356,13 @@ border-bottom-right-radius:4px;
 	box-shadow:none;
 }
 .inspect  .ui-btn-up-c,.site_list .ui-btn-up-c, .log .ui-btn-up-c{
-/* 	background:#fff; */
-	background:#C54B4B;
+ 	background:#fff;
 	border:none;
 }
 .inspect p{
 	color:#666666;
 }
-.inspect p.check div{
+.inspect p.check div,span.btn-back.log_back a,.ui-page span.btn-back a,.ui-page span.logout a,.ui-page span.btn-back_inspect a{
 	box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 	border-radius: 30px;
 	border: 1px solid #a0a0a2;
@@ -807,9 +806,19 @@ h5 {
     width: 100%;
     text-align: right;
 }
+h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_inspect{
+		padding: 0 1.2em;
+		height: 100%;
+		position: absolute; 
+		right: 0px;
+}
+.ui-header h1.ui-title.cancel_inspect {
+	min-height: 76px;
+}
 @media screen and (max-width:1280px) {
 	.inspect .ui-li-thumb{
-		top:25%;
+		top: 50%;
+		margin-top: -10px;
 	}
 	h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_inspect{
 		padding: 0 1.2em;
@@ -818,11 +827,16 @@ h5 {
 		right: 0px;
 	}
 	.ui-page .ui-header .ui-btn-right {
-		top: 10%;
 		left: 0%;
 	}
+	.ui-page .ui-header  span.btn-back a{
+		top: 4px;
+	}
+	.ui-page .ui-header  span.btn_QA a{
+		top: 3px;
+	}
 	.ui-page .ui-header  span.logout a{
-		top: 15%;
+		top: 4px;
 	}
 	.ui-page .ui-header  span.btn-back_inspect a{
 		top: 2px;
@@ -836,7 +850,8 @@ h5 {
 }
 @media screen and (max-width:854px) {
 	.inspect .ui-li-thumb{
-		top:30%;
+		top: 50%;
+		margin-top: -10px;
 	}
 	h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_inspect{
 		padding: 0 1.2em;
@@ -845,11 +860,19 @@ h5 {
 		right: 0px;
 	}
 	.ui-page .ui-header .ui-btn-right {
-		top: 10%;
 		left: 0%;
 	}
+	.ui-page .ui-header  span.btn-back a{
+		top: 4px;
+	}
+	.ui-page .ui-header  span.btn_QA a{
+		top: 3px;
+	}
+	.ui-page .ui-header  span.log_back a{
+		top: 4px;
+	}
 	.ui-page .ui-header  span.logout a{
-		top: 15%;
+		top: 4px;
 	}
 	.ui-page .ui-header  span.btn-back_inspect a{
 		top: 2px;
@@ -871,7 +894,8 @@ h5 {
 		position:relative;
 	}
 	.inspect .ui-li-thumb{
-		top:35%;
+		top: 50%;
+		margin-top: -10px;
 	}
 	h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_inspect{
 		padding: 0 1.2em;
@@ -880,14 +904,19 @@ h5 {
 		right: 0px;
 	}
 	.ui-page .ui-header .ui-btn-right {
-		top: 20%;
 		left: 0%;
 	}
+	.ui-page .ui-header  span.btn-back a{
+		top: 4px;
+	}
+	.ui-page .ui-header  span.btn_QA a{
+		top: 3px;
+	}
 	.ui-page .ui-header  span.log_back a{
-		top: 10%;
+		top: 4px;
 	}
 	.ui-page .ui-header  span.logout a{
-		top: 15%;
+		top: 4px;
 	}
 	.ui-page .ui-header  span.btn-back_inspect a{
 		top: 2px;
@@ -909,8 +938,10 @@ h5 {
 		position:relative;
 	}
 	.inspect .ui-li-thumb{
-		top:40%;
+		top: 50%;
+		margin-top: -10px;
 	}
+
 	h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_inspect{
 		padding: 0 1.2em;
 		height: 100%;
@@ -918,14 +949,19 @@ h5 {
 		right: 0px;
 	}
 	.ui-page .ui-header .ui-btn-right {
-		top: 23%;
 		left: 0%;
 	}
+	.ui-page .ui-header  span.btn-back a{
+		top: 4px;
+	}
+	.ui-page .ui-header  span.btn_QA a{
+		top: 4px;
+	}
 	.ui-page .ui-header  span.logout a{
-		top: 15%;
+		top: 4px;
 	}
 	.ui-page .ui-header  span.log_back a{
-		top: 23%;
+		top: 4px;
 	}
 	.ui-page .ui-header  span.btn-back_inspect a{
 		top: 2px;
@@ -953,8 +989,10 @@ h5 {
 		width:210px; 
 	}
 	.inspect .ui-li-thumb{
-		top:40%;
+		top: 50%;
+		margin-top: -10px;
 	}
+
 	h1.ui-title span.address {
 		float: left;
 		padding: 0.4em 0 0.3em 1em;
@@ -969,13 +1007,20 @@ h5 {
 		 top:0px;
 	}
 	.ui-page .ui-header .ui-btn-right {
-		top: 30%;
+		left:0%;
+	}
+	.ui-page .ui-header  span.btn-back a{
+		top: 4px;
+	}
+	.ui-page .ui-header  span.btn_QA a{
+		top: 4px;
 	}
 	.ui-page .ui-header  span.logout a{
-		top: 15%;
+		top: 4px;
+		left:-10px;
 	}
 	.ui-page .ui-header  span.log_back a{
-		top: 30%;
+		top: 4px;
 	}
 	.ui-page .ui-header  span.btn-back_inspect a{
 		top: 2px;
@@ -987,7 +1032,7 @@ h5 {
 		min-height:76px;
 	}
 	h1.ui-title span.btn-back_inspect span.ui-btn-inner{
-		font-size:10.5px;
+		font-size:10px;
 	}
 }
 .beta{
@@ -996,4 +1041,11 @@ h5 {
 	position: absolute;
 	top: 80%;
 	left: 40%;
+}
+.box_points{
+	position: absolute;
+	left: 50%;
+	margin-left: -23px;
+	top: 50%;
+	margin-top: -40px;
 }

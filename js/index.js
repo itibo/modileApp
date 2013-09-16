@@ -12,10 +12,13 @@ var app = {
     this.watchPositionTimeout = 300000;
     this.senderIDforPushMsg = "216199045656";
     this.current_page = "";
-    this.online_flag = true;
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
-    this.application_version = "0.2.2";
+    this.application_version = "0.2.3";
+
+    this.online_flag = function(){
+      return !(navigator.network.connection.type == Connection.NONE);
+    }
 
     this.cancell_inspection = function(data){
       if (typeof data != "undefined"){
@@ -470,7 +473,7 @@ var app = {
     var use_geofence = use_geofence || false;
     var coordinates = app.coordinates;
 
-    if (app.online_flag){
+    if (app.online_flag()){
       var token = app.token();
       if (token){
         if (app.getJobInspectionContainer().status == "submitting"){
@@ -643,7 +646,7 @@ var app = {
       } else {
         app.route();
       }
-    } else if (typeof callback == "function" && !app.online_flag) {
+    } else if (typeof callback == "function" && !app.online_flag()) {
       app.connecting_error();
     }
   },
@@ -783,7 +786,7 @@ var app = {
       if ($("#overlay").is(':hidden')){
         $("#overlay").show();
       }
-      if (app.online_flag){
+      if (app.online_flag()){
         $deferred.resolve({
           status: 'success'
         });
@@ -792,7 +795,7 @@ var app = {
           status: 'error',
           error: {
             code: 4,
-            message: "connection error"
+            message: "There is Internet connection problem. Please try again later"
           }
         });
       }
@@ -981,17 +984,31 @@ var app = {
     var self = this;
     var ajax_call = function(pos){
       var token = app.token(),
-          job_fields = (function(){
-            var inspect_job_cont = app.getJobInspectionContainer();
-            return {job_id: inspect_job_cont.job_id, site_id: inspect_job_cont.site_id};
-          })();
+        job_info = (function(id){
+          var tmp = {};
+          if ("pending" == app.getJobInspectionContainer().status){
+            tmp.job_id = app.getJobInspectionContainer().job_id;
+            tmp.site_id = app.getJobInspectionContainer().site_id;
+          } else {
+            $.each(app.sitesToInspect(), function(i,v){
+              if(v.id == id){
+                tmp = {
+                  job_id: v.job_id,
+                  site_id: v.site_id
+                }
+                return false;
+              }
+            });
+          }
+          return tmp;
+        })(id_in_job_avail_to_inspect);
       $.ajax({
         type: "POST",
         url: app.site+'/mobile/show_checklist.json',
         data: {
           id: token,
-          job_id: job_fields.job_id,
-          site_id: job_fields.site_id,
+          job_id: job_info.job_id,
+          site_id: job_info.site_id,
           gps: pos
         },
         cache: false,
@@ -1000,7 +1017,7 @@ var app = {
         timeout: 60000,
         success: function(data) {
           if (data.token == token){
-            app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {status: "pending"}));
+            app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {status: "pending"}, job_info));
             if (typeof success_callback == "function"){
               success_callback(data.list, data.checklist_id);
             }
@@ -1016,14 +1033,13 @@ var app = {
               app.setToken(false);
               app.route();
             } else {
-              app.route({toPage: window.location.href + app.current_page});
+              app.route({toPage: window.location.href + "#my_jobs"});
             }
           });
         }
       });
     };
-
-    $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+    $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
       var inspect_job_cont = app.getJobInspectionContainer();
       if (inspect_job_cont.id && inspect_job_cont.status == "submitting" ){
         navigator.notification.alert(
@@ -1038,25 +1054,32 @@ var app = {
         );
       } else {
         if (inspect_job_cont.id != id_in_job_avail_to_inspect){
-          var job_info = (function(id){
-            var tmp = {};
-            $.each(app.sitesToInspect(), function(i,v){
-              if(v.id == id){
-                tmp = {
-                  job_id: v.job_id,
-                  site_id: v.site_id
-                }
-                return false;
-              }
-            });
-            return tmp;
-          })(id_in_job_avail_to_inspect);
-          app.setJobInspectionContainer($.extend({id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString()}, job_info));
+          app.setJobInspectionContainer($.extend( app.getJobInspectionContainer(), {id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString()}));
         }
-        ajax_call.call(self, obj1.position);
+        ajax_call.call(self, obj2.position);
       }
-    }).fail(function(obj){
-      app.connecting_error(obj.error.message);
+    }).fail(function(err_obj){
+      if (typeof err_obj.error.code != "undefined" && 4 == err_obj.error.code){
+        navigator.notification.confirm(
+            "There is Internet connection problem. Please try again later",
+            function(buttonIndex){
+              if (1 == buttonIndex){
+                navigator.geolocation.clearWatch(app.watchID);
+                app.watchID = null;
+                app.stopCheckInterval();
+                navigator.app.exitApp();
+              } else if (2 == buttonIndex){
+                app.route({
+                  toPage: window.location.href + app.current_page
+                });
+              }
+            },
+            "Unable to restore your session",
+            "Close, Refresh"
+        );
+      } else {
+        app.connecting_error(err_obj.error.message);
+      }
       if ($("#overlay").is(':visible')){
         $("#overlay").hide();
       }
@@ -1154,7 +1177,7 @@ var app = {
         });
       }
 
-      if(app.online_flag){
+      if(app.online_flag()){
         ajax_call();
       } else {
         navigator.notification.alert(
@@ -1231,7 +1254,7 @@ var app = {
           return false;
         },
         error: function(error){
-          app.errorAlert(error, "Error", function(){} );
+          app.errorAlert(error, 426 == error.status ? "Application Must Be Updated" :"Error", function(){} );
         }
       });
     };
@@ -1253,7 +1276,7 @@ var app = {
       navigator.notification.alert(
           msg, //message
           function(){},    // callback
-          (4 == err_obj.error.code) ? "Login Failed" : "GPS error", // title
+          (4 == err_obj.error.code) ? "Login Failed" : "Unable to determine your location", // title
           'Ok'         // buttonName
       );
       $("#overlay").hide();
@@ -1299,7 +1322,7 @@ var app = {
           }
         });
       }
-      if (app.online_flag){
+      if (app.online_flag()){
         ajax_call();
       } else {
         app.connecting_error();
@@ -1381,17 +1404,15 @@ var app = {
   },
 
   onOnline: function(){
-    app.online_flag = true;
     app.startCheckInterval();
   },
 
   onOffline: function(){
-    app.online_flag = false;
     app.stopCheckInterval();
   },
 
   connecting_error: function(msg, buttons, title){
-    msg = msg || "There is internet connection problem.";
+    msg = msg || "There is Internet connection problem. Please try again later";
     buttons = buttons || "Refresh, Back to Main Page";
     title = title || "Internet connection problem";
     navigator.notification.confirm(
