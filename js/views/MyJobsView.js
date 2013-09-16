@@ -26,7 +26,8 @@ var MyJobsView = function() {
           app.route({toPage: window.location.href + "#inspection:" + id});
         }
       },
-      'Inspection', 'Cancel,Yes'
+      'Inspection',
+      'Cancel,Yes'
     );
   };
 

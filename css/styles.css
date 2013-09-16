@@ -336,6 +336,7 @@ border-bottom-right-radius:4px;
 .inspect .ui-li-has-thumb .ui-btn-inner a.ui-link-inherit, .ui-li-static.ui-li-has-thumb{
 	min-height:20px;
 	display: inline-block;
+	width: 100%;
 }
 .inspect ul,.site_list ul, .log ul{
 	border: 1px solid #666666;
