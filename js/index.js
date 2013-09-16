@@ -1360,7 +1360,7 @@ var app = {
         case '' == app.current_page:
         case '#' == app.current_page:
         case '#login' == app.current_page:
-          app.showConfirm('exit', 'Quit?',
+          app.showConfirm('Close', 'Do you want to quit? ',
               function(buttonIndex){
                 if(2 == buttonIndex){
                   navigator.geolocation.clearWatch(app.watchID);
