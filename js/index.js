@@ -3,9 +3,9 @@ var app = {
   // Application Constructor
   initialize: function() {
     // config
-    this.site = 'http://209.123.209.168:3000';
+//  this.site = 'http://209.123.209.168:3000';  // ALPHA
+    this.site = 'http://209.123.209.154/';      // BETA
     this.watchID = null;
-
     this.coordinates = [];
 
     // как часто в милисекундах проверять геопозицию
@@ -15,6 +15,7 @@ var app = {
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
     this.application_version = "0.2.3";
+    this.application_build = "BETA";
 
     this.online_flag = function(){
       return !(navigator.network.connection.type == Connection.NONE);
