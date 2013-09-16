@@ -120,10 +120,12 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
           "</div>" +
           "</div>" +
           "<div class=\"points\">" +
-            "<span class=\"points_class\">Points</span><br />" +
-            "<span class=\"big_points\">" + items[i].points + "</span><br />" +
-            "<span>of " + items[i].total_points + "</span><br />" +
-            "<span class=\"procent\">( " + items[i].percent + "%)</span>" +
+            "<div class=\"box_points\">" +
+              "<span class=\"points_class\">Points</span><br />" +
+              "<span class=\"big_points\">" + items[i].points + "</span><br />" +
+              "<span>of " + items[i].total_points + "</span><br />" +
+              "<span class=\"procent\">( " + items[i].percent + "%)</span>" +
+            "</div>" +
           "</div>" +
         "</li>";
     }

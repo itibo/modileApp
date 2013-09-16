@@ -1000,6 +1000,7 @@ var app = {
         timeout: 60000,
         success: function(data) {
           if (data.token == token){
+            app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {status: "pending"}));
             if (typeof success_callback == "function"){
               success_callback(data.list, data.checklist_id);
             }
@@ -1015,9 +1016,7 @@ var app = {
               app.setToken(false);
               app.route();
             } else {
-              app.errorAlert(error, "Error", function(){
-                app.route();
-              });
+              app.route({toPage: window.location.href + app.current_page});
             }
           });
         }
@@ -1052,7 +1051,7 @@ var app = {
             });
             return tmp;
           })(id_in_job_avail_to_inspect);
-          app.setJobInspectionContainer($.extend({id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString(), status: "pending"}, job_info));
+          app.setJobInspectionContainer($.extend({id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString()}, job_info));
         }
         ajax_call.call(self, obj1.position);
       }
@@ -1204,48 +1203,41 @@ var app = {
   //login
   getLoginToken: function(email, password){
     var success_getting_position = function(pos){
-      var ajax_call = function(){
-        $.ajax({
-          type: "POST",
-          url: app.site+'/mobile/login.json',
-          data: {
-            email: email,
-            password: password,
-            gps: pos,
-            device: {
-              uuid: device.uuid,
-              platform: device.platform
-            },
-            push_id: app.getPushID(),
-            version: app.application_version
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/login.json',
+        data: {
+          email: email,
+          password: password,
+          gps: pos,
+          device: {
+            uuid: device.uuid,
+            platform: device.platform
           },
-          cache: false,
-          crossDomain: true,
-          dataType: 'json',
-          success: function(data) {
-            app.setToken(data.token);
-            app.setUserInfo(data.user);
-            app.cancell_inspection(false);
-            app.setJobInspectionContainer(false);
-            app.updatePosition();
-            app.startCheckInterval();
-            app.route();
-            return false;
-          },
-          error: function(error){
-            app.errorAlert(error, "Error", function(){} );
-          }
-        });
-      }
-      if (app.online_flag){
-        ajax_call();
-      } else {
-        app.connecting_error();
-      }
+          push_id: app.getPushID(),
+          version: app.application_version
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        success: function(data) {
+          app.setToken(data.token);
+          app.setUserInfo(data.user);
+          app.cancell_inspection(false);
+          app.setJobInspectionContainer(false);
+          app.updatePosition();
+          app.startCheckInterval();
+          app.route();
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){} );
+        }
+      });
     };
 
-    $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
-      success_getting_position(obj1.position);
+    $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
+      success_getting_position(obj2.position);
     }).fail(function(err_obj){
       var msg = (function(){
         var message = "";
