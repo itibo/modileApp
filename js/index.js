@@ -930,7 +930,7 @@ var app = {
       case /^#inspection:(\d+)$/.test(urlObj.hash):
         var id = parseInt(urlObj.hash.match(/\d+$/g));
         app.getCheckList(id, function(list, checklist_id){
-          app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {started_at: (new Date()).toUTCString(), checklist_id: checklist_id} ));
+          app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {checklist_id: checklist_id} ));
           $container.html(new InspectionView(list).render().el).trigger('pagecreate');
         });
         break;
