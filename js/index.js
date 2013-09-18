@@ -1079,7 +1079,7 @@ var app = {
         ajax_call.call(self, obj2.position);
       }
     }).fail(function(err_obj){
-      if (typeof err_obj.error.code != "undefined" && 4 == err_obj.error.code){
+      if (typeof err_obj.error.code != "undefined" && ($.inArray(err_obj.error.code, [2,4]) > -1 )){
         navigator.notification.confirm(
             "There is Internet connection problem. Please try again later",
             function(buttonIndex){
@@ -1094,7 +1094,7 @@ var app = {
                 });
               }
             },
-            "Unable to restore your session",
+            (4 == err_obj.error.code) ? "Unable to restore your session" : "Unable to determine your location",
             "Close, Refresh"
         );
       } else {
@@ -1109,7 +1109,6 @@ var app = {
   // submit inspection to server
   submitInspection: function(success_clb, error_clb, position){
     var submit_data = app.getJobInspectionContainer();
-
     var success_ajax_call = function(){
       navigator.notification.alert( "Inspection submitted",
         function(){
