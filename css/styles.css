@@ -130,7 +130,7 @@ div.block .number{
 
 ul[data-role=listview] li a.inspectable {
     white-space:normal !important;
-    overflow: hidden !important;
+  /*   overflow: hidden !important; */
 }
 
 /* = Textarea + Submit button = */
@@ -331,12 +331,12 @@ border-bottom-right-radius:4px;
 }
 .inspect .ui-li-thumb{
 	/* top:10px; */
-	top:35%;
+	top:50%;
+	margin-top:-10px;
 }
 .inspect .ui-li-has-thumb .ui-btn-inner a.ui-link-inherit, .ui-li-static.ui-li-has-thumb{
 	min-height:20px;
-	display: inline-block;
-	width: 100%;
+	/*  width: 100%; */ 
 }
 .inspect ul,.site_list ul, .log ul{
 	border: 1px solid #666666;
@@ -378,9 +378,10 @@ border-bottom-right-radius:4px;
 .site_list .ui-btn-up-c.ui-last-child,.log .ui-btn-up-c.ui-last-child,.inspect .ui-btn-up-c.ui-last-child{
 	border-bottom:none;
 }
-.site_list span{
+.inspect span,.site_list span{
 	font-style:italic;
 	color:#333333;
+	font-weight:500;
 }
 /* end site list */
 

@@ -25,10 +25,10 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function(items) {
   if (items.length>0){
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
     for(var i=0, l=items.length; i<l; i++) {
-      out = out + "<li>" + items[i].site  + " (" + items[i].address + ") " +
+      out = out + "<li>" + items[i].site  + " - <span>" + items[i].address +
 //          "<br />" +
 //          "<span style=\"font-size: 0.8em;\">Last inspection: " + ((items[i].last_inspection)? items[i].last_inspection : "never") + "</span>" +
-          "</li>";
+          "</span></li>";
     }
     out = out + "</ul>";
   } else {

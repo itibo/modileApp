@@ -471,25 +471,24 @@ var app = {
       app.route();
     }*/
 
-    var use_geofence = use_geofence || false;
-    var coordinates = app.coordinates;
-
-    if (app.online_flag()){
-      var token = app.token();
-      if (token){
-        if (app.getJobInspectionContainer().status == "submitting"){
-          app.submitInspection(function(){
-                app.setJobInspectionContainer(false);
-              },
-              function(error){
-                // do nothing
-              },
-              coordinates
-          );
-        }
+    var token = app.token();
+    if (token){
+      if (app.online_flag()){
+        var use_geofence = use_geofence || false;
+        var coordinates = app.coordinates;
 
         if ( use_geofence ){
           $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+            if (app.getJobInspectionContainer().status == "submitting"){
+              app.submitInspection(function(){
+                    app.setJobInspectionContainer(false);
+                  },
+                  function(error){
+                    // do nothing
+                  },
+                  obj1.position
+              );
+            }
             $.ajax({
               type: "POST",
               url: app.site+'/mobile/check.json',
@@ -531,6 +530,26 @@ var app = {
             }
           });
         } else if (coordinates.length > 0 ) {
+          if (app.getJobInspectionContainer().status == "submitting"){
+            app.submitInspection(function(){
+                  app.coordinates = (function(used_coords){
+                    var not_used_coords = [];
+                    $.each(app.coordinates, function(i,v){
+                      if ($.inArray( v, used_coords ) < 0 ){
+                        not_used_coords.push(v);
+                      }
+                    });
+                    return not_used_coords;
+                  })(coordinates);
+                  app.setJobInspectionContainer(false);
+                },
+                function(error){
+                  // do nothing
+                },
+                coordinates
+            );
+          }
+
           $.ajax({
             type: "POST",
             url: app.site+'/mobile/check.json',
@@ -644,11 +663,11 @@ var app = {
               {timeout:30000, maximumAge: 0}
           );
         }
-      } else {
-        app.route();
+      } else if (typeof callback == "function" && !app.online_flag()) {
+        app.connecting_error();
       }
-    } else if (typeof callback == "function" && !app.online_flag()) {
-      app.connecting_error();
+    } else {
+      app.route();
     }
   },
 

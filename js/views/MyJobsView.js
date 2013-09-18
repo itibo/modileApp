@@ -84,11 +84,11 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
     if (sites_for_inspect.assigned.length > 0){
       for(var i=0, l=sites_for_inspect.assigned.length; i<l; i++) {
         out = out + "<li><a id=\""+sites_for_inspect.assigned[i].id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +
-            sites_for_inspect.assigned[i].site  + " (" + sites_for_inspect.assigned[i].address + ")" +
+            sites_for_inspect.assigned[i].site  + " - <span>" + sites_for_inspect.assigned[i].address +
             ((unsubmitted_inspecion == sites_for_inspect.assigned[i].id) ? " (UNSUBMITTED)": "") +
 //          "<br />" +
 //          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
-            "</a></li>";
+            "</span></a></li>";
       }
     } else {
       out = out + "<li>no sites</li>";
@@ -100,11 +100,11 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
       out = out + "<li data-role=\"list-divider\" role=\"heading\">Other sites</li>";
       for(var i=0, l=sites_for_inspect.not_assigned.length; i<l; i++) {
         out = out + "<li><a id=\""+sites_for_inspect.not_assigned[i].id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +
-            sites_for_inspect.not_assigned[i].site  + " (" + sites_for_inspect.not_assigned[i].address + ")" +
+            sites_for_inspect.not_assigned[i].site  + " - <span>" + sites_for_inspect.not_assigned[i].address +
             ((unsubmitted_inspecion == sites_for_inspect.not_assigned[i].id) ? " (UNSUBMITTED)": "") +
 //          "<br />" +
 //          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
-            "</a></li>";
+            "</span></a></li>";
       }
       out = out + "</ul>";
     }
