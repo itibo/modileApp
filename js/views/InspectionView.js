@@ -64,6 +64,9 @@ var InspectionView = function(data) {
       navigator.notification.confirm('Do you want to submit the inspection?',
         function(buttonIndex){
           if(2 == buttonIndex){
+            if ($("#overlay").is(':hidden')){
+              $("#overlay").show();
+            }
             app.submitInspection();
           }
         },

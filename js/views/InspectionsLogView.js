@@ -108,11 +108,11 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
   if (items.length>0 || inspectionsLog.unsubmitted){
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
     if (inspectionsLog.unsubmitted){
-      out = out + "<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + " (<span class=\"adress\">" + inspectionsLog.unsubmitted.address + "</span>) (UNSUBMITTED)</div></li>";
+      out = out + "<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + " - <span class=\"adress\">" + inspectionsLog.unsubmitted.address + "</span> (UNSUBMITTED)</div></li>";
     }
 
     for(var i=0, l=items.length; i<l; i++) {
-      out = out + "<li><div class=\"left_points\">" + items[i].site  + " (<span class=\"adress\">" + items[i].address + "&nbsp;</span>) " +
+      out = out + "<li><div class=\"left_points\">" + items[i].site  + " - <span class=\"adress\">" + items[i].address + "</span>" +
           "<br />" +
           "<div class=\"points_time\">" +
             "<span class=\"time\">Initiated: <font >" + items[i].arrival_time + "</font></span><br />" +
@@ -121,10 +121,9 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
           "</div>" +
           "<div class=\"points\">" +
             "<div class=\"box_points\">" +
-              "<span class=\"points_class\">Points</span><br />" +
-              "<span class=\"big_points\">" + items[i].points + "</span><br />" +
-              "<span>of " + items[i].total_points + "</span><br />" +
-              "<span class=\"procent\">(" + items[i].percent + "%)</span>" +
+              "<span class=\"points_class\">Score</span><br />" +
+              "<span class=\"big_points\">" + items[i].percent + "%</span><br />" +
+              "<span class=\"procent\">(" + items[i].points + " of " + items[i].total_points + ")</span>" +
             "</div>" +
           "</div>" +
         "</li>";

@@ -17,9 +17,15 @@ var app = {
     this.application_version = "0.2.3";
     this.application_build = "ALPHA";
 
+    // allow to submit inspection
+    this.allowToSubmit = true;
+    // last location object
+    this.lastLocation = {};
+
+
     this.online_flag = function(){
       return !(navigator.network.connection.type == Connection.NONE);
-    }
+    };
 
     this.cancell_inspection = function(data){
       if (typeof data != "undefined"){
@@ -76,6 +82,21 @@ var app = {
       return;
     };
 
+    this.savedCheckList = function(data){
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data) {
+          window.localStorage.setItem("savedCheckList", JSON.stringify(data));
+        } else {
+          window.localStorage.removeItem("savedCheckList");
+        }
+        return;
+      } else {
+        return window.localStorage.getItem("savedCheckList") ? JSON.parse(window.localStorage.getItem("savedCheckList")) : {};
+      }
+
+    }
+
     this.setJobInspectionContainer = function(data){
       var data = data || false;
       var job_container = {
@@ -92,6 +113,7 @@ var app = {
         window.localStorage.setItem("jobInspection", JSON.stringify($.extend(job_container, data)));
       } else {
         window.localStorage.setItem("jobInspection", JSON.stringify(job_container));
+        app.savedCheckList(false);
       }
       return;
     };
@@ -164,7 +186,7 @@ var app = {
 
     if(self.token()){
       self.autoconnect_flag = true;
-      self.updatePosition();
+//      self.updatePosition();
       self.startCheckInterval();
     }
 
@@ -281,214 +303,112 @@ var app = {
   startCheckInterval: function(){
     if(app.token() && !app.check_interval_flag){
       app.check();
-      app.check_interval_flag = setInterval(app.check, app.watchPositionTimeout);
+
+      app.check_interval_flag = setInterval(function(){
+        if (navigator.geolocation){
+          navigator.geolocation.getCurrentPosition(
+              function(position){
+                if (app.token()){
+                  var job_inspect_container = app.getJobInspectionContainer();
+                  if ("submitting" == job_inspect_container.status &&
+                      ("undefined" == typeof job_inspect_container.submitting_position || $.isEmptyObject(job_inspect_container.submitting_position)) )
+                  {
+                    app.setJobInspectionContainer($.extend(job_inspect_container,
+                        {
+                          submitting_position: [{
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude,
+                            time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
+                            application_status: app.getCheckStatus(),
+                            site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                            job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                          }]
+                        }
+                    ));
+                  }
+                  if (!$.isEmptyObject(app.lastLocation)) {
+                    var R = 6371; // km
+                    var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
+                    var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
+                    var lat1 = app.lastLocation.lat.toRad();
+                    var lat2 = position.coords.latitude.toRad();
+                    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+                    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    var d = R * c;
+                    if (d > 0.05){
+                      app.coordinates.push({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        time: (new Date()).toUTCString(),
+                        application_status: app.getCheckStatus(),
+                        site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                        job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                      });
+                    }
+                  } else {
+                    app.coordinates.push({
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude,
+                      time: (new Date()).toUTCString(),
+                      application_status: app.getCheckStatus(),
+                      site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                      job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                    });
+                  }
+                  app.check();
+                } else {
+                  app.coordinates = [{
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    time: (new Date()).toUTCString(),
+                    application_status: app.getCheckStatus()
+                  }];
+                }
+                app.lastLocation = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                };
+              },
+              function(error){
+                //do nothing
+              },
+              { maximumAge: 0, timeout: 60000 }
+          );
+        }
+      }, app.watchPositionTimeout);
     }
   },
 
   //TODO: refactor, refactor and refactor again
   check: function(use_geofence, callback){
-
-/*    var use_geofence = use_geofence || false;
-    var coordinates = app.coordinates;
-    var status = (function(){
-      if (app.cancell_inspection()){
-        return 2;
-      } else if (app.autoconnect_flag) {
-        return 1;
-      } else {
-        return 0;
-      }
-    })();
-
-    var ajax_call = function(position, success_callback, error_callback){
-      $.ajax({
-        type: "POST",
-        url: app.site+'/mobile/check.json',
-        cache: false,
-        crossDomain: true,
-        dataType: 'json',
-        global: (typeof callback == "function")? true : false,
-        timeout: 60000,
-        data: {
-          id: token,
-          use_geofence: use_geofence,
-          status: status,
-          all_jobs: (typeof callback == "function")? true : false,
-          gps: position
-        },
-        success: function(data){
-          success_callback(data);
-        },
-        error: function(error){
-          error_callback(error);
-        }
-      });
-    };
-
-
+    use_geofence = use_geofence || false;
     var token = app.token();
-    if (token){
-      if (app.getJobInspectionContainer().status == "submitting"){
+
+    var tryToSubmitInspection = function(position){
+      var inspection_container = app.getJobInspectionContainer();
+      var pos = (inspection_container.submitting_position) ? inspection_container.submitting_position : position;
+
+      if (inspection_container.status == "submitting" && app.allowToSubmit){
+        app.allowToSubmit = false;
         app.submitInspection(function(){
               app.setJobInspectionContainer(false);
+              app.allowToSubmit = true;
             },
             function(error){
+              app.allowToSubmit = true;
               // do nothing
             },
-            coordinates
+            pos
         );
       }
+    };
 
-      if ( use_geofence ){
-        $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2){
-          ajax_call(
-              obj1.position,
-              function(data) {
-                app.autoconnect_flag = false;
-                app.cancell_inspection(false);
-                app.setSitesToInspect(data.jobs);
-                (new WelcomeView()).updateContent();
-                if(typeof callback == "function"){
-                  callback();
-                }
-              },
-              function(error){
-                if (error.status == 401){
-                  app.setToken(false);
-                  app.route();
-                } else{
-                  app.route();
-                }
-              }
-          );
-        }).fail(function(obj){
-              app.connecting_error(obj.error.message);
-              if ($("#overlay").is(':visible')){
-                $("#overlay").hide();
-              }
-            });
-      } else {
-        if (coordinates.length > 0){
-          $.when(app.check_online()).done(function(_obj){
-            ajax_call(
-                coordinates,
-                function(data) {
-                  app.autoconnect_flag = false;
-                  app.cancell_inspection(false);
-                  app.coordinates = (app.coordinates).slice(coordinates.length);
-                  var savedSitesToInspect = app.sitesToInspect();
-                  $.each(data.jobs, function(ind,v){
-                    var new_site = true;
-                    for(var i=0; i < savedSitesToInspect.length; i++) {
-                      if(v.id == savedSitesToInspect[i].id){
-                        new_site = false;
-                        if (v.last_inspection != savedSitesToInspect[i].last_inspection){
-                          app.setSitesToInspect(v, i);
-                        }
-                        break;
-                      }
-                    }
-                    if (new_site){
-                      app.setSitesToInspect(v, "last");
-                    }
-                  });
-                  (new WelcomeView()).updateContent();
-
-                  if(typeof callback == "function"){
-                    callback();
-                  }
-                  if ($("#overlay").is(':visible')){
-                    $("#overlay").hide();
-                  }
-                },
-                function(error){
-                  if (error.status == 401){
-                    app.setToken(false);
-                    app.route();
-                  }
-                  if ($("#overlay").is(':visible')){
-                    $("#overlay").hide();
-                  }
-                }
-            );
-          }).fail(function(_obj){
-            if ($("#overlay").is(':visible')){
-              $("#overlay").hide();
-            }
-          });
-        } else {
-          $.when( app.get_position(), app.check_online() ).done(function(_obj1, _obj2){
-            ajax_call(
-                _obj1.position,
-                function(data) {
-                  app.autoconnect_flag = false;
-                  app.cancell_inspection(false);
-                  app.coordinates = (app.coordinates).slice(coordinates.length);
-                  var savedSitesToInspect = app.sitesToInspect();
-                  $.each(data.jobs, function(ind,v){
-                    var new_site = true;
-                    for(var i=0; i < savedSitesToInspect.length; i++) {
-                      if(v.id == savedSitesToInspect[i].id){
-                        new_site = false;
-                        if (v.last_inspection != savedSitesToInspect[i].last_inspection){
-                          app.setSitesToInspect(v, i);
-                        }
-                        break;
-                      }
-                    }
-                    if (new_site){
-                      app.setSitesToInspect(v, "last");
-                    }
-                  });
-                  (new WelcomeView()).updateContent();
-
-                  if(typeof callback == "function"){
-                    callback();
-                  }
-                  if ($("#overlay").is(':visible')){
-                    $("#overlay").hide();
-                  }
-                },
-                function(error){
-                  if (error.status == 401){
-                    app.setToken(false);
-                    app.route();
-                  }
-                  if ($("#overlay").is(':visible')){
-                    $("#overlay").hide();
-                  }
-                }
-            );
-          }).fail(function(_obj){
-            app.connecting_error(_obj.error.message);
-            if ($("#overlay").is(':visible')){
-              $("#overlay").hide();
-            }
-          });
-        }
-      }
-    } else {
-      app.route();
-    }*/
-
-    var token = app.token();
     if (token){
       if (app.online_flag()){
-        var use_geofence = use_geofence || false;
         var coordinates = app.coordinates;
 
         if ( use_geofence ){
           $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
-            if (app.getJobInspectionContainer().status == "submitting"){
-              app.submitInspection(function(){
-                    app.setJobInspectionContainer(false);
-                  },
-                  function(error){
-                    // do nothing
-                  },
-                  obj1.position
-              );
-            }
             $.ajax({
               type: "POST",
               url: app.site+'/mobile/check.json',
@@ -508,6 +428,7 @@ var app = {
                 app.autoconnect_flag = false;
                 app.cancell_inspection(false);
                 app.setSitesToInspect(data.jobs);
+                tryToSubmitInspection(obj1.position);
                 (new WelcomeView()).updateContent();
 
                 if(typeof callback == "function"){
@@ -530,26 +451,6 @@ var app = {
             }
           });
         } else if (coordinates.length > 0 ) {
-          if (app.getJobInspectionContainer().status == "submitting"){
-            app.submitInspection(function(){
-                  app.coordinates = (function(used_coords){
-                    var not_used_coords = [];
-                    $.each(app.coordinates, function(i,v){
-                      if ($.inArray( v, used_coords ) < 0 ){
-                        not_used_coords.push(v);
-                      }
-                    });
-                    return not_used_coords;
-                  })(coordinates);
-                  app.setJobInspectionContainer(false);
-                },
-                function(error){
-                  // do nothing
-                },
-                coordinates
-            );
-          }
-
           $.ajax({
             type: "POST",
             url: app.site+'/mobile/check.json',
@@ -568,10 +469,10 @@ var app = {
               app.autoconnect_flag = false;
               app.cancell_inspection(false);
               app.coordinates = (app.coordinates).slice(coordinates.length);
+              tryToSubmitInspection(coordinates);
               var savedSitesToInspect = app.sitesToInspect();
               $.each(data.jobs, function(ind,v){
-                var new_site = t
-                rue;
+                var new_site = true;
                 for(var i=0; i < savedSitesToInspect.length; i++) {
                   if(v.id == savedSitesToInspect[i].id){
                     new_site = false;
@@ -625,6 +526,11 @@ var app = {
                   success: function(data) {
                     app.autoconnect_flag = false;
                     app.cancell_inspection(false);
+                    tryToSubmitInspection([{
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude,
+                      time: (new Date()).toUTCString()
+                    }]);
                     var savedSitesToInspect = app.sitesToInspect();
                     $.each(data.jobs, function(ind,v){
                       var new_site = true;
@@ -680,12 +586,12 @@ var app = {
           if (app.watchID != null) {
             if (app.token()){
               var job_inspect_container = app.getJobInspectionContainer();
-              if (typeof app.coordinates[app.coordinates.length - 1] != "undefined"){
-                var prev_loc = app.coordinates[app.coordinates.length - 1];
+              if (!$.isEmptyObject(app.lastLocation)) {
+
                 var R = 6371; // km
-                var dLat = (position.coords.latitude - prev_loc.lat).toRad();
-                var dLon = (position.coords.longitude - prev_loc.lng).toRad();
-                var lat1 = prev_loc.lat.toRad();
+                var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
+                var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
+                var lat1 = app.lastLocation.lat.toRad();
                 var lat2 = position.coords.latitude.toRad();
                 var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
                 var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
@@ -700,6 +606,7 @@ var app = {
                     job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
                   });
                 }
+
               } else {
                 app.coordinates.push({
                   lat: position.coords.latitude,
@@ -710,6 +617,7 @@ var app = {
                   job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
                 });
               }
+
             } else {
               app.coordinates = [{
                 lat: position.coords.latitude,
@@ -718,6 +626,11 @@ var app = {
                 application_status: app.getCheckStatus()
               }];
             }
+
+            app.lastLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
           }
         },
         function(PositionError){
@@ -948,9 +861,10 @@ var app = {
         break;
       case /^#inspection:(\d+)$/.test(urlObj.hash):
         var id = parseInt(urlObj.hash.match(/\d+$/g));
-        app.getCheckList(id, function(list, checklist_id){
-          app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {checklist_id: checklist_id} ));
-          $container.html(new InspectionView(list).render().el).trigger('pagecreate');
+        app.getCheckList(id, function(){
+          var savedCheckList = app.savedCheckList();
+          app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {checklist_id: savedCheckList.checklist_id} ));
+          $container.html(new InspectionView(savedCheckList.list).render().el).trigger('pagecreate');
         });
         break;
       case '#inspectionslog' == urlObj.hash:
@@ -964,7 +878,6 @@ var app = {
         break;
     }
     $container.page();
-
     options.dataUrl = urlObj.href;
     $.mobile.changePage( $container, options );
     return $container;
@@ -1002,67 +915,96 @@ var app = {
   getCheckList: function(id_in_job_avail_to_inspect, success_callback){
     id_in_job_avail_to_inspect = id_in_job_avail_to_inspect || false;
     var self = this;
-    var ajax_call = function(pos){
+    var ajax_call = function(){
       var token = app.token(),
-        job_info = (function(id){
-          var tmp = {};
-          if ("pending" == app.getJobInspectionContainer().status){
-            tmp.job_id = app.getJobInspectionContainer().job_id;
-            tmp.site_id = app.getJobInspectionContainer().site_id;
-          } else {
-            $.each(app.sitesToInspect(), function(i,v){
-              if(v.id == id){
-                tmp = {
-                  job_id: v.job_id,
-                  site_id: v.site_id
+          job_info = (function(id){
+            var tmp = {};
+            if ("pending" == app.getJobInspectionContainer().status){
+              tmp.job_id = app.getJobInspectionContainer().job_id;
+              tmp.site_id = app.getJobInspectionContainer().site_id;
+            } else {
+              $.each(app.sitesToInspect(), function(i,v){
+                if(v.id == id){
+                  tmp = {
+                    job_id: v.job_id,
+                    site_id: v.site_id
+                  }
+                  return false;
                 }
-                return false;
+              });
+            }
+            return tmp;
+          })(id_in_job_avail_to_inspect);
+
+      $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
+        $.ajax({
+          type: "POST",
+          url: app.site+'/mobile/show_checklist.json',
+          data: {
+            id: token,
+            job_id: job_info.job_id,
+            site_id: job_info.site_id,
+            gps: obj2.position
+          },
+          cache: false,
+          crossDomain: true,
+          dataType: 'json',
+          timeout: 60000,
+          success: function(data) {
+            if (data.token == token){
+              app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {status: "pending"}, job_info));
+              app.savedCheckList({checklist_id: data.checklist_id, list: data.list});
+              if (typeof success_callback == "function"){
+                success_callback();
+              }
+            } else {
+              app.setToken(false);
+              app.route();
+            }
+            return false;
+          },
+          error: function(error){
+            app.errorAlert(error, "Error", function(){
+              if (error.status == 401){
+                app.setToken(false);
+                app.route();
+              } else {
+                app.route({toPage: window.location.href + "#my_jobs"});
               }
             });
           }
-          return tmp;
-        })(id_in_job_avail_to_inspect);
-      $.ajax({
-        type: "POST",
-        url: app.site+'/mobile/show_checklist.json',
-        data: {
-          id: token,
-          job_id: job_info.job_id,
-          site_id: job_info.site_id,
-          gps: pos
-        },
-        cache: false,
-        crossDomain: true,
-        dataType: 'json',
-        timeout: 60000,
-        success: function(data) {
-          if (data.token == token){
-            app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {status: "pending"}, job_info));
-            if (typeof success_callback == "function"){
-              success_callback(data.list, data.checklist_id);
-            }
-          } else {
-            app.setToken(false);
-            app.route();
-          }
-          return false;
-        },
-        error: function(error){
-          app.errorAlert(error, "Error", function(){
-            if (error.status == 401){
-              app.setToken(false);
-              app.route();
-            } else {
-              app.route({toPage: window.location.href + "#my_jobs"});
-            }
-          });
+        });
+      }).fail(function(err_obj){
+        if (typeof err_obj.error.code != "undefined" && ($.inArray(err_obj.error.code, [2,4]) > -1 )){
+          navigator.notification.confirm(
+              "There is Internet connection problem. Please try again later",
+              function(buttonIndex){
+                if (1 == buttonIndex){
+                  navigator.geolocation.clearWatch(app.watchID);
+                  app.watchID = null;
+                  app.stopCheckInterval();
+                  navigator.app.exitApp();
+                } else if (2 == buttonIndex){
+                  app.route({
+                    toPage: window.location.href + app.current_page
+                  });
+                }
+              },
+              (4 == err_obj.error.code) ? "Unable to restore your session" : "Unable to determine your location",
+              "Close, Refresh"
+          );
+        } else {
+          app.connecting_error(err_obj.error.message);
+        }
+        if ($("#overlay").is(':visible')){
+          $("#overlay").hide();
         }
       });
     };
-    $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
-      var inspect_job_cont = app.getJobInspectionContainer();
-      if (inspect_job_cont.id && inspect_job_cont.status == "submitting" ){
-        navigator.notification.alert(
+
+    var inspect_job_cont = app.getJobInspectionContainer();
+    if (inspect_job_cont.id && inspect_job_cont.status == "submitting" ){
+      navigator.notification.alert(
           "There is an unsubmitted inspection. Please, wait until submission will finish and try again.",
           function(){
             app.route({
@@ -1071,39 +1013,15 @@ var app = {
           },
           "Error inspection starting",
           'Ok'
-        );
+      );
+    } else {
+      if (inspect_job_cont.id != id_in_job_avail_to_inspect || $.isEmptyObject(app.savedCheckList())){
+        app.setJobInspectionContainer($.extend( app.getJobInspectionContainer(), {id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString()}));
+        ajax_call.call(self);
       } else {
-        if (inspect_job_cont.id != id_in_job_avail_to_inspect){
-          app.setJobInspectionContainer($.extend( app.getJobInspectionContainer(), {id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString()}));
-        }
-        ajax_call.call(self, obj2.position);
+        success_callback();
       }
-    }).fail(function(err_obj){
-      if (typeof err_obj.error.code != "undefined" && ($.inArray(err_obj.error.code, [2,4]) > -1 )){
-        navigator.notification.confirm(
-            "There is Internet connection problem. Please try again later",
-            function(buttonIndex){
-              if (1 == buttonIndex){
-                navigator.geolocation.clearWatch(app.watchID);
-                app.watchID = null;
-                app.stopCheckInterval();
-                navigator.app.exitApp();
-              } else if (2 == buttonIndex){
-                app.route({
-                  toPage: window.location.href + app.current_page
-                });
-              }
-            },
-            (4 == err_obj.error.code) ? "Unable to restore your session" : "Unable to determine your location",
-            "Close, Refresh"
-        );
-      } else {
-        app.connecting_error(err_obj.error.message);
-      }
-      if ($("#overlay").is(':visible')){
-        $("#overlay").hide();
-      }
-    });
+    }
   },
 
   // submit inspection to server
@@ -1113,6 +1031,9 @@ var app = {
       navigator.notification.alert( "Inspection submitted",
         function(){
           app.setJobInspectionContainer(false);
+          if ($("#overlay").is(':visible')){
+            $("#overlay").hide();
+          }
           app.route({
             toPage: window.location.href + "#welcome"
           });
@@ -1125,8 +1046,12 @@ var app = {
         var inspect_container = app.getJobInspectionContainer();
         app.setJobInspectionContainer($.extend(inspect_container, {
           status: "submitting",
-          completed_at: (inspect_container.completed_at)? inspect_container.completed_at: (new Date()).toUTCString()
+          completed_at: (inspect_container.completed_at)? inspect_container.completed_at: (new Date()).toUTCString(),
+          submitting_position: (inspect_container.submitting_position)? inspect_container.submitting_position : get_position_arr(position)
         }));
+        if ($("#overlay").is(':visible')){
+          $("#overlay").hide();
+        }
         if (error.status == 401){
           app.setToken(false);
           app.route();
@@ -1138,27 +1063,29 @@ var app = {
       });
     };
 
+    var job_fields = (function(){
+      var inspect_job_cont = app.getJobInspectionContainer();
+      return {job_id: inspect_job_cont.job_id, site_id: inspect_job_cont.site_id};
+    })();
+
+    var get_position_arr = function(pos){
+      var arr = [];
+      if ($.isArray(pos)){
+        arr = pos;
+      } else {
+        arr = [$.extend({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          time: (new Date()).toUTCString()
+        }, job_fields)];
+      }
+      return arr;
+    };
+
     var success_getting_position = function(pos){
 
       var token = app.token();
-      var job_fields = (function(){
-        var inspect_job_cont = app.getJobInspectionContainer();
-        return {job_id: inspect_job_cont.job_id, site_id: inspect_job_cont.site_id};
-      })();
 
-      var get_position_arr = function(pos){
-        var arr = [];
-        if ($.isArray(pos)){
-          arr = pos;
-        } else {
-          arr = [$.extend({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            time: (new Date()).toUTCString()
-          }, job_fields)];
-        }
-        return arr;
-      };
       var ajax_call = function(){
         $.ajax({
           type: "POST",
@@ -1205,8 +1132,12 @@ var app = {
             var inspect_container = app.getJobInspectionContainer();
             app.setJobInspectionContainer($.extend(inspect_container, {
               status: "submitting",
-              completed_at: (inspect_container.completed_at)? inspect_container.completed_at : (new Date()).toUTCString()
+              completed_at: (inspect_container.completed_at)? inspect_container.completed_at : (new Date()).toUTCString(),
+              submitting_position: (inspect_container.submitting_position)? inspect_container.submitting_position : get_position_arr(pos)
             }));
+            if ($("#overlay").is(':visible')){
+              $("#overlay").hide();
+            }
             app.route({
               toPage: window.location.href
             });
@@ -1226,6 +1157,9 @@ var app = {
               status: "submitting",
               completed_at: (inspect_container.completed_at) ? inspect_container.completed_at : (new Date()).toUTCString()
             }));
+            if ($("#overlay").is(':visible')){
+              $("#overlay").hide();
+            }
             app.route({
               toPage: window.location.href
             });
@@ -1267,7 +1201,7 @@ var app = {
           app.setUserInfo(data.user);
           app.cancell_inspection(false);
           app.setJobInspectionContainer(false);
-          app.updatePosition();
+//          app.updatePosition();
           app.startCheckInterval();
           app.route();
           return false;
@@ -1358,7 +1292,7 @@ var app = {
     if ($(".pop_up").css('visibility') == 'visible'){
       $(".pop_up").css("visibility", "hidden");
       $(".popup-overlay").remove();
-    }else{
+    } else {
       switch (true) {
         case /^#inspection:(\d+)$/.test(app.current_page):
           navigator.notification.confirm("Do you want to cancel this inspection?",
