@@ -3,8 +3,8 @@ var app = {
   // Application Constructor
   initialize: function() {
     // config
-    this.site = 'http://209.123.209.168:3000';  // ALPHA
-//    this.site = 'http://209.123.209.154/';      // BETA
+//    this.site = 'http://209.123.209.168:3000';  // ALPHA
+    this.site = 'http://209.123.209.154/';      // BETA
     this.watchID = null;
     this.coordinates = [];
 
@@ -14,8 +14,8 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
-    this.application_version = "0.2.3";
-    this.application_build = "ALPHA";
+    this.application_version = "0.2.4";
+    this.application_build = "BETA";
 
     // allow to submit inspection
     this.allowToSubmit = true;
@@ -437,15 +437,22 @@ var app = {
               },
               error: function(error){
                 if (error.status == 401){
-                  app.setToken(false);
-                  app.route();
+                  navigator.notification.alert(
+                      "Invalid authentication token. You need to log in before continuing.", // message
+                      function(){
+                        app.setToken(false);
+                        app.route();
+                      },    // callback
+                      "Authentication failed",       // title
+                      'Ok'         // buttonName
+                  );
                 } else{
                   app.route();
                 }
               }
             });
           }).fail(function(obj){
-            app.connecting_error(obj.error.message);
+            app.internet_gps_error(obj);
             if ($("#overlay").is(':visible')){
               $("#overlay").hide();
             }
@@ -494,8 +501,15 @@ var app = {
             },
             error: function(error){
               if (error.status == 401){
-                app.setToken(false);
-                app.route();
+                navigator.notification.alert(
+                    "Invalid authentication token. You need to log in before continuing.", // message
+                    function(){
+                      app.setToken(false);
+                      app.route();
+                    },    // callback
+                    "Authentication failed",       // title
+                    'Ok'         // buttonName
+                );
               } else{
                 // do nothing
               }
@@ -555,8 +569,15 @@ var app = {
                   },
                   error: function(error){
                     if (error.status == 401){
-                      app.setToken(false);
-                      app.route();
+                      navigator.notification.alert(
+                          "Invalid authentication token. You need to log in before continuing.", // message
+                          function(){
+                            app.setToken(false);
+                            app.route();
+                          },    // callback
+                          "Authentication failed",       // title
+                          'Ok'         // buttonName
+                      );
                     } else{
                       // do nothing
                     }
@@ -570,7 +591,7 @@ var app = {
           );
         }
       } else if (typeof callback == "function" && !app.online_flag()) {
-        app.connecting_error();
+        app.internet_gps_error();
       }
     } else {
       app.route();
@@ -673,6 +694,7 @@ var app = {
         } else {
           $deferred.reject({
             status: 'error',
+            type: 'gps',
             error: {
               message: "Wrong position format"
             }
@@ -697,6 +719,7 @@ var app = {
               function(error){
                 $deferred.reject({
                   status: 'error',
+                  type: 'gps',
                   error: error
                 });
               },
@@ -705,6 +728,7 @@ var app = {
         } else {
           $deferred.reject({
             status: 'error',
+            type: 'gps',
             error: {
               message: "Your browser doesn't support geolocation!"
             }
@@ -726,6 +750,7 @@ var app = {
       } else {
         $deferred.reject({
           status: 'error',
+          type: 'internet',
           error: {
             code: 4,
             message: "There is Internet connection problem. Please try again later"
@@ -763,8 +788,15 @@ var app = {
         error: function(error){
           app.errorAlert(error, "Error", function(){
             if (error.status == 401){
-              app.setToken(false);
-              app.route();
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
             } else {
               app.errorAlert(error, "Error", function(){
                 app.route();
@@ -778,7 +810,7 @@ var app = {
     $.when( app.check_online() ).done(function(obj){
       ajax_call.call(self);
     }).fail(function(obj){
-      app.connecting_error(obj.error.message);
+        app.internet_gps_error(obj);
       if ($("#overlay").is(':visible')){
         $("#overlay").hide();
       }
@@ -814,8 +846,15 @@ var app = {
         error: function(error){
           app.errorAlert(error, "Error", function(){
             if (error.status == 401){
-              app.setToken(false);
-              app.route();
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
             } else {
               app.errorAlert(error, "Error", function(){
                 app.route();
@@ -829,7 +868,7 @@ var app = {
     $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
       ajax_call.call(self, obj1.position);
     }).fail(function(obj){
-      app.connecting_error(obj.error.message);
+        app.internet_gps_error(obj);
       if ($("#overlay").is(':visible')){
         $("#overlay").hide();
       }
@@ -994,7 +1033,7 @@ var app = {
               "Close, Refresh"
           );
         } else {
-          app.connecting_error(err_obj.error.message);
+          app.internet_gps_error(err_obj);
         }
         if ($("#overlay").is(':visible')){
           $("#overlay").hide();
@@ -1053,8 +1092,15 @@ var app = {
           $("#overlay").hide();
         }
         if (error.status == 401){
-          app.setToken(false);
-          app.route();
+          navigator.notification.alert(
+              "Invalid authentication token. You need to log in before continuing.", // message
+              function(){
+                app.setToken(false);
+                app.route();
+              },    // callback
+              "Authentication failed",       // title
+              'Ok'         // buttonName
+          );
         } else {
           app.errorAlert(error, "Error", function(){
             app.route();
@@ -1127,7 +1173,7 @@ var app = {
         ajax_call();
       } else {
         navigator.notification.alert(
-          "There was an inspection submitting error. The inspection will be submitted as soon as the internet connection and gps signal resumes.",
+          "Inspection data will be submitted to the server when Internet connection is restored.",
           function(){
             var inspect_container = app.getJobInspectionContainer();
             app.setJobInspectionContainer($.extend(inspect_container, {
@@ -1142,7 +1188,7 @@ var app = {
               toPage: window.location.href
             });
           },
-          "Error inspection submitting",
+          "Inspection saved on your mobile device",
           'Ok'
         );
       }
@@ -1150,7 +1196,7 @@ var app = {
 
     var error_getting_position = function(error){
       navigator.notification.alert(
-          "There was an inspection submitting error. The inspection will be submitted as soon as the internet connection and gps signal resumes.",
+          "Inspection data will be submitted to the server when Internet connection is restored.",
           function(){
             var inspect_container = app.getJobInspectionContainer();
             app.setJobInspectionContainer($.extend(inspect_container, {
@@ -1164,7 +1210,7 @@ var app = {
               toPage: window.location.href
             });
           },
-          "Error inspection submitting",
+          "Inspection saved on your mobile device",
           'Ok'
       );
     };
@@ -1278,7 +1324,7 @@ var app = {
       if (app.online_flag()){
         ajax_call();
       } else {
-        app.connecting_error();
+        app.internet_gps_error(err_obj);
       }
     };
     var error_getting_position = function(err){
@@ -1364,10 +1410,26 @@ var app = {
     app.stopCheckInterval();
   },
 
-  connecting_error: function(msg, buttons, title){
-    msg = msg || "There is Internet connection problem. Please try again later";
-    buttons = buttons || "Refresh, Back to Main Page";
-    title = title || "Internet connection problem";
+  internet_gps_error: function(error){
+    error = error || {};
+    var title = ( error.type != "undefined" && 'gps' == error.type) ? 'Unable to determine your location' : 'Internet Connection Problem';
+    var buttons = "Refresh, Back to Main Page";
+    var msg = (function(e){
+      if ($.isEmptyObject(error)){
+        return "There is Internet connection problem. Please try again later";
+      } else if (e.type != "undefined" && 'gps' == e.type) {
+        return "Please check the location options/setting of your devise or try again later.";
+      } else {
+        err = e.error || {};
+        alert(JSON.stringify(err));
+        if (err.message != "undefined"){
+          return err.message;
+        } else {
+          return "There is Internet connection problem. Please try again later";
+        }
+      }
+    })(error);
+
     navigator.notification.confirm(
         msg,
         function(buttonIndex){
@@ -1383,7 +1445,6 @@ var app = {
         buttons
     );
   }
-
 };
 
 // for those ajax where global: true
