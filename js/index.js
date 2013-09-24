@@ -3,8 +3,8 @@ var app = {
   // Application Constructor
   initialize: function() {
     // config
-    this.site = 'http://209.123.209.168:3000';  // ALPHA
-//    this.site = 'http://209.123.209.154/';      // BETA
+//    this.site = 'http://209.123.209.168:3000';  // ALPHA
+    this.site = 'http://209.123.209.154/';      // BETA
     this.watchID = null;
     this.coordinates = [];
 
@@ -15,7 +15,7 @@ var app = {
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
     this.application_version = "0.2.4";
-    this.application_build = "ALPHA";
+    this.application_build = "BETA";
 
     // allow to submit inspection
     this.allowToSubmit = true;
@@ -1324,11 +1324,12 @@ var app = {
       if (app.online_flag()){
         ajax_call();
       } else {
-        app.internet_gps_error(err_obj);
+        app.internet_gps_error();
       }
     };
     var error_getting_position = function(err){
-      app.errorAlert(error, "Error getting position", function(){} );
+      err.type = "gps";
+      app.internet_gps_error(err);
     };
 
     navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
@@ -1421,7 +1422,6 @@ var app = {
         return "Please check the location options/setting of your devise or try again later.";
       } else {
         err = e.error || {};
-        alert(JSON.stringify(err));
         if (err.message != "undefined"){
           return err.message;
         } else {
