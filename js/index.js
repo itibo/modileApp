@@ -19,6 +19,8 @@ var app = {
 
     // allow to submit inspection
     this.allowToSubmit = true;
+    // allow to send check
+    this.allowToCheck = true;
     // last location object
     this.lastLocation = {};
 
@@ -311,7 +313,7 @@ var app = {
                 if (app.token()){
                   var job_inspect_container = app.getJobInspectionContainer();
                   if ("submitting" == job_inspect_container.status &&
-                      ("undefined" == typeof job_inspect_container.submitting_position || $.isEmptyObject(job_inspect_container.submitting_position)) )
+                      ("undefined" == typeof job_inspect_container.submitting_position || job_inspect_container.submitting_position.length == 0) )
                   {
                     app.setJobInspectionContainer($.extend(job_inspect_container,
                         {
@@ -389,17 +391,7 @@ var app = {
       var pos = (inspection_container.submitting_position) ? inspection_container.submitting_position : position;
 
       if (inspection_container.status == "submitting" && app.allowToSubmit){
-        app.allowToSubmit = false;
-        app.submitInspection(function(){
-              app.setJobInspectionContainer(false);
-              app.allowToSubmit = true;
-            },
-            function(error){
-              app.allowToSubmit = true;
-              // do nothing
-            },
-            pos
-        );
+        app.submitInspection(function(){}, function(error){},pos);
       }
     };
 
@@ -472,6 +464,12 @@ var app = {
             crossDomain: true,
             dataType: 'json',
             global: (typeof callback == "function")? true : false,
+            beforeSend: function(){
+              if (!app.allowToCheck){
+                return false;
+              }
+              app.allowToCheck = false;
+            },
             success: function(data) {
               app.autoconnect_flag = false;
               app.cancell_inspection(false);
@@ -513,6 +511,9 @@ var app = {
               } else{
                 // do nothing
               }
+            },
+            complete: function(){
+              app.allowToCheck = true;
             }
           });
         } else if ( 0 == coordinates.length && 1 == app.getCheckStatus() ) {
@@ -1019,8 +1020,8 @@ var app = {
               "There is Internet connection problem. Please try again later",
               function(buttonIndex){
                 if (1 == buttonIndex){
-                  navigator.geolocation.clearWatch(app.watchID);
-                  app.watchID = null;
+//                  navigator.geolocation.clearWatch(app.watchID);
+//                  app.watchID = null;
                   app.stopCheckInterval();
                   navigator.app.exitApp();
                 } else if (2 == buttonIndex){
@@ -1069,7 +1070,6 @@ var app = {
     var success_ajax_call = function(){
       navigator.notification.alert( "Inspection submitted",
         function(){
-          app.setJobInspectionContainer(false);
           if ($("#overlay").is(':visible')){
             $("#overlay").hide();
           }
@@ -1082,11 +1082,10 @@ var app = {
 
     var error_ajax_call = function(error){
       app.errorAlert(error, "Error", function(){
-        var inspect_container = app.getJobInspectionContainer();
-        app.setJobInspectionContainer($.extend(inspect_container, {
+        app.setJobInspectionContainer($.extend(submit_data, {
           status: "submitting",
-          completed_at: (inspect_container.completed_at)? inspect_container.completed_at: (new Date()).toUTCString(),
-          submitting_position: (inspect_container.submitting_position)? inspect_container.submitting_position : get_position_arr(position)
+          completed_at: (submit_data.completed_at)? submit_data.completed_at: (new Date()).toUTCString(),
+          submitting_position: (submit_data.submitting_position)? submit_data.submitting_position : get_position_arr(position)
         }));
         if ($("#overlay").is(':visible')){
           $("#overlay").hide();
@@ -1110,8 +1109,7 @@ var app = {
     };
 
     var job_fields = (function(){
-      var inspect_job_cont = app.getJobInspectionContainer();
-      return {job_id: inspect_job_cont.job_id, site_id: inspect_job_cont.site_id};
+      return {job_id: submit_data.job_id, site_id: submit_data.site_id};
     })();
 
     var get_position_arr = function(pos){
@@ -1129,9 +1127,7 @@ var app = {
     };
 
     var success_getting_position = function(pos){
-
       var token = app.token();
-
       var ajax_call = function(){
         $.ajax({
           type: "POST",
@@ -1153,6 +1149,8 @@ var app = {
           dataType: 'json',
           timeout: 60000,
           success: function() {
+            app.setJobInspectionContainer(false);
+            app.allowToSubmit = true;
             if (success_clb && typeof success_clb == "function"){
               success_clb();
             } else {
@@ -1160,6 +1158,7 @@ var app = {
             }
           },
           error: function(error){
+            app.allowToSubmit = true;
             if (error_clb && typeof error_clb == "function"){
               error_clb(error);
             } else {
@@ -1172,14 +1171,14 @@ var app = {
       if(app.online_flag()){
         ajax_call();
       } else {
+        app.allowToSubmit = true;
         navigator.notification.alert(
           "Inspection data will be submitted to the server when Internet connection is restored.",
           function(){
-            var inspect_container = app.getJobInspectionContainer();
-            app.setJobInspectionContainer($.extend(inspect_container, {
+            app.setJobInspectionContainer($.extend(submit_data, {
               status: "submitting",
-              completed_at: (inspect_container.completed_at)? inspect_container.completed_at : (new Date()).toUTCString(),
-              submitting_position: (inspect_container.submitting_position)? inspect_container.submitting_position : get_position_arr(pos)
+              completed_at: (submit_data.completed_at)? submit_data.completed_at : (new Date()).toUTCString(),
+              submitting_position: (submit_data.submitting_position)? submit_data.submitting_position : get_position_arr(pos)
             }));
             if ($("#overlay").is(':visible')){
               $("#overlay").hide();
@@ -1195,13 +1194,13 @@ var app = {
     };
 
     var error_getting_position = function(error){
+      app.allowToSubmit = true;
       navigator.notification.alert(
           "Inspection data will be submitted to the server when Internet connection is restored.",
           function(){
-            var inspect_container = app.getJobInspectionContainer();
-            app.setJobInspectionContainer($.extend(inspect_container, {
+            app.setJobInspectionContainer($.extend(submit_data, {
               status: "submitting",
-              completed_at: (inspect_container.completed_at) ? inspect_container.completed_at : (new Date()).toUTCString()
+              completed_at: (submit_data.completed_at) ? submit_data.completed_at : (new Date()).toUTCString()
             }));
             if ($("#overlay").is(':visible')){
               $("#overlay").hide();
@@ -1214,7 +1213,7 @@ var app = {
           'Ok'
       );
     };
-
+    app.allowToSubmit = false;
     if (typeof position != "undefined"){
       success_getting_position(position);
     } else {
@@ -1285,8 +1284,8 @@ var app = {
   //logout
   logout: function(){
     var logout_process = function(){
-      navigator.geolocation.clearWatch(app.watchID);
-      app.watchID = null;
+//      navigator.geolocation.clearWatch(app.watchID);
+//      app.watchID = null;
       app.stopCheckInterval();
       app.setToken(false);
       app.coordinates = [];
@@ -1363,8 +1362,8 @@ var app = {
           app.showConfirm('Close', 'Do you want to quit? ',
               function(buttonIndex){
                 if(2 == buttonIndex){
-                  navigator.geolocation.clearWatch(app.watchID);
-                  app.watchID = null;
+//                  navigator.geolocation.clearWatch(app.watchID);
+//                  app.watchID = null;
                   app.stopCheckInterval();
                   navigator.app.exitApp();
                 }
