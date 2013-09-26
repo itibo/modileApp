@@ -390,7 +390,7 @@ var app = {
       var inspection_container = app.getJobInspectionContainer();
       var pos = (inspection_container.submitting_position) ? inspection_container.submitting_position : position;
 
-      if (inspection_container.status == "submitting" && app.allowToSubmit){
+      if (app.allowToSubmit && "submitting" == inspection_container.status ){
         app.submitInspection(function(){}, function(error){},pos);
       }
     };
@@ -1129,6 +1129,7 @@ var app = {
     var success_getting_position = function(pos){
       var token = app.token();
       var ajax_call = function(){
+        var ajax_process_flag;
         $.ajax({
           type: "POST",
           url: app.site+'/mobile/update_checklist.json',
@@ -1148,9 +1149,15 @@ var app = {
           crossDomain: true,
           dataType: 'json',
           timeout: 60000,
+          beforeSend: function(xhr, options){
+            if (false === ajax_process_flag){
+              xhr.abort();
+              return false;
+            }
+            ajax_process_flag = false;
+          },
           success: function() {
             app.setJobInspectionContainer(false);
-            app.allowToSubmit = true;
             if (success_clb && typeof success_clb == "function"){
               success_clb();
             } else {
@@ -1158,12 +1165,15 @@ var app = {
             }
           },
           error: function(error){
-            app.allowToSubmit = true;
             if (error_clb && typeof error_clb == "function"){
               error_clb(error);
             } else {
               error_ajax_call(error);
             }
+          },
+          complete: function(){
+            app.allowToSubmit = true;
+            ajax_process_flag = true;
           }
         });
       }
