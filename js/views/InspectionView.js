@@ -64,10 +64,37 @@ var InspectionView = function(data) {
       navigator.notification.confirm('Do you want to submit the inspection?',
         function(buttonIndex){
           if(2 == buttonIndex){
-            if ($("#overlay").is(':hidden')){
-              $("#overlay").show();
-            }
-            app.submitInspection();
+            var submit_data = app.getJobInspectionContainer();
+            app.setJobInspectionContainer($.extend(submit_data, {status: "pre_submitting"}));
+
+            var get_position_arr = function(pos){
+              return [{
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                acc: pos.coords.accuracy,
+                time: (new Date()).toUTCString(),
+                job_id: submit_data.job_id,
+                site_id: submit_data.site_id
+              }];
+            };
+
+            var position_callback = function(arg){
+              submit_data.status = "submitting";
+              submit_data.completed_at = (submit_data.completed_at)? submit_data.completed_at: (new Date()).toUTCString();
+              if ( "undefined" == typeof arg.code ){
+                submit_data.submitting_position = get_position_arr(arg);
+              }
+              app.setJobInspectionContainer(submit_data);
+              app.check();
+
+            };
+
+            setTimeout(function(){
+              navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0});
+              app.route({
+                toPage: window.location.href + "#welcome"
+              });
+            }, 0);
           }
         },
         'Inspection submission',

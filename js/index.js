@@ -43,7 +43,7 @@ var app = {
         return 1;
       } else if (app.cancell_inspection()){
         return 2;
-      } else if ("pending" == app.getJobInspectionContainer().status){
+      } else if ( $.inArray(app.getJobInspectionContainer().status, ["pending", "pre_submitting"]) > -1 ){
         return 3;
       } else {
         return 0;
@@ -320,6 +320,7 @@ var app = {
                           submitting_position: [{
                             lat: position.coords.latitude,
                             lng: position.coords.longitude,
+                            acc: position.coords.accuracy,
                             time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
                             application_status: app.getCheckStatus(),
                             site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
@@ -341,6 +342,7 @@ var app = {
                       app.coordinates.push({
                         lat: position.coords.latitude,
                         lng: position.coords.longitude,
+                        acc: position.coords.accuracy,
                         time: (new Date()).toUTCString(),
                         application_status: app.getCheckStatus(),
                         site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
@@ -351,6 +353,7 @@ var app = {
                     app.coordinates.push({
                       lat: position.coords.latitude,
                       lng: position.coords.longitude,
+                      acc: position.coords.accuracy,
                       time: (new Date()).toUTCString(),
                       application_status: app.getCheckStatus(),
                       site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
@@ -362,13 +365,15 @@ var app = {
                   app.coordinates = [{
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
+                    acc: position.coords.accuracy,
                     time: (new Date()).toUTCString(),
                     application_status: app.getCheckStatus()
                   }];
                 }
                 app.lastLocation = {
                   lat: position.coords.latitude,
-                  lng: position.coords.longitude
+                  lng: position.coords.longitude,
+                  acc: position.coords.accuracy
                 };
               },
               function(error){
@@ -387,69 +392,18 @@ var app = {
     var token = app.token();
 
     var tryToSubmitInspection = function(position){
+      position = position || false;
       var inspection_container = app.getJobInspectionContainer();
       var pos = (inspection_container.submitting_position) ? inspection_container.submitting_position : position;
 
-      if (app.allowToSubmit && "submitting" == inspection_container.status ){
+      if (app.allowToSubmit && "submitting" == inspection_container.status && pos){
         app.submitInspection(function(){}, function(error){},pos);
       }
     };
 
     if (token){
       if (app.online_flag()){
-        var coordinates = app.coordinates;
-
-        if ( use_geofence ){
-          $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
-            $.ajax({
-              type: "POST",
-              url: app.site+'/mobile/check.json',
-              data: {
-                id: token,
-                use_geofence: use_geofence,
-                version: app.application_version,
-                all_jobs: (typeof callback == "function")? true : false,
-                gps: obj1.position
-              },
-              cache: false,
-              crossDomain: true,
-              dataType: 'json',
-              global: (typeof callback == "function")? true : false,
-              timeout: 60000,
-              success: function(data) {
-                app.autoconnect_flag = false;
-                app.cancell_inspection(false);
-                app.setSitesToInspect(data.jobs);
-                tryToSubmitInspection(obj1.position);
-                (new WelcomeView()).updateContent();
-
-                if(typeof callback == "function"){
-                  callback();
-                }
-              },
-              error: function(error){
-                if (error.status == 401){
-                  navigator.notification.alert(
-                      "Invalid authentication token. You need to log in before continuing.", // message
-                      function(){
-                        app.setToken(false);
-                        app.route();
-                      },    // callback
-                      "Authentication failed",       // title
-                      'Ok'         // buttonName
-                  );
-                } else{
-                  app.route();
-                }
-              }
-            });
-          }).fail(function(obj){
-            app.internet_gps_error(obj);
-            if ($("#overlay").is(':visible')){
-              $("#overlay").hide();
-            }
-          });
-        } else if (coordinates.length > 0 ) {
+        var ajax_call = function(coord, success, error){
           $.ajax({
             type: "POST",
             url: app.site+'/mobile/check.json',
@@ -458,7 +412,7 @@ var app = {
               use_geofence: use_geofence,
               version: app.application_version,
               all_jobs: (typeof callback == "function")? true : false,
-              gps: coordinates
+              gps: coord
             },
             cache: false,
             crossDomain: true,
@@ -473,32 +427,20 @@ var app = {
             success: function(data) {
               app.autoconnect_flag = false;
               app.cancell_inspection(false);
-              app.coordinates = (app.coordinates).slice(coordinates.length);
-              tryToSubmitInspection(coordinates);
-              var savedSitesToInspect = app.sitesToInspect();
-              $.each(data.jobs, function(ind,v){
-                var new_site = true;
-                for(var i=0; i < savedSitesToInspect.length; i++) {
-                  if(v.id == savedSitesToInspect[i].id){
-                    new_site = false;
-                    if (v.last_inspection != savedSitesToInspect[i].last_inspection){
-                      app.setSitesToInspect(v, i);
-                    }
-                    break;
-                  }
-                }
-                if (new_site){
-                  app.setSitesToInspect(v, "last");
-                }
-              });
+              tryToSubmitInspection(coord);
+
+              if (success && "function" == typeof success){
+                success(data);
+              }
+
               (new WelcomeView()).updateContent();
 
               if(typeof callback == "function"){
                 callback();
               }
             },
-            error: function(error){
-              if (error.status == 401){
+            error: function(e){
+              if (e.status == 401){
                 navigator.notification.alert(
                     "Invalid authentication token. You need to log in before continuing.", // message
                     function(){
@@ -509,87 +451,101 @@ var app = {
                     'Ok'         // buttonName
                 );
               } else{
-                // do nothing
+                if (error && "function" == typeof error){
+                  error();
+                }
               }
             },
             complete: function(){
               app.allowToCheck = true;
             }
           });
-        } else if ( 0 == coordinates.length && 1 == app.getCheckStatus() ) {
-          navigator.geolocation.getCurrentPosition(
-              function(position){
-                $.ajax({
-                  type: "POST",
-                  url: app.site+'/mobile/check.json',
-                  data: {
-                    id: token,
-                    use_geofence: use_geofence,
-                    version: app.application_version,
-                    all_jobs: (typeof callback == "function")? true : false,
-                    gps: [{
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude,
-                      time: (new Date()).toUTCString(),
-                      application_status: 1
-                    }]
-                  },
-                  cache: false,
-                  crossDomain: true,
-                  dataType: 'json',
-                  global: (typeof callback == "function")? true : false,
-                  success: function(data) {
-                    app.autoconnect_flag = false;
-                    app.cancell_inspection(false);
-                    tryToSubmitInspection([{
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude,
-                      time: (new Date()).toUTCString()
-                    }]);
-                    var savedSitesToInspect = app.sitesToInspect();
-                    $.each(data.jobs, function(ind,v){
-                      var new_site = true;
-                      for(var i=0; i < savedSitesToInspect.length; i++) {
-                        if(v.id == savedSitesToInspect[i].id){
-                          new_site = false;
-                          if (v.last_inspection != savedSitesToInspect[i].last_inspection){
-                            app.setSitesToInspect(v, i);
-                          }
-                          break;
-                        }
-                      }
-                      if (new_site){
-                        app.setSitesToInspect(v, "last");
-                      }
-                    });
-                    (new WelcomeView()).updateContent();
+        };
 
-                    if(typeof callback == "function"){
-                      callback();
+        if ( use_geofence ){
+          $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+            ajax_call(obj1.position,
+                function(data){
+                  app.setSitesToInspect(data.jobs);
+                },
+                function(){
+                  app.route();
+                }
+            );
+          }).fail(function(obj){
+            app.internet_gps_error(obj);
+            if ($("#overlay").is(':visible')){
+              $("#overlay").hide();
+            }
+          });
+        } else {
+          var coordinates = app.coordinates;
+
+          if (coordinates.length > 0){
+            ajax_call(coordinates,
+                function(data){
+                  app.coordinates = (app.coordinates).slice(coordinates.length);
+
+                  var savedSitesToInspect = app.sitesToInspect();
+                  $.each(data.jobs, function(ind,v){
+                    var new_site = true;
+                    for(var i=0; i < savedSitesToInspect.length; i++) {
+                      if(v.id == savedSitesToInspect[i].id){
+                        new_site = false;
+                        if (v.last_inspection != savedSitesToInspect[i].last_inspection){
+                          app.setSitesToInspect(v, i);
+                        }
+                        break;
+                      }
                     }
-                  },
-                  error: function(error){
-                    if (error.status == 401){
-                      navigator.notification.alert(
-                          "Invalid authentication token. You need to log in before continuing.", // message
-                          function(){
-                            app.setToken(false);
-                            app.route();
-                          },    // callback
-                          "Authentication failed",       // title
-                          'Ok'         // buttonName
-                      );
-                    } else{
-                      // do nothing
+                    if (new_site){
+                      app.setSitesToInspect(v, "last");
                     }
-                  }
-                });
-              },
-              function(error){
-                // do nothing
-              },
-              {timeout:30000, maximumAge: 0}
-          );
+                  });
+                },
+                function(){}
+            );
+          } else if ( 0 == coordinates.length ) {
+            navigator.geolocation.getCurrentPosition(
+                function(position){
+                  var gps = [{
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    acc: position.coords.accuracy,
+                    time: (new Date()).toUTCString(),
+                    application_status: app.getCheckStatus(),
+                    site_id: (app.getJobInspectionContainer().site_id)? (app.getJobInspectionContainer().site_id) : null,
+                    job_id: (app.getJobInspectionContainer().job_id)? (app.getJobInspectionContainer().job_id) : null
+                  }];
+                  ajax_call(gps,
+                      function(data){
+
+                        var savedSitesToInspect = app.sitesToInspect();
+                        $.each(data.jobs, function(ind,v){
+                          var new_site = true;
+                          for(var i=0; i < savedSitesToInspect.length; i++) {
+                            if(v.id == savedSitesToInspect[i].id){
+                              new_site = false;
+                              if (v.last_inspection != savedSitesToInspect[i].last_inspection){
+                                app.setSitesToInspect(v, i);
+                              }
+                              break;
+                            }
+                          }
+                          if (new_site){
+                            app.setSitesToInspect(v, "last");
+                          }
+                        });
+                      },
+                      function(){}
+                  );
+                },
+                function(error){
+                  // do nothing
+                },
+                {timeout:30000, maximumAge: 0}
+            );
+          }
         }
       } else if (typeof callback == "function" && !app.online_flag()) {
         app.internet_gps_error();
@@ -599,7 +555,7 @@ var app = {
     }
   },
 
-  updatePosition: function(){
+/*  updatePosition: function(){
     var geolocation = navigator.geolocation;
 
     if (geolocation){
@@ -622,6 +578,7 @@ var app = {
                   app.coordinates.push({
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
+                    acc: position.coords.accuracy,
                     time: (new Date()).toUTCString(),
                     application_status: app.getCheckStatus(),
                     site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
@@ -633,6 +590,7 @@ var app = {
                 app.coordinates.push({
                   lat: position.coords.latitude,
                   lng: position.coords.longitude,
+                  acc: position.coords.accuracy,
                   time: (new Date()).toUTCString(),
                   application_status: app.getCheckStatus(),
                   site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
@@ -644,6 +602,7 @@ var app = {
               app.coordinates = [{
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
+                acc: position.coords.accuracy,
                 time: (new Date()).toUTCString(),
                 application_status: app.getCheckStatus()
               }];
@@ -651,7 +610,8 @@ var app = {
 
             app.lastLocation = {
               lat: position.coords.latitude,
-              lng: position.coords.longitude
+              lng: position.coords.longitude,
+              acc: position.coords.accuracy
             };
           }
         },
@@ -664,7 +624,7 @@ var app = {
         }
       );
     }
-  },
+  },*/
 
   get_position: function(defined_position){
     return $.Deferred(function($deferred){
@@ -686,6 +646,7 @@ var app = {
             position: [{
               lat: defined_position.coords.latitude,
               lng: defined_position.coords.longitude,
+              acc: defined_position.coords.accuracy,
               time: (new Date()).toUTCString(),
               application_status: app.getCheckStatus(),
               site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
@@ -710,6 +671,7 @@ var app = {
                   position: [{
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
+                    acc: position.coords.accuracy,
                     time: (new Date()).toUTCString(),
                     application_status: app.getCheckStatus(),
                     site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
@@ -1067,46 +1029,7 @@ var app = {
   // submit inspection to server
   submitInspection: function(success_clb, error_clb, position){
     var submit_data = app.getJobInspectionContainer();
-    var success_ajax_call = function(){
-      navigator.notification.alert( "Inspection submitted",
-        function(){
-          if ($("#overlay").is(':visible')){
-            $("#overlay").hide();
-          }
-          app.route({
-            toPage: window.location.href + "#welcome"
-          });
-        },
-        "Success", 'Ok');
-    };
-
-    var error_ajax_call = function(error){
-      app.errorAlert(error, "Error", function(){
-        app.setJobInspectionContainer($.extend(submit_data, {
-          status: "submitting",
-          completed_at: (submit_data.completed_at)? submit_data.completed_at: (new Date()).toUTCString(),
-          submitting_position: (submit_data.submitting_position)? submit_data.submitting_position : get_position_arr(position)
-        }));
-        if ($("#overlay").is(':visible')){
-          $("#overlay").hide();
-        }
-        if (error.status == 401){
-          navigator.notification.alert(
-              "Invalid authentication token. You need to log in before continuing.", // message
-              function(){
-                app.setToken(false);
-                app.route();
-              },    // callback
-              "Authentication failed",       // title
-              'Ok'         // buttonName
-          );
-        } else {
-          app.errorAlert(error, "Error", function(){
-            app.route();
-          });
-        }
-      });
-    };
+    var token = app.token();
 
     var job_fields = (function(){
       return {job_id: submit_data.job_id, site_id: submit_data.site_id};
@@ -1120,15 +1043,17 @@ var app = {
         arr = [$.extend({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
+          acc: pos.coords.accuracy,
           time: (new Date()).toUTCString()
         }, job_fields)];
       }
       return arr;
     };
 
-    var success_getting_position = function(pos){
-      var token = app.token();
-      var ajax_call = function(){
+    app.allowToSubmit = false;
+    if (typeof position != "undefined"){
+
+      $.when( app.check_online() ).done(function(obj1){
         var ajax_process_flag;
         $.ajax({
           type: "POST",
@@ -1139,7 +1064,7 @@ var app = {
             site_id: job_fields.site_id,
             started_at: submit_data.started_at,
             completed_at: submit_data.completed_at ? submit_data.completed_at : (new Date()).toUTCString(),
-            gps: get_position_arr(pos),
+            gps: get_position_arr(position),
             checklist_id: submit_data.checklist_id ? submit_data.checklist_id : "",
             checklist_results: submit_data.container ? submit_data.container : [],
             comment: submit_data.comment
@@ -1149,6 +1074,7 @@ var app = {
           crossDomain: true,
           dataType: 'json',
           timeout: 60000,
+          global: false,
           beforeSend: function(xhr, options){
             if (false === ajax_process_flag){
               xhr.abort();
@@ -1160,74 +1086,23 @@ var app = {
             app.setJobInspectionContainer(false);
             if (success_clb && typeof success_clb == "function"){
               success_clb();
-            } else {
-              success_ajax_call();
             }
           },
           error: function(error){
             if (error_clb && typeof error_clb == "function"){
               error_clb(error);
-            } else {
-              error_ajax_call(error);
             }
           },
           complete: function(){
             app.allowToSubmit = true;
             ajax_process_flag = true;
+            $("#overlay").hide();
           }
         });
-      }
-
-      if(app.online_flag()){
-        ajax_call();
-      } else {
+      }).fail(function(){
         app.allowToSubmit = true;
-        navigator.notification.alert(
-          "Inspection data will be submitted to the server when Internet connection is restored.",
-          function(){
-            app.setJobInspectionContainer($.extend(submit_data, {
-              status: "submitting",
-              completed_at: (submit_data.completed_at)? submit_data.completed_at : (new Date()).toUTCString(),
-              submitting_position: (submit_data.submitting_position)? submit_data.submitting_position : get_position_arr(pos)
-            }));
-            if ($("#overlay").is(':visible')){
-              $("#overlay").hide();
-            }
-            app.route({
-              toPage: window.location.href
-            });
-          },
-          "Inspection saved on your mobile device",
-          'Ok'
-        );
-      }
-    };
-
-    var error_getting_position = function(error){
-      app.allowToSubmit = true;
-      navigator.notification.alert(
-          "Inspection data will be submitted to the server when Internet connection is restored.",
-          function(){
-            app.setJobInspectionContainer($.extend(submit_data, {
-              status: "submitting",
-              completed_at: (submit_data.completed_at) ? submit_data.completed_at : (new Date()).toUTCString()
-            }));
-            if ($("#overlay").is(':visible')){
-              $("#overlay").hide();
-            }
-            app.route({
-              toPage: window.location.href
-            });
-          },
-          "Inspection saved on your mobile device",
-          'Ok'
-      );
-    };
-    app.allowToSubmit = false;
-    if (typeof position != "undefined"){
-      success_getting_position(position);
-    } else {
-      navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
+        $("#overlay").hide();
+      });
     }
   },
 
@@ -1303,45 +1178,27 @@ var app = {
       app.setJobInspectionContainer(false);
       app.autoconnect_flag = false;
       app.cancell_inspection(false);
+      $("#overlay").hide();
 
       app.route();
     };
-    var success_getting_position = function(pos){
-      var ajax_call = function(){
-        $.ajax({
-          type: "POST",
-          url: app.site+'/mobile/logout.json',
-          data: {
-            id: app.token(),
-            gps: [{
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-              time: (new Date()).toUTCString()
-            }]
-          },
-          cache: false,
-          crossDomain: true,
-          dataType: 'json',
-          timeout: 60000,
-          success: function(data) {
-            logout_process();
-          },
-          error: function(error) {
-          }
-        });
-      }
-      if (app.online_flag()){
-        ajax_call();
-      } else {
-        app.internet_gps_error();
-      }
-    };
-    var error_getting_position = function(err){
-      err.type = "gps";
-      app.internet_gps_error(err);
-    };
 
-    navigator.geolocation.getCurrentPosition(success_getting_position, error_getting_position, {timeout:30000, maximumAge: 0});
+    $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/logout.json',
+        data: {
+          id: app.token(),
+          gps: obj2.position
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        timeout: 60000
+      });
+    }).always(function(){
+      logout_process();
+    });
   },
 
   backButton: function(){
