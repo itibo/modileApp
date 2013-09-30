@@ -345,8 +345,8 @@ var app = {
                         acc: position.coords.accuracy,
                         time: (new Date()).toUTCString(),
                         application_status: app.getCheckStatus(),
-                        site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                        job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                        site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
+                        job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
                       });
                     }
                   } else {
@@ -356,8 +356,8 @@ var app = {
                       acc: position.coords.accuracy,
                       time: (new Date()).toUTCString(),
                       application_status: app.getCheckStatus(),
-                      site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                      job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                      site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
+                      job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
                     });
                   }
                   app.check();
@@ -508,14 +508,15 @@ var app = {
           } else if ( 0 == coordinates.length ) {
             navigator.geolocation.getCurrentPosition(
                 function(position){
+                  var inspection_status = app.getCheckStatus();
                   var gps = [{
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                     acc: position.coords.accuracy,
                     time: (new Date()).toUTCString(),
-                    application_status: app.getCheckStatus(),
-                    site_id: (app.getJobInspectionContainer().site_id)? (app.getJobInspectionContainer().site_id) : null,
-                    job_id: (app.getJobInspectionContainer().job_id)? (app.getJobInspectionContainer().job_id) : null
+                    application_status: inspection_status,
+                    site_id: (3 == inspection_status && app.getJobInspectionContainer().site_id)? (app.getJobInspectionContainer().site_id) : null,
+                    job_id: (3 == inspection_status && app.getJobInspectionContainer().job_id)? (app.getJobInspectionContainer().job_id) : null
                   }];
                   ajax_call(gps,
                       function(data){
@@ -641,6 +642,7 @@ var app = {
             position: defined_position
           });
         } else if (typeof defined_position != "object") {
+          var inspection_status = app.getCheckStatus();
           $deferred.resolve({
             status: 'success',
             position: [{
@@ -648,9 +650,9 @@ var app = {
               lng: defined_position.coords.longitude,
               acc: defined_position.coords.accuracy,
               time: (new Date()).toUTCString(),
-              application_status: app.getCheckStatus(),
-              site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-              job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+              application_status: inspection_status,
+              site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+              job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
             }]
           });
         } else {
@@ -666,6 +668,7 @@ var app = {
         if (navigator.geolocation){
           navigator.geolocation.getCurrentPosition(
               function(position){
+                var inspection_status = app.getCheckStatus();
                 $deferred.resolve({
                   status: 'success',
                   position: [{
@@ -673,9 +676,9 @@ var app = {
                     lng: position.coords.longitude,
                     acc: position.coords.accuracy,
                     time: (new Date()).toUTCString(),
-                    application_status: app.getCheckStatus(),
-                    site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                    job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                    application_status: inspection_status,
+                    site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                    job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
                   }]
                 });
               },

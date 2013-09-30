@@ -85,7 +85,8 @@ var InspectionView = function(data) {
                 submit_data.submitting_position = get_position_arr(arg);
               }
               app.setJobInspectionContainer(submit_data);
-              app.check();
+              setTimeout(app.check, 1000);
+
 
             };
 
