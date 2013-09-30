@@ -479,7 +479,9 @@ var app = {
             }
           });
         } else {
-          var coordinates = app.coordinates;
+          var coordinates = app.coordinates,
+              insp_cont = app.getJobInspectionContainer(),
+              inspection_status = app.getCheckStatus();
 
           if (coordinates.length > 0){
             ajax_call(coordinates,
@@ -505,18 +507,15 @@ var app = {
                 },
                 function(){}
             );
-          } else if ( 0 == coordinates.length ) {
+          } else if ( 0 == coordinates.length && (1 == inspection_status || "submitting" == insp_cont.status)) {
             navigator.geolocation.getCurrentPosition(
                 function(position){
-                  var inspection_status = app.getCheckStatus();
                   var gps = [{
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                     acc: position.coords.accuracy,
                     time: (new Date()).toUTCString(),
-                    application_status: inspection_status,
-                    site_id: (3 == inspection_status && app.getJobInspectionContainer().site_id)? (app.getJobInspectionContainer().site_id) : null,
-                    job_id: (3 == inspection_status && app.getJobInspectionContainer().job_id)? (app.getJobInspectionContainer().job_id) : null
+                    application_status: inspection_status
                   }];
                   ajax_call(gps,
                       function(data){
