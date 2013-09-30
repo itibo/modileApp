@@ -14,7 +14,7 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = false;
     this.autoconnect_flag = false;
-    this.application_version = "0.2.4";
+    this.application_version = "0.2.5";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
