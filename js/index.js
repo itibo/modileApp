@@ -1149,12 +1149,13 @@ var app = {
     }).fail(function(err_obj){
       var msg = (function(){
         var message = "";
-        if (2 == err_obj.error.code){
-          message = "Unable to determine your location. To continue you need to have at least 'Use wireless networks' option enabled in GPS settings.";
-        } else if (4 == err_obj.error.code){
+        if (4 == err_obj.error.code){
           message = "Sorry, login failed to reach the Inspection server. Please check your network connection or try again later.";
         } else {
-          message = err_obj.error.message;
+          message = "Unable to determine your location. To continue you need to have at least 'Use wireless networks' option enabled in GPS settings.";
+          if (2 != err_obj.error.code){
+            message = message + " (" + err_obj.error.message + ")";
+          }
         }
         return message;
       })();
