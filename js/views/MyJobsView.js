@@ -43,6 +43,7 @@ var MyJobsView = function() {
     this.el.on('click', '#recheck', function(event){
       event.preventDefault();
       app.check(true, function(){
+        app.current_page = "#my_jobs";
         $('body>div#main').html(new MyJobsView().render().el).trigger('pagecreate');
       });
     });

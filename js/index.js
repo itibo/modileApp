@@ -1266,7 +1266,7 @@ var app = {
     var msg = {};
     try{
       if (error.status == 0){
-        msg.message = "Service unavailable. Please try later.";
+        msg.message = "Service is temporary unavailable. Please try again later.";
       } else {
         msg = $.parseJSON(error.responseText);
       }
