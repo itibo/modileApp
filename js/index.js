@@ -12,7 +12,7 @@ var app = {
     this.watchPositionTimeout = 300000;
     this.senderIDforPushMsg = "216199045656";
     this.current_page = "";
-    this.check_interval_flag = false;
+    this.check_interval_flag = null;
     this.autoconnect_flag = false;
     this.application_version = "0.2.5";
     this.application_build = "ALPHA";
@@ -299,11 +299,11 @@ var app = {
 
   stopCheckInterval: function(){
     clearInterval(app.check_interval_flag);
-    app.check_interval_flag = false;
   },
 
   startCheckInterval: function(){
-    if(app.token() && !app.check_interval_flag){
+    clearInterval(app.check_interval_flag);
+    if(app.token()){
       app.check();
 
       app.check_interval_flag = setInterval(function(){
@@ -397,7 +397,7 @@ var app = {
       var pos = (inspection_container.submitting_position) ? inspection_container.submitting_position : position;
 
       if (app.allowToSubmit && "submitting" == inspection_container.status && pos){
-        app.submitInspection(function(){}, function(error){},pos);
+        app.submitInspection(function(){}, function(error){}, pos);
       }
     };
 
@@ -418,8 +418,10 @@ var app = {
             crossDomain: true,
             dataType: 'json',
             global: (typeof callback == "function")? true : false,
-            beforeSend: function(){
+            timeout: 60000,
+            beforeSend: function(xhr, options){
               if (!app.allowToCheck){
+                xhr.abort();
                 return false;
               }
               app.allowToCheck = false;
@@ -427,11 +429,13 @@ var app = {
             success: function(data) {
               app.autoconnect_flag = false;
               app.cancell_inspection(false);
-              tryToSubmitInspection(coord);
 
               if (success && "function" == typeof success){
-                success(data);
+                success(data, function(){
+                  app.allowToCheck = true;
+                });
               }
+              tryToSubmitInspection(coord);
 
               (new WelcomeView()).updateContent();
 
@@ -440,6 +444,7 @@ var app = {
               }
             },
             error: function(e){
+              app.allowToCheck = true;
               if (e.status == 401){
                 navigator.notification.alert(
                     "Invalid authentication token. You need to log in before continuing.", // message
@@ -455,18 +460,17 @@ var app = {
                   error();
                 }
               }
-            },
-            complete: function(){
-              app.allowToCheck = true;
             }
           });
         };
-
         if ( use_geofence ){
           $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
             ajax_call(obj1.position,
-                function(data){
+                function(data, clb){
                   app.setSitesToInspect(data.jobs);
+                  if ("function" == typeof clb && clb){
+                    clb();
+                  }
                 },
                 function(){
                   app.route();
@@ -485,7 +489,7 @@ var app = {
 
           if (coordinates.length > 0){
             ajax_call(coordinates,
-                function(data){
+                function(data, clb){
                   app.coordinates = (app.coordinates).slice(coordinates.length);
 
                   var savedSitesToInspect = app.sitesToInspect();
@@ -504,6 +508,9 @@ var app = {
                       app.setSitesToInspect(v, "last");
                     }
                   });
+                  if ("function" == typeof clb && clb){
+                    clb();
+                  }
                 },
                 function(){}
             );
@@ -518,7 +525,7 @@ var app = {
                     application_status: inspection_status
                   }];
                   ajax_call(gps,
-                      function(data){
+                      function(data, clb){
 
                         var savedSitesToInspect = app.sitesToInspect();
                         $.each(data.jobs, function(ind,v){
@@ -536,6 +543,9 @@ var app = {
                             app.setSitesToInspect(v, "last");
                           }
                         });
+                        if ("function" == typeof clb && clb){
+                          clb();
+                        }
                       },
                       function(){}
                   );
@@ -994,7 +1004,7 @@ var app = {
                   });
                 }
               },
-              (4 == err_obj.error.code) ? "Unable to restore your session" : "Unable to determine your location",
+              (4 == err_obj.error.code) ? "Internet Connection Problem" : "Unable to determine your location",
               "Close, Refresh"
           );
         } else {
@@ -1020,6 +1030,7 @@ var app = {
       );
     } else {
       if (inspect_job_cont.id != id_in_job_avail_to_inspect || $.isEmptyObject(app.savedCheckList())){
+        app.setJobInspectionContainer(false);
         app.setJobInspectionContainer($.extend( app.getJobInspectionContainer(), {id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString()}));
         ajax_call.call(self);
       } else {
@@ -1052,11 +1063,9 @@ var app = {
       return arr;
     };
 
-    app.allowToSubmit = false;
     if (typeof position != "undefined"){
 
       $.when( app.check_online() ).done(function(obj1){
-        var ajax_process_flag;
         $.ajax({
           type: "POST",
           url: app.site+'/mobile/update_checklist.json',
@@ -1078,31 +1087,27 @@ var app = {
           timeout: 60000,
           global: false,
           beforeSend: function(xhr, options){
-            if (false === ajax_process_flag){
+            if (false == app.allowToSubmit){
               xhr.abort();
               return false;
             }
-            ajax_process_flag = false;
+            app.allowToSubmit = false;
           },
           success: function() {
             app.setJobInspectionContainer(false);
+            app.allowToSubmit = true;
             if (success_clb && typeof success_clb == "function"){
               success_clb();
             }
           },
           error: function(error){
+            app.allowToSubmit = true;
             if (error_clb && typeof error_clb == "function"){
               error_clb(error);
             }
-          },
-          complete: function(){
-            app.allowToSubmit = true;
-            ajax_process_flag = true;
-            $("#overlay").hide();
           }
         });
       }).fail(function(){
-        app.allowToSubmit = true;
         $("#overlay").hide();
       });
     }
@@ -1259,11 +1264,16 @@ var app = {
 
   errorAlert: function(error, title, callback){
     var msg = {};
-    if (error.status == 0){
-      msg.message = "Service unavailable. Please try later.";
-    } else {
-      msg = $.parseJSON(error.responseText);
+    try{
+      if (error.status == 0){
+        msg.message = "Service unavailable. Please try later.";
+      } else {
+        msg = $.parseJSON(error.responseText);
+      }
+    } catch(e){
+      msg.message = error.statusText;
     }
+
     navigator.notification.alert(
         msg.message, // message
         callback,    // callback
@@ -1288,7 +1298,7 @@ var app = {
       if ($.isEmptyObject(error)){
         return "There is Internet connection problem. Please try again later";
       } else if (e.type != "undefined" && 'gps' == e.type) {
-        return "Please check the location options/setting of your devise or try again later.";
+        return "Please check the location options/setting of your device or try again later.";
       } else {
         err = e.error || {};
         if (err.message != "undefined"){

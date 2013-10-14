@@ -86,8 +86,6 @@ var InspectionView = function(data) {
               }
               app.setJobInspectionContainer(submit_data);
               setTimeout(app.check, 1000);
-
-
             };
 
             setTimeout(function(){
