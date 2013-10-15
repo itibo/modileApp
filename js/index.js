@@ -14,7 +14,7 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = null;
     this.autoconnect_flag = false;
-    this.application_version = "0.2.5";
+    this.application_version = "0.2.6";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -183,6 +183,8 @@ var app = {
   onDeviceReady: function() {
     var self = this;
     document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
+//    document.addEventListener("menubutton", $.proxy(this.menuButton, self), false);
+//    document.addEventListener("searchbutton", function(){alert("searchbutton fired");}, false);
 
     if (!self.getPushID()){
       self.pushRegister();
@@ -203,6 +205,10 @@ var app = {
       }
     });
   },
+
+/*  menuButton: function() {
+    console.log("The menu was clicked...");
+  },*/
 
   pushRegister: function(){
     var pushNotification;
@@ -877,27 +883,7 @@ var app = {
             }
           });
         }).fail(function(err_obj){
-          if (typeof err_obj.error.code != "undefined" && ($.inArray(err_obj.error.code, [2,4]) > -1 )){
-            navigator.notification.confirm(
-                "There is Internet connection problem. Please try again later",
-                function(buttonIndex){
-                  if (1 == buttonIndex){
-  //                  navigator.geolocation.clearWatch(app.watchID);
-  //                  app.watchID = null;
-                    app.stopCheckInterval();
-                    navigator.app.exitApp();
-                  } else if (2 == buttonIndex){
-                    app.route({
-                      toPage: window.location.href + app.current_page
-                    });
-                  }
-                },
-                (4 == err_obj.error.code) ? "Internet Connection Problem" : "Unable to determine your location",
-                "Close, Refresh"
-            );
-          } else {
-            app.internet_gps_error(err_obj);
-          }
+          app.internet_gps_error(err_obj);
           if ($("#overlay").is(':visible')){
             $("#overlay").hide();
           }
