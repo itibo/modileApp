@@ -205,7 +205,7 @@ var app = {
   },
 
   menuButton: function() {
-    alert("menuButton fired");
+//    alert("menuButton fired");
   },
 
   pushRegister: function(){
@@ -1091,7 +1091,6 @@ var app = {
   },
 
   backButton: function(){
-    alert("back button");
     if ($(".pop_up").css('visibility') == 'visible'){
       $(".pop_up").css("visibility", "hidden");
       $(".popup-overlay").remove();
