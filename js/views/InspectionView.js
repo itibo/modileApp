@@ -11,7 +11,7 @@ var InspectionView = function(data) {
       var obj = {};
 
       $.each(app.sitesToInspect(), function(i,v){
-        if (job_inspect_container.id == v.id){
+        if (job_inspect_container.site_id == v.site_id && job_inspect_container.job_id == v.job_id){
           obj = v;
           return false;
         }
@@ -65,7 +65,7 @@ var InspectionView = function(data) {
         function(buttonIndex){
           if(2 == buttonIndex){
             var submit_data = app.getJobInspectionContainer();
-            app.setJobInspectionContainer($.extend(submit_data, {status: "pre_submitting"}));
+            submit_data = app.setJobInspectionContainer($.extend(submit_data, {status: "pre_submitting"}));
 
             var get_position_arr = function(pos){
               return [{
@@ -84,7 +84,7 @@ var InspectionView = function(data) {
               if ( "undefined" == typeof arg.code ){
                 submit_data.submitting_position = get_position_arr(arg);
               }
-              app.setJobInspectionContainer(submit_data);
+              submit_data = app.setJobInspectionContainer(submit_data);
               setTimeout(app.check, 1000);
             };
 

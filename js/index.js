@@ -101,6 +101,7 @@ var app = {
 
     this.setJobInspectionContainer = function(data){
       var data = data || false;
+      var new_val;
       var job_container = {
         id: null,
         job_id: null,
@@ -112,12 +113,13 @@ var app = {
       };
 
       if (data.id){
-        window.localStorage.setItem("jobInspection", JSON.stringify($.extend(job_container, data)));
+        new_val = $.extend(job_container, data);
       } else {
-        window.localStorage.setItem("jobInspection", JSON.stringify(job_container));
+        new_val = job_container;
         app.savedCheckList(false);
       }
-      return;
+      window.localStorage.setItem("jobInspection", JSON.stringify(new_val));
+      return new_val;
     };
 
     this.getJobInspectionContainer = function(){
@@ -168,6 +170,10 @@ var app = {
   // 'load', 'deviceready', 'offline', and 'online'.
   bindEvents: function() {
     var self = this;
+
+    document.addEventListener("online", $.proxy(this.onOnline, self), false);
+    document.addEventListener("offline", $.proxy(this.onOffline, self), false);
+
     document.addEventListener('deviceready', $.proxy(this.onDeviceReady, self), false);
   },
 
@@ -176,11 +182,7 @@ var app = {
   // function, we must explicity call 'app.receivedEvent(...);'
   onDeviceReady: function() {
     var self = this;
-
     document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
-    document.addEventListener("online", $.proxy(this.onOnline, self), false);
-    document.addEventListener("offline", $.proxy(this.onOffline, self), false);
-
 
     if (!self.getPushID()){
       self.pushRegister();
@@ -315,7 +317,7 @@ var app = {
                   if ("submitting" == job_inspect_container.status &&
                       ("undefined" == typeof job_inspect_container.submitting_position || job_inspect_container.submitting_position.length == 0) )
                   {
-                    app.setJobInspectionContainer($.extend(job_inspect_container,
+                    job_inspect_container = app.setJobInspectionContainer($.extend(job_inspect_container,
                         {
                           submitting_position: [{
                             lat: position.coords.latitude,
@@ -420,11 +422,13 @@ var app = {
             global: (typeof callback == "function")? true : false,
             timeout: 60000,
             beforeSend: function(xhr, options){
-              if (!app.allowToCheck){
-                xhr.abort();
-                return false;
+              if (!use_geofence){
+                if (!app.allowToCheck){
+                  xhr.abort();
+                  return false;
+                }
+                app.allowToCheck = false;
               }
-              app.allowToCheck = false;
             },
             success: function(data) {
               app.autoconnect_flag = false;
@@ -432,7 +436,8 @@ var app = {
 
               if (success && "function" == typeof success){
                 success(data, function(){
-                  app.allowToCheck = true;
+                  if (!use_geofence)
+                    app.allowToCheck = true;
                 });
               }
               tryToSubmitInspection(coord);
@@ -444,7 +449,10 @@ var app = {
               }
             },
             error: function(e){
-              app.allowToCheck = true;
+
+              if (!use_geofence)
+                app.allowToCheck = true;
+
               if (e.status == 401){
                 navigator.notification.alert(
                     "Invalid authentication token. You need to log in before continuing.", // message
@@ -496,7 +504,7 @@ var app = {
                   $.each(data.jobs, function(ind,v){
                     var new_site = true;
                     for(var i=0; i < savedSitesToInspect.length; i++) {
-                      if(v.id == savedSitesToInspect[i].id){
+                      if(v.site_id == savedSitesToInspect[i].site_id && v.job_id == savedSitesToInspect[i].job_id){
                         new_site = false;
                         if (v.last_inspection != savedSitesToInspect[i].last_inspection){
                           app.setSitesToInspect(v, i);
@@ -526,12 +534,11 @@ var app = {
                   }];
                   ajax_call(gps,
                       function(data, clb){
-
                         var savedSitesToInspect = app.sitesToInspect();
                         $.each(data.jobs, function(ind,v){
                           var new_site = true;
                           for(var i=0; i < savedSitesToInspect.length; i++) {
-                            if(v.id == savedSitesToInspect[i].id){
+                            if(v.site_id == savedSitesToInspect[i].site_id && v.job_id == savedSitesToInspect[i].job_id){
                               new_site = false;
                               if (v.last_inspection != savedSitesToInspect[i].last_inspection){
                                 app.setSitesToInspect(v, i);
@@ -565,78 +572,7 @@ var app = {
     }
   },
 
-/*  updatePosition: function(){
-    var geolocation = navigator.geolocation;
-
-    if (geolocation){
-      app.watchID = geolocation.watchPosition(
-        function(position){
-          if (app.watchID != null) {
-            if (app.token()){
-              var job_inspect_container = app.getJobInspectionContainer();
-              if (!$.isEmptyObject(app.lastLocation)) {
-
-                var R = 6371; // km
-                var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
-                var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
-                var lat1 = app.lastLocation.lat.toRad();
-                var lat2 = position.coords.latitude.toRad();
-                var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
-                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                var d = R * c;
-                if (d > 0.05){
-                  app.coordinates.push({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    acc: position.coords.accuracy,
-                    time: (new Date()).toUTCString(),
-                    application_status: app.getCheckStatus(),
-                    site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                    job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-                  });
-                }
-
-              } else {
-                app.coordinates.push({
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude,
-                  acc: position.coords.accuracy,
-                  time: (new Date()).toUTCString(),
-                  application_status: app.getCheckStatus(),
-                  site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                  job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-                });
-              }
-
-            } else {
-              app.coordinates = [{
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                acc: position.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                application_status: app.getCheckStatus()
-              }];
-            }
-
-            app.lastLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              acc: position.coords.accuracy
-            };
-          }
-        },
-        function(PositionError){
-          console.log(PositionError.message);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: app.watchPositionTimeout
-        }
-      );
-    }
-  },*/
-
-  get_position: function(defined_position){
+  get_position: function(){
     return $.Deferred(function($deferred){
       var job_inspect_container = app.getJobInspectionContainer();
 
@@ -644,72 +580,42 @@ var app = {
         $("#overlay").show();
       }
 
-      if (typeof defined_position != "undefined" && !!defined_position){
-        if ($.isArray(defined_position)){
-          $deferred.resolve({
-            status: 'success',
-            position: defined_position
-          });
-        } else if (typeof defined_position != "object") {
-          var inspection_status = app.getCheckStatus();
-          $deferred.resolve({
-            status: 'success',
-            position: [{
-              lat: defined_position.coords.latitude,
-              lng: defined_position.coords.longitude,
-              acc: defined_position.coords.accuracy,
-              time: (new Date()).toUTCString(),
-              application_status: inspection_status,
-              site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-              job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-            }]
-          });
-        } else {
-          $deferred.reject({
-            status: 'error',
-            type: 'gps',
-            error: {
-              message: "Wrong position format"
-            }
-          });
-        }
+      if (navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(
+            function(position){
+              var inspection_status = app.getCheckStatus();
+              $deferred.resolve({
+                status: 'success',
+                position: [{
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                  acc: position.coords.accuracy,
+                  time: (new Date()).toUTCString(),
+                  application_status: inspection_status,
+                  site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                  job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                }]
+              });
+            },
+            function(error){
+              $deferred.reject({
+                status: 'error',
+                type: 'gps',
+                error: error
+              });
+            },
+            { maximumAge: 0, timeout: 60000 }
+        );
       } else {
-        if (navigator.geolocation){
-          navigator.geolocation.getCurrentPosition(
-              function(position){
-                var inspection_status = app.getCheckStatus();
-                $deferred.resolve({
-                  status: 'success',
-                  position: [{
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    acc: position.coords.accuracy,
-                    time: (new Date()).toUTCString(),
-                    application_status: inspection_status,
-                    site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                    job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-                  }]
-                });
-              },
-              function(error){
-                $deferred.reject({
-                  status: 'error',
-                  type: 'gps',
-                  error: error
-                });
-              },
-              { maximumAge: 0, timeout: 60000 }
-          );
-        } else {
-          $deferred.reject({
-            status: 'error',
-            type: 'gps',
-            error: {
-              message: "Your browser doesn't support geolocation!"
-            }
-          });
-        }
+        $deferred.reject({
+          status: 'error',
+          type: 'gps',
+          error: {
+            message: "Your browser doesn't support geolocation!"
+          }
+        });
       }
+
     }).promise();
   },
 
@@ -873,9 +779,9 @@ var app = {
           $container.html(new SitesListView(list).render().el).trigger('pagecreate');
         });
         break;
-      case /^#inspection:(\d+)$/.test(urlObj.hash):
-        var id = parseInt(urlObj.hash.match(/\d+$/g));
-        app.getCheckList(id, function(){
+      case /^#inspection:(\d+)\-(\d+)$/.test(urlObj.hash):
+        var identification_array = (urlObj.hash.match(/\d+\-\d+$/)[0]).split("-");
+        app.getCheckList(identification_array, function(){
           var savedCheckList = app.savedCheckList();
           app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {checklist_id: savedCheckList.checklist_id} ));
           $container.html(new InspectionView(savedCheckList.list).render().el).trigger('pagecreate');
@@ -911,8 +817,8 @@ var app = {
         u = $.mobile.path.parseUrl(u.hrefNoHash);
       }
       var job_insp_cont = app.getJobInspectionContainer();
-      if (job_insp_cont.id && job_insp_cont.status == "pending" ){
-        u = $.mobile.path.parseUrl(u.hrefNoHash + "#inspection:" + job_insp_cont.id);
+      if (job_insp_cont.site_id && job_insp_cont.status == "pending" ){
+        u = $.mobile.path.parseUrl(u.hrefNoHash + "#inspection:" + job_insp_cont.site_id + "-" + job_insp_cont.job_id);
       }
     } else {
       u = $.mobile.path.parseUrl(u.hrefNoHash + "#login");
@@ -926,98 +832,79 @@ var app = {
   },
 
   //get inspection check list of the current job
-  getCheckList: function(id_in_job_avail_to_inspect, success_callback){
-    id_in_job_avail_to_inspect = id_in_job_avail_to_inspect || false;
-    var self = this;
-    var ajax_call = function(){
-      var token = app.token(),
-          job_info = (function(id){
-            var tmp = {};
-            if ("pending" == app.getJobInspectionContainer().status){
-              tmp.job_id = app.getJobInspectionContainer().job_id;
-              tmp.site_id = app.getJobInspectionContainer().site_id;
-            } else {
-              $.each(app.sitesToInspect(), function(i,v){
-                if(v.id == id){
-                  tmp = {
-                    job_id: v.job_id,
-                    site_id: v.site_id
-                  }
-                  return false;
+  getCheckList: function(identification_array, success_callback){
+    identification_array = identification_array || [];
+    var self = this,
+      inspect_job_cont = app.getJobInspectionContainer(),
+      ajax_call = function(){
+        var token = app.token();
+        $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
+          $.ajax({
+            type: "POST",
+            url: app.site+'/mobile/show_checklist.json',
+            data: {
+              id: token,
+              job_id: inspect_job_cont.job_id,
+              site_id: inspect_job_cont.site_id,
+              gps: obj2.position
+            },
+            cache: false,
+            crossDomain: true,
+            dataType: 'json',
+            timeout: 60000,
+            success: function(data) {
+              if (data.token == token){
+                inspect_job_cont = app.setJobInspectionContainer($.extend(inspect_job_cont, {status: "pending"}));
+                app.savedCheckList({checklist_id: data.checklist_id, list: data.list});
+                if (typeof success_callback == "function"){
+                  success_callback();
+                }
+              } else {
+                app.setToken(false);
+                app.route();
+              }
+              return false;
+            },
+            error: function(error){
+              app.errorAlert(error, "Error", function(){
+                if (error.status == 401){
+                  app.setToken(false);
+                  app.route();
+                } else {
+                  app.route({toPage: window.location.href + "#my_jobs"});
                 }
               });
             }
-            return tmp;
-          })(id_in_job_avail_to_inspect);
-
-      $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
-        $.ajax({
-          type: "POST",
-          url: app.site+'/mobile/show_checklist.json',
-          data: {
-            id: token,
-            job_id: job_info.job_id,
-            site_id: job_info.site_id,
-            gps: obj2.position
-          },
-          cache: false,
-          crossDomain: true,
-          dataType: 'json',
-          timeout: 60000,
-          success: function(data) {
-            if (data.token == token){
-              app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {status: "pending"}, job_info));
-              app.savedCheckList({checklist_id: data.checklist_id, list: data.list});
-              if (typeof success_callback == "function"){
-                success_callback();
-              }
-            } else {
-              app.setToken(false);
-              app.route();
-            }
-            return false;
-          },
-          error: function(error){
-            app.errorAlert(error, "Error", function(){
-              if (error.status == 401){
-                app.setToken(false);
-                app.route();
-              } else {
-                app.route({toPage: window.location.href + "#my_jobs"});
-              }
-            });
+          });
+        }).fail(function(err_obj){
+          if (typeof err_obj.error.code != "undefined" && ($.inArray(err_obj.error.code, [2,4]) > -1 )){
+            navigator.notification.confirm(
+                "There is Internet connection problem. Please try again later",
+                function(buttonIndex){
+                  if (1 == buttonIndex){
+  //                  navigator.geolocation.clearWatch(app.watchID);
+  //                  app.watchID = null;
+                    app.stopCheckInterval();
+                    navigator.app.exitApp();
+                  } else if (2 == buttonIndex){
+                    app.route({
+                      toPage: window.location.href + app.current_page
+                    });
+                  }
+                },
+                (4 == err_obj.error.code) ? "Internet Connection Problem" : "Unable to determine your location",
+                "Close, Refresh"
+            );
+          } else {
+            app.internet_gps_error(err_obj);
+          }
+          if ($("#overlay").is(':visible')){
+            $("#overlay").hide();
           }
         });
-      }).fail(function(err_obj){
-        if (typeof err_obj.error.code != "undefined" && ($.inArray(err_obj.error.code, [2,4]) > -1 )){
-          navigator.notification.confirm(
-              "There is Internet connection problem. Please try again later",
-              function(buttonIndex){
-                if (1 == buttonIndex){
-//                  navigator.geolocation.clearWatch(app.watchID);
-//                  app.watchID = null;
-                  app.stopCheckInterval();
-                  navigator.app.exitApp();
-                } else if (2 == buttonIndex){
-                  app.route({
-                    toPage: window.location.href + app.current_page
-                  });
-                }
-              },
-              (4 == err_obj.error.code) ? "Internet Connection Problem" : "Unable to determine your location",
-              "Close, Refresh"
-          );
-        } else {
-          app.internet_gps_error(err_obj);
-        }
-        if ($("#overlay").is(':visible')){
-          $("#overlay").hide();
-        }
-      });
-    };
+      };
 
-    var inspect_job_cont = app.getJobInspectionContainer();
-    if (inspect_job_cont.id && inspect_job_cont.status == "submitting" ){
+    if (inspect_job_cont.status == "submitting" ){
       navigator.notification.alert(
           "There is an unsubmitted inspection. Please, wait until submission will finish and try again.",
           function(){
@@ -1029,9 +916,18 @@ var app = {
           'Ok'
       );
     } else {
-      if (inspect_job_cont.id != id_in_job_avail_to_inspect || $.isEmptyObject(app.savedCheckList())){
-        app.setJobInspectionContainer(false);
-        app.setJobInspectionContainer($.extend( app.getJobInspectionContainer(), {id: id_in_job_avail_to_inspect, started_at: (new Date()).toUTCString()}));
+      if (inspect_job_cont.site_id != identification_array[0] || inspect_job_cont.job_id != identification_array[1] ||
+          $.isEmptyObject(app.savedCheckList()))
+      {
+        inspect_job_cont = app.setJobInspectionContainer(false);
+        inspect_job_cont = app.setJobInspectionContainer($.extend( app.getJobInspectionContainer(),
+          {
+            id: identification_array[0],
+            site_id: identification_array[0],
+            job_id: identification_array[1],
+            started_at: (new Date()).toUTCString()
+          }
+        ));
         ajax_call.call(self);
       } else {
         success_callback();

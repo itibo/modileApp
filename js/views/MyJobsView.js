@@ -7,23 +7,23 @@ var MyJobsView = function() {
     return this;
   };
 
-  this.inspect = function(id){
-    id = id || "";
-    var site_name = (function(site_id){
+  this.inspect = function(id_str){
+    id_arr = id_str.split("-") || [];
+    var site_name = (function(site_arr){
         var tmp = "";
         $.each(app.sitesToInspect(), function(i, v){
-          if (v.id == site_id){
+          if (v.site_id == site_arr[0] && v.job_id == site_arr[1]){
             tmp = v.site;
             return false;
           }
         });
       return tmp;
-    })(id);
+    })(id_arr);
 
     navigator.notification.confirm("Do you want to start the inspection for '" + site_name + "' site?",
       function(buttonIndex){
         if(2 == buttonIndex){
-          app.route({toPage: window.location.href + "#inspection:" + id});
+          app.route({toPage: window.location.href + "#inspection:" + id_str});
         }
       },
       'Inspection',
@@ -36,8 +36,8 @@ var MyJobsView = function() {
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
     this.el.on('click', 'a.inspectable', function(event){
-      var id = $(event.currentTarget).attr("id");
-      self.inspect.call(self, id);
+      var id_str = $(event.currentTarget).attr("id");
+      self.inspect.call(self, id_str);
     });
 
     this.el.on('click', '#recheck', function(event){
@@ -84,7 +84,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
     out = out + "<li data-role=\"list-divider\" role=\"heading\">Site(s) Assigned to You</li>";
     if (sites_for_inspect.assigned.length > 0){
       for(var i=0, l=sites_for_inspect.assigned.length; i<l; i++) {
-        out = out + "<li><a id=\""+sites_for_inspect.assigned[i].id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +
+        out = out + "<li><a id=\""+sites_for_inspect.assigned[i].site_id + "-"+sites_for_inspect.assigned[i].job_id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +
             sites_for_inspect.assigned[i].site  + " - <span>" + sites_for_inspect.assigned[i].address +
             ((unsubmitted_inspecion == sites_for_inspect.assigned[i].id) ? " (UNSUBMITTED)": "") +
 //          "<br />" +
@@ -100,7 +100,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
       out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
       out = out + "<li data-role=\"list-divider\" role=\"heading\">Other sites</li>";
       for(var i=0, l=sites_for_inspect.not_assigned.length; i<l; i++) {
-        out = out + "<li><a id=\""+sites_for_inspect.not_assigned[i].id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +
+        out = out + "<li><a id=\""+sites_for_inspect.not_assigned[i].site_id+"-"+sites_for_inspect.not_assigned[i].job_id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +
             sites_for_inspect.not_assigned[i].site  + " - <span>" + sites_for_inspect.not_assigned[i].address +
             ((unsubmitted_inspecion == sites_for_inspect.not_assigned[i].id) ? " (UNSUBMITTED)": "") +
 //          "<br />" +
