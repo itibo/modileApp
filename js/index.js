@@ -946,6 +946,7 @@ var app = {
     if (typeof position != "undefined"){
 
       $.when( app.check_online() ).done(function(obj1){
+		$("#overlay").hide();
         $.ajax({
           type: "POST",
           url: app.site+'/mobile/update_checklist.json',
