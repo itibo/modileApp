@@ -183,7 +183,7 @@ var app = {
   onDeviceReady: function() {
     var self = this;
     document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
-//    document.addEventListener("menubutton", $.proxy(this.menuButton, self), false);
+    document.addEventListener("menubutton", $.proxy(this.menuButton, self), false);
 //    document.addEventListener("searchbutton", function(){alert("searchbutton fired");}, false);
 
     if (!self.getPushID()){
@@ -206,9 +206,9 @@ var app = {
     });
   },
 
-/*  menuButton: function() {
-    console.log("The menu was clicked...");
-  },*/
+  menuButton: function() {
+    alert("menuButton fired");
+  },
 
   pushRegister: function(){
     var pushNotification;
