@@ -96,7 +96,6 @@ var app = {
       } else {
         return window.localStorage.getItem("savedCheckList") ? JSON.parse(window.localStorage.getItem("savedCheckList")) : {};
       }
-
     }
 
     this.setJobInspectionContainer = function(data){
@@ -183,8 +182,7 @@ var app = {
   onDeviceReady: function() {
     var self = this;
     document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
-    document.addEventListener("menubutton", $.proxy(this.menuButton, self), false);
-//    document.addEventListener("searchbutton", function(){alert("searchbutton fired");}, false);
+    document.addEventListener('menubutton', $.proxy(this.menuButton, self), false);
 
     if (!self.getPushID()){
       self.pushRegister();
@@ -1092,12 +1090,13 @@ var app = {
   },
 
   backButton: function(){
+    alert("back button");
     if ($(".pop_up").css('visibility') == 'visible'){
       $(".pop_up").css("visibility", "hidden");
       $(".popup-overlay").remove();
     } else {
       switch (true) {
-        case /^#inspection:(\d+)$/.test(app.current_page):
+        case /^#inspection:(\d+)\-(\d+)$/.test(app.current_page):
           navigator.notification.confirm("Do you want to cancel this inspection?",
               function(buttonIndex){
                 if(2 == buttonIndex){
