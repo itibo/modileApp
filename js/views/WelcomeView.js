@@ -27,14 +27,20 @@ var WelcomeView = function() {
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div id="welcome-container" />');
 
-    this.el.on('click', 'div.logo_img', function(event){
+
+    this.el.on('click', 'span.btn-bac > a', function(event){
       event.preventDefault();
-      $("#menu").toggle();
+      app.showConfirm('Close', 'Do you want to quit? ',
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              app.stopCheckInterval();
+              navigator.app.exitApp();
+            }
+          }
+      );
     });
 
-
-
-    this.el.on('click', 'a[href="#logout"]', function(event){
+/*    this.el.on('click', 'a[href="#logout"]', function(event){
       event.preventDefault();
       navigator.notification.confirm(
           ((app.getJobInspectionContainer().id != null) ?
@@ -48,7 +54,9 @@ var WelcomeView = function() {
           "Log out",
           'Cancel,Confirm'
       );
-    });
+    });*/
+
+
   };
 
   this.initialize();

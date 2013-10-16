@@ -204,7 +204,6 @@ var app = {
       }
     });
 
-
     $(document).on('click', '#menu a', function(event){
       event.preventDefault();
       navigator.notification.confirm(
