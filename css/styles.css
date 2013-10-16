@@ -1069,6 +1069,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
     position: fixed;
     width: 100%;
     bottom: 0;
+    z-index: 99;
 }
 
 #menu div{
