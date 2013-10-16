@@ -28,15 +28,15 @@ var WelcomeView = function() {
     this.el = $('<div id="welcome-container" />');
 
 
-    this.el.on('click', 'span.btn-bac > a', function(event){
+    this.el.on('click', 'a[href="#close"]', function(event){
       event.preventDefault();
       app.showConfirm('Close', 'Do you want to quit? ',
-          function(buttonIndex){
-            if(2 == buttonIndex){
-              app.stopCheckInterval();
-              navigator.app.exitApp();
-            }
+        function(buttonIndex){
+          if(2 == buttonIndex){
+            app.stopCheckInterval();
+            navigator.app.exitApp();
           }
+        }
       );
     });
 
@@ -55,8 +55,6 @@ var WelcomeView = function() {
           'Cancel,Confirm'
       );
     });*/
-
-
   };
 
   this.initialize();

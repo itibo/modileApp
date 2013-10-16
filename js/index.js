@@ -1104,7 +1104,9 @@ var app = {
   },
 
   menuButton: function() {
-    $("#menu").toggle();
+    if ('#login' != app.current_page){
+      $("#menu").toggle();
+    }
   },
 
   backButton: function(){
