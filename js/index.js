@@ -1104,13 +1104,21 @@ var app = {
   },
 
   menuButton: function() {
-    if ('#login' != app.current_page){
-      $("#menu").toggle();
+    switch (true) {
+      case '#welcome' == app.current_page:
+      case '' == app.current_page:
+      case '#' == app.current_page:
+        $("#menu").toggle();
+        break;
+      default:
+        break;
     }
   },
 
   backButton: function(){
-    if ($(".pop_up").css('visibility') == 'visible'){
+    if ($("#menu").is(":visible")){
+      $("#menu").toggle();
+    } else if($(".pop_up").css('visibility') == 'visible'){
       $(".pop_up").css("visibility", "hidden");
       $(".popup-overlay").remove();
     } else {
