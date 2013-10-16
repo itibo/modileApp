@@ -1062,3 +1062,18 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	background-image: url(./images/arrow_bg.png);
 	background-repeat: repeat-y;
 }
+
+#menu{
+    display:none;
+    background-color:#222;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+}
+
+#menu div{
+    margin: 20px 10px;
+    width: 50px;
+    background-color: #c2d7d6;
+    text-align: center;
+}

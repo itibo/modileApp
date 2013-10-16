@@ -197,15 +197,29 @@ var app = {
     self.route();
 
     $(document).bind( "pagebeforechange", function( e, data ) {
+      $("#menu").hide();
       if ( typeof data.toPage === "string" ) {
         self.route(data);
         e.preventDefault();
       }
     });
-  },
 
-  menuButton: function() {
-//    alert("menuButton fired");
+
+    $(document).on('click', '#menu a', function(event){
+      event.preventDefault();
+      navigator.notification.confirm(
+          ((app.getJobInspectionContainer().id != null) ?
+              "There is an unsubmitted inspection. You will lose this data if continue. Are you still want to log out?" :
+              "Are you sure you want to log out?"),
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              self.logout.call(self);
+            }
+          },
+          "Log out",
+          'Cancel,Confirm'
+      );
+    });
   },
 
   pushRegister: function(){
@@ -1088,6 +1102,10 @@ var app = {
     }).always(function(){
       logout_process();
     });
+  },
+
+  menuButton: function() {
+    $("#menu").toggle();
   },
 
   backButton: function(){
