@@ -169,11 +169,9 @@ var app = {
   // 'load', 'deviceready', 'offline', and 'online'.
   bindEvents: function() {
     var self = this;
-
+    document.addEventListener('deviceready', $.proxy(this.onDeviceReady, self), false);
     document.addEventListener("online", $.proxy(this.onOnline, self), false);
     document.addEventListener("offline", $.proxy(this.onOffline, self), false);
-
-    document.addEventListener('deviceready', $.proxy(this.onDeviceReady, self), false);
   },
 
   // deviceready Event Handler
@@ -191,7 +189,8 @@ var app = {
     if(self.token()){
       self.autoconnect_flag = true;
 //      self.updatePosition();
-      self.startCheckInterval();
+//      self.check();
+//      self.startCheckInterval();
     }
 
     self.route();
@@ -316,92 +315,98 @@ var app = {
     }
   },
 
-  stopCheckInterval: function(){
-    clearInterval(app.check_interval_flag);
-  },
-
-  startCheckInterval: function(){
-    clearInterval(app.check_interval_flag);
-    if(app.token()){
-      app.check();
-
-      app.check_interval_flag = setInterval(function(){
-        if (navigator.geolocation){
-          navigator.geolocation.getCurrentPosition(
-              function(position){
-                if (app.token()){
-                  var job_inspect_container = app.getJobInspectionContainer();
-                  if ("submitting" == job_inspect_container.status &&
-                      ("undefined" == typeof job_inspect_container.submitting_position || job_inspect_container.submitting_position.length == 0) )
-                  {
-                    job_inspect_container = app.setJobInspectionContainer($.extend(job_inspect_container,
-                        {
-                          submitting_position: [{
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                            acc: position.coords.accuracy,
-                            time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
-                            application_status: app.getCheckStatus(),
-                            site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                            job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-                          }]
-                        }
-                    ));
-                  }
-                  if (!$.isEmptyObject(app.lastLocation)) {
-                    var R = 6371; // km
-                    var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
-                    var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
-                    var lat1 = app.lastLocation.lat.toRad();
-                    var lat2 = position.coords.latitude.toRad();
-                    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
-                    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                    var d = R * c;
-                    if (d > 0.05){
-                      app.coordinates.push({
+  checkTic: function() {
+    if (navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+          function(position){
+            if (app.token()){
+              var job_inspect_container = app.getJobInspectionContainer();
+              if ("submitting" == job_inspect_container.status &&
+                  ("undefined" == typeof job_inspect_container.submitting_position || job_inspect_container.submitting_position.length == 0) )
+              {
+                job_inspect_container = app.setJobInspectionContainer($.extend(job_inspect_container,
+                    {
+                      submitting_position: [{
                         lat: position.coords.latitude,
                         lng: position.coords.longitude,
                         acc: position.coords.accuracy,
-                        time: (new Date()).toUTCString(),
+                        time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
                         application_status: app.getCheckStatus(),
-                        site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
-                        job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
-                      });
+                        site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                        job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                      }]
                     }
-                  } else {
-                    app.coordinates.push({
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude,
-                      acc: position.coords.accuracy,
-                      time: (new Date()).toUTCString(),
-                      application_status: app.getCheckStatus(),
-                      site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
-                      job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
-                    });
-                  }
-                  app.check();
-                } else {
-                  app.coordinates = [{
+                ));
+              }
+              if (!$.isEmptyObject(app.lastLocation)) {
+                var R = 6371; // km
+                var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
+                var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
+                var lat1 = app.lastLocation.lat.toRad();
+                var lat2 = position.coords.latitude.toRad();
+                var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                var d = R * c;
+                if (d > 0.05){
+                  app.coordinates.push({
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                     acc: position.coords.accuracy,
                     time: (new Date()).toUTCString(),
-                    application_status: app.getCheckStatus()
-                  }];
+                    application_status: app.getCheckStatus(),
+                    site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
+                    job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
+                  });
                 }
-                app.lastLocation = {
+              } else {
+                app.coordinates.push({
                   lat: position.coords.latitude,
                   lng: position.coords.longitude,
-                  acc: position.coords.accuracy
-                };
-              },
-              function(error){
-                //do nothing
-              },
-              { maximumAge: 0, timeout: 60000 }
-          );
-        }
-      }, app.watchPositionTimeout);
+                  acc: position.coords.accuracy,
+                  time: (new Date()).toUTCString(),
+                  application_status: app.getCheckStatus(),
+                  site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
+                  job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
+                });
+              }
+              app.check();
+            } else {
+              app.coordinates = [{
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                acc: position.coords.accuracy,
+                time: (new Date()).toUTCString(),
+                application_status: app.getCheckStatus()
+              }];
+            }
+            app.lastLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              acc: position.coords.accuracy
+            };
+            app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
+          },
+          function(error){
+            app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
+            //do nothing
+          },
+          { maximumAge: 0, timeout: 60000 }
+      );
+    } else {
+      app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
+    }
+  },
+
+  stopCheckInterval: function(){
+    clearTimeout(app.check_interval_flag);
+  },
+
+  startCheckInterval: function(){
+    clearTimeout(app.check_interval_flag);
+    if(app.token()){
+      if (app.autoconnect_flag)
+        app.check();
+      app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
   },
 
