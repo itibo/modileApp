@@ -12,7 +12,7 @@ var app = {
     this.watchPositionTimeout = 300000;
     this.senderIDforPushMsg = "216199045656";
     this.current_page = "";
-    this.check_interval_flag = null;
+    this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
     this.application_version = "0.2.6";
     this.application_build = "ALPHA";
@@ -23,6 +23,138 @@ var app = {
     this.allowToCheck = true;
     // last location object
     this.lastLocation = {};
+    // flag to send drafts from device to server
+    this.drafts_ready_to_sync = false;
+
+    /* ------------------------- */
+    // my_sites
+    this.mySites = function(data){
+      var out = [];
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("mySites", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("mySites");
+          out = [];
+        }
+      } else {
+        out = window.localStorage.getItem("mySites") ? JSON.parse(window.localStorage.getItem("mySites")) : [];
+      }
+      return out;
+    };
+
+    //supply_orders_template
+    this.supplyOrdersTemplate = function(data){
+      var out = [];
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("supplyOrdersTemplate", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("supplyOrdersTemplate");
+          out = [];
+        }
+      } else {
+        out = window.localStorage.getItem("supplyOrdersTemplate") ? JSON.parse(window.localStorage.getItem("supplyOrdersTemplate")) : [];
+      }
+      return out;
+    };
+
+    // orders drafts
+    this.mySupplyOrdersDrafts = function(data){
+      var out = [];
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("mySupplyOrdersDrafts", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("mySupplyOrdersDrafts");
+          out = [];
+        }
+      } else {
+        out = window.localStorage.getItem("mySupplyOrdersDrafts") ? JSON.parse(window.localStorage.getItem("mySupplyOrdersDrafts")) : [];
+      }
+      return out;
+    }
+
+    // last submitted orders
+    this.myLastSubmittedOrders = function(data){
+      var out = [];
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("myLastSubmittedOrders", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("myLastSubmittedOrders");
+          out = [];
+        }
+      } else {
+        out = window.localStorage.getItem("myLastSubmittedOrders") ? JSON.parse(window.localStorage.getItem("myLastSubmittedOrders")) : [];
+      }
+      return out;
+    }
+
+    // current active order
+    this.activeOrder = function(data){
+      var out = {};
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("activeOrder", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("activeOrder");
+          out = {};
+        }
+      } else {
+        out = window.localStorage.getItem("activeOrder") ? JSON.parse(window.localStorage.getItem("activeOrder")) : {};
+      }
+      return out;
+    }
+
+    // last supply sync date
+    this.last_supply_sync_date = function(data){
+      var out = null;
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("last_supply_sync_date", data);
+          out = data;
+        } else {
+          window.localStorage.removeItem("last_supply_sync_date");
+          out = null;
+        }
+      } else {
+        out = window.localStorage.getItem("last_supply_sync_date") ? window.localStorage.getItem("last_supply_sync_date") : null;
+      }
+      return out;
+    }
+
+    // ids mutations object
+    this.ids_mutation = function(data){
+      var out = {};
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("ids_mutation", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("ids_mutation");
+          out = {};
+        }
+      } else {
+        out = window.localStorage.getItem("ids_mutation") ? JSON.parse(window.localStorage.getItem("ids_mutation")) : {};
+      }
+      return out;
+    }
+
+
+    /* ------------------------- */
 
 
     this.online_flag = function(){
@@ -395,19 +527,163 @@ var app = {
     } else {
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
+    app.sync_supply();
   },
 
   stopCheckInterval: function(){
     clearTimeout(app.check_interval_flag);
+    app.check_interval_flag = void 0;
   },
 
   startCheckInterval: function(){
-    clearTimeout(app.check_interval_flag);
-    if(app.token()){
-      if (app.autoconnect_flag)
+//    clearTimeout(app.check_interval_flag);
+    if(app.token() && undefined === app.check_interval_flag){
+      setTimeout(function(){
         app.check();
+        app.sync_supply();
+      }, 1000);
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
+  },
+
+  sync_supply: function(){
+    var _time_to_remember='';
+    var sync_process = function(position_obj, methods_to_chain, method_when_update_sync_time){
+      position_obj = position_obj || false;
+      methods_to_chain = methods_to_chain || [];
+      method_when_update_sync_time = method_when_update_sync_time || '';
+
+//      alert("sync_supply fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
+      // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts"]
+      var methods_to_chain_mapping = {
+        sites: "my_sites",
+        draft_order: "my_supply_orders",
+        submitted_order: "my_last_submitted_orders",
+        supply_order_details: "supply_order_details",
+        sync_check: "sync_check",
+        update_drafts: "update_drafts"
+      };
+      var startdeferrpoint = $.Deferred();
+          startdeferrpoint.resolve();
+      var DeferredAjax = function(func){
+        this.deferred = $.Deferred();
+        this.url = app.site+'/mobile/'+func+'.json';
+        this.func = func;
+        this.data = (function(method){
+          var tmp = $.extend({},{
+            id: app.token,
+            version: app.application_version,
+            last_sync_at: app.last_supply_sync_date(),
+            gps: (position_obj) ? [position_obj] : null
+          });
+          switch (method) {
+            case 'update_drafts':
+              var updated = (function(){
+                var tmp_ = [];
+                $.each(app.mySupplyOrdersDrafts(), function(i,draft){
+                  if ("undefined" != draft.locally_saved && !$.isEmptyObject(draft.locally_saved)){
+                    tmp_.push(draft.locally_saved);
+                  }
+                });
+                return tmp_;
+              })();
+              tmp = $.extend(tmp, {
+                    updated_drafts: updated
+                  });
+              break;
+            default:
+              break;
+          }
+          return tmp;
+        })(func);
+      };
+      DeferredAjax.prototype.invoke = function(){
+        var self = this;
+        return $.ajax({
+          type: "POST",
+          url: self.url,
+          data: self.data,
+          cache: false,
+          crossDomain: true,
+          dataType: 'json',
+          global: false,
+          timeout: 30000,
+          success: function(data){
+            switch (self.func) {
+              case "sync_check":
+                  if (data.sync_list.length > 0){
+                    methods_to_chain_result = [];
+                    $.each(data.sync_list, function(i,f){
+                      methods_to_chain_result.push(methods_to_chain_mapping[f]);
+                    });
+                    _time_to_remember = data.time;
+                    sync_process(position_obj, methods_to_chain_result, methods_to_chain_result[methods_to_chain_result.length-1]);
+                  }
+                break;
+              case "update_drafts":
+                app.ids_mutation((function(old_obj){
+                  var tmp = {};
+                  $.each(data.mutations, function(i,v){
+                    if (i != v){
+                      tmp[i] = v;
+                    }
+                  });
+                  return $.extend(old_obj, tmp);
+                })(app.ids_mutation()));
+                app.drafts_ready_to_sync = false;
+                break;
+              case "my_sites":
+                app.mySites(data.sites);
+                break;
+              case "my_supply_orders":
+                app.mySupplyOrdersDrafts(data.supply_orders_list );
+                break;
+              case "my_last_submitted_orders":
+                app.myLastSubmittedOrders(data.supply_orders_list );
+                break;
+              case "supply_order_details":
+                app.supplyOrdersTemplate(data.order_details);
+                break;
+              default:
+                break;
+            }
+
+            if (method_when_update_sync_time == self.func && "" != _time_to_remember){
+              app.last_supply_sync_date(_time_to_remember);
+            }
+            self.deferred.resolve();
+          }
+        });
+      };
+
+      if (app.drafts_ready_to_sync){
+        methods_to_chain.push('update_drafts');
+      }
+      if ("" == method_when_update_sync_time){
+        methods_to_chain.push('sync_check');
+      }
+
+//      alert("methods_to_chain: " + JSON.stringify(methods_to_chain));
+      $.each(methods_to_chain, function(ix, def_func) {
+//        alert("current method: " + def_func);
+        var da = new DeferredAjax(def_func);
+        $.when( startdeferrpoint, app.check_online(true) ).then(function(){
+          da.invoke();
+        });
+        startdeferrpoint = da;
+      });
+    };
+
+    navigator.geolocation.getCurrentPosition(function(position){
+      sync_process({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+        acc: position.coords.accuracy,
+        time: (new Date()).toUTCString()
+      });
+    }, function(error){
+      sync_process();
+    }, {timeout:30000, maximumAge: 0});
   },
 
   //TODO: refactor, refactor and refactor again
@@ -641,9 +917,10 @@ var app = {
     }).promise();
   },
 
-  check_online: function(){
+  check_online: function(silent){
+    silent = silent || false;
     return $.Deferred(function($deferred){
-      if ($("#overlay").is(':hidden')){
+      if (!silent && $("#overlay").is(':hidden')){
         $("#overlay").show();
       }
       if (app.online_flag()){
@@ -718,6 +995,236 @@ var app = {
         $("#overlay").hide();
       }
     });
+  },
+
+  mySupplyOrders: function(success_callback){
+    var self = this;
+    var ajax_call = function(pos){
+
+      var token = app.token();
+
+      var my_supply_orders_request = $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/my_supply_orders.json',
+        data: {
+          id: token,
+          gps: pos
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        timeout: 60000,
+        success: function(data) {
+          if (data.token == token){
+            app.mySupplyOrdersDrafts(data.supply_orders_list );
+/*            if (typeof success_callback == "function"){
+              success_callback();
+            }*/
+          } else {
+            app.setToken(false);
+            app.route();
+          }
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
+            } else {
+              app.errorAlert(error, "Error", function(){
+                app.route();
+              });
+            }
+          });
+        }
+      });
+
+      var my_last_submitted_orders = $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/my_last_submitted_orders.json',
+        data: {
+          id: token,
+          gps: pos
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        timeout: 60000,
+        success: function(data) {
+          if (data.token == token){
+            app.myLastSubmittedOrders(data.supply_orders_list );
+          } else {
+            app.setToken(false);
+            app.route();
+          }
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
+            } else {
+              app.errorAlert(error, "Error", function(){
+                app.route();
+              });
+            }
+          });
+        }
+      });
+
+      var chained = my_supply_orders_request.then(function() {
+        return my_last_submitted_orders;
+      });
+
+      chained.done(function() {
+        if (typeof success_callback == "function"){
+          success_callback();
+        }
+      });
+    };
+
+    if (app.mySupplyOrdersDrafts().length > 0 && app.myLastSubmittedOrders().length > 0){
+      success_callback();
+    } else {
+      $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+        ajax_call.call(self, obj1.position);
+      }).fail(function(obj){
+        app.internet_gps_error(obj);
+        if ($("#overlay").is(':visible')){
+          $("#overlay").hide();
+        }
+      });
+    }
+  },
+
+  getSitesOrdersList: function(success_callback){
+    var self = this;
+    var ajax_call = function(pos){
+      var token = app.token();
+      var my_sites_request = $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/my_sites.json',
+        data: {
+          id: token,
+          gps: pos
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        timeout: 60000,
+        success: function(data) {
+          if (data.token == token){
+            app.mySites(data.sites);
+/*            if (typeof success_callback == "function"){
+              success_callback(data.sites);
+            }*/
+          } else {
+            app.setToken(false);
+            app.route();
+          }
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
+            } else {
+              app.errorAlert(error, "Error", function(){
+                app.route();
+              });
+            }
+          });
+        }
+      });
+      var my_supply_order_template_request = $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/supply_order_details.json',
+        data: {
+          id: token,
+          gps: pos
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        timeout: 60000,
+        success: function(data) {
+          if (data.token == token){
+            app.supplyOrdersTemplate(data.order_details);
+          } else {
+            app.setToken(false);
+            app.route();
+          }
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
+            } else {
+              app.errorAlert(error, "Error", function(){
+                app.route();
+              });
+            }
+          });
+        }
+      });
+
+      var chained = my_sites_request.then(function() {
+        return my_supply_order_template_request;
+      });
+
+      chained.done(function() {
+        if (typeof success_callback == "function"){
+          success_callback();
+        }
+      });
+    };
+
+    if (app.mySites().length > 0 && !$.isEmptyObject(app.supplyOrdersTemplate())){
+      success_callback();
+    } else {
+      $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+        ajax_call.call(self, obj1.position);
+      }).fail(function(obj){
+        app.internet_gps_error(obj);
+        if ($("#overlay").is(':visible')){
+          $("#overlay").hide();
+        }
+      });
+    }
+
   },
 
   getSitesList: function(success_callback){
@@ -809,6 +1316,25 @@ var app = {
           $container.html(new InspectionView(savedCheckList.list).render().el).trigger('pagecreate');
         });
         break;
+      case '#orders' == urlObj.hash:
+          app.mySupplyOrders(function(){
+            $container.html(new SupplierView().render().el).trigger('pagecreate');
+          });
+        break;
+      case /^#order:(\w+)$/.test(urlObj.hash):
+        var order_id = urlObj.hash.match(/^#order:(\w+)$/)[1] || "new";
+        app.getSitesOrdersList(function(){
+          $container.html(new OrderView(order_id).render().el.trigger('orderevent')).trigger('pagecreate');
+        });
+        break;
+      case /^#editOrderItem:(.+)$/.test(urlObj.hash):
+        var item_id = urlObj.hash.match(/^#editOrderItem:(.+)$/)[1];
+        $container.html(new SupplyOrderEditItemView(item_id).render().el).trigger('pagecreate');
+        break;
+      case /^#addOrderItem:(.+)$/.test(urlObj.hash):
+        var order_id = urlObj.hash.match(/^#addOrderItem:(.+)$/)[1];
+        $container.html(new SupplyOrderAddItemView(order_id).render().el).trigger('pagecreate');
+        break;
       case '#inspectionslog' == urlObj.hash:
         app.getInspectionsLog(function(list){
           $container.html(new InspectionsLogView(list).render().el).trigger('pagecreate');
@@ -841,6 +1367,10 @@ var app = {
       var job_insp_cont = app.getJobInspectionContainer();
       if (job_insp_cont.site_id && job_insp_cont.status == "pending" ){
         u = $.mobile.path.parseUrl(u.hrefNoHash + "#inspection:" + job_insp_cont.site_id + "-" + job_insp_cont.job_id);
+      }
+
+      if (/^#order[:]?(\w+)$/.test(u.hash) && "Area Supervisor" != app.getUserInfo().role){
+        u = $.mobile.path.parseUrl(u.hrefNoHash);
       }
     } else {
       u = $.mobile.path.parseUrl(u.hrefNoHash + "#login");
@@ -1085,6 +1615,14 @@ var app = {
       app.setJobInspectionContainer(false);
       app.autoconnect_flag = false;
       app.cancell_inspection(false);
+
+      app.mySites(false);
+      app.supplyOrdersTemplate(false);
+      app.mySupplyOrdersDrafts(false);
+      app.myLastSubmittedOrders(false);
+      app.last_supply_sync_date(false);
+      app.ids_mutation(false);
+
       $("#overlay").hide();
 
       app.route();
@@ -1143,6 +1681,11 @@ var app = {
               'No,Yes'
           );
           break;
+        case /^#order:(\w+)$/.test(app.current_page):
+          app.route({
+            toPage: window.location.href + "#orders"
+          });
+          break;
         case '#welcome' == app.current_page:
         case '' == app.current_page:
         case '#' == app.current_page:
@@ -1150,8 +1693,6 @@ var app = {
           app.showConfirm('Close', 'Do you want to quit? ',
               function(buttonIndex){
                 if(2 == buttonIndex){
-//                  navigator.geolocation.clearWatch(app.watchID);
-//                  app.watchID = null;
                   app.stopCheckInterval();
                   navigator.app.exitApp();
                 }

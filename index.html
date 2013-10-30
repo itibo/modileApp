@@ -55,6 +55,7 @@
           <li class="first_img"><a href="#my_jobs"><img src="css/images/icons_1sprite.png"/>Start QA Inspection</a></li>
           <li><a href="#siteslist"><img src="css/images/icons_2sprite.png"/>Sites Assigned to You</a></li>
           <li><a href="#inspectionslog"><img src="css/images/icons_2sprite.png"/>Completed Inspections</a></li>
+          {{SupplierMenuItem}}
         </ul>
       </div><!-- /content -->
     </script>
@@ -157,6 +158,70 @@
         </div>
       </div><!-- /content -->
     </script>
+    <script id="supplier-main-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>
+          <span class="address">Supplier</span>
+          <span class="btn-back log_back">
+            <a href="/#welcome" class="ui-btn-right" data-role="button" >Back</a>
+          </span>
+        </h1>
+      </div><!-- /header -->
+      <div class="main log inspect">
+        <div data-role="content">
+          <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
+          <div class="all_input  stnd_btn">
+            <button type="button" class="ui-btn-hidden" aria-disabled="false">Start a new Order</button>
+          </div>
+          {{#DraftsOrderContent drafts}}{{/DraftsOrderContent}}
+          {{#SubmittedOrderContent submitted_orders}}{{/SubmittedOrderContent}}
+        </div>
+      </div><!-- /content -->
+    </script>
+    <script id="order-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>
+          <span class="address">{{title}}</span>
+          <span class="btn-back log_back">
+            <a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>
+          </span>
+        </h1>
+      </div><!-- /header -->
+      <div class="main inspect draft">
+        <div id="new_order inspect">
+          {{#newOrderStartContent order}}{{/newOrderStartContent}}
+        </div>
+        <div id="edit_order">
+          {{#orderContent order}}{{/orderContent}}
+        </div>
+      </div><!-- /content -->
+    </script>
+    <script id="order-item-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>
+          <span class="address">Order Item</span>
+          <span class="btn-back log_back">
+            <a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>
+          </span>
+        </h1>
+      </div><!-- /header -->
+      <div class="main log inspect draft">
+        {{#editItemContent item}}{{/editItemContent}}
+      </div><!-- /content -->
+    </script>
+    <script id="add-order-item-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>
+          <span class="address">Order Item Adding</span>
+          <span class="btn-back log_back">
+            <a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>
+          </span>
+        </h1>
+      </div><!-- /header -->
+      <div class="main log inspect draft">
+        {{addItemContent}}
+      </div><!-- /content -->
+    </script>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="lib/handlebars.js"></script>
     <script type="text/javascript" src="js/PushNotification.js"></script>
@@ -167,6 +232,9 @@
     <script type="text/javascript" src="js/views/SitesListView.js"></script>
     <script type="text/javascript" src="js/views/InspectionView.js"></script>
     <script type="text/javascript" src="js/views/InspectionsLogView.js"></script>
+    <script type="text/javascript" src="js/views/SupplierView.js"></script>
+    <script type="text/javascript" src="js/views/OrderView.js"></script>
+    <script type="text/javascript" src="js/views/SupplyOrderItemView.js"></script>
     <script type="text/javascript">
       app.initialize();
     </script>

@@ -59,4 +59,16 @@ Handlebars.registerHelper('MyJobs', function() {
 });
 */
 
+Handlebars.registerHelper('SupplierMenuItem', function() {
+  var return_html='';
+  try{
+    if ("Area Supervisor" == this.userInfo.role){
+      return_html = '<li><a href="#orders"><img src="css/images/icons_4.png"/>Supply</a></li>';
+    }
+  } catch(e) {
+    return_html='';
+  }
+  return new Handlebars.SafeString(return_html);
+});
+
 WelcomeView.template = Handlebars.compile($("#welcome-tpl").html());
