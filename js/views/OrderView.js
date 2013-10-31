@@ -212,7 +212,6 @@ var OrderView = function(order_id){
       e.preventDefault();
       if ("new" == self.order_id){
         $("#new_order", e.currentTarget).show();
-        $(".main").addClass("neworder");
       } else {
         $("#edit_order", e.currentTarget).show();
         $(".main").addClass("log inspect draft");
@@ -408,7 +407,6 @@ var OrderView = function(order_id){
 
 //        alert("new drafts to update local storage: " + JSON.stringify(drafts));
 
-
         app.mySupplyOrdersDrafts(drafts);
         app.drafts_ready_to_sync = true;
         app.sync_supply();
@@ -519,7 +517,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
             category_out = category_out + "<a href=\"#editOrderItem:"+item.item_id+"\">";
           }
           category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-          category_out = category_out + item.serial_number +"<br/>"+ item.description +"<br/>"+ item.measurement +"<br/>"+ item.price +"$<br/>"+ item.amount +"<br /><div class=\"bld\">Total: $<span>"+ (item.price*item.amount).toFixed(2) +"</span></div>";
+          category_out = category_out + "<span>" + item.serial_number +"<br />"+ item.description +"<br/>"+ item.measurement +"<br/>"+ item.price +"$<br/>"+ item.amount +"</span><br /><div class=\"bld\">Total: $<span>"+ (item.price*item.amount).toFixed(2) +"</span></div>";
           if ("log" != order.order_status){
             category_out = category_out + "</a>";
           }

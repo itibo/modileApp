@@ -555,14 +555,15 @@ var app = {
       method_when_update_sync_time = method_when_update_sync_time || '';
 
 //      alert("sync_supply fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
-      // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts"]
+      // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts", "submit_to_vendor"]
       var methods_to_chain_mapping = {
         sites: "my_sites",
         draft_order: "my_supply_orders",
         submitted_order: "my_last_submitted_orders",
         supply_order_details: "supply_order_details",
         sync_check: "sync_check",
-        update_drafts: "update_drafts"
+        update_drafts: "update_drafts",
+        submit_to_vendor: "submit_to_vendor"
       };
       var startdeferrpoint = $.Deferred();
           startdeferrpoint.resolve();

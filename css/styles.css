@@ -370,14 +370,16 @@ border-bottom-right-radius:4px;
 }
 .inspect .ui-btn-inner,.site_list .ui-btn-inner, .log .ui-btn-inner{
 	border:none;
-	border-bottom: 1px solid #666;
 }
+.main .ui-listview-inset .ui-li { border-bottom: 1px solid #666; }
+.ui-listview-inset .ui-li:last-child, .ui-listview-inset .ui-li .ui-li { border-bottom: none; }
+
 .inspect .ui-btn-hover-c,.site_list .ui-btn-hover-c, .log .ui-btn-hover-c{
 	background:#efefef;
 	border:none;
 }
 .inspect .ui-btn-text a{
-    padding-left: 35px !important;
+	padding: 2% 35px !important;
 }
 .inspect .ui-shadow,.site_list .ui-shadow, .log .ui-shadow{
 	box-shadow:none;
@@ -412,17 +414,23 @@ border-bottom-right-radius:4px;
 /* logs */
 .log .ui-li-static.ui-li{
 	overflow:hidden;
-}
-.log .ui-li-static.ui-li{
 	padding: 0px;
+	background-image: url("./images/arrow_green_bg.png");
+    background-repeat: repeat-y;
+	border-bottom: 1px solid #666;
+	color: #2F3E46;
+	padding: 2% 35px;
 }
+.log .ui-li-static.ui-li:last-child{ border-bottom: none; }
+
 .log .left_points{
-	width:55%;
 	float:left;
-	padding: 10px 10px;
+	white-space: normal;
+	width:55%;
 }
 .log .left_points span.adress {
-	font-size: 0.8em; font-style: italic;
+	font-style: italic;
+	font-weight: normal;
 	color:#333333;
 }
 .log .left_points span.time
@@ -436,7 +444,7 @@ font-size: 0.8em; color:#666666;
 }
 .log .points span.procent
 {
-font-size: 0.8em;color:#666666; font-style: italic;
+font-size: 0.8em;color:#666666; font-style: italic; white-space: normal;
 }
 .log .points span.big_points
 {
@@ -452,17 +460,17 @@ font-size: 0.8em;
 	right:10px;
 	height:90%;
 	line-height: 19px;
-	/* float:left; */
 	background: #dae4e3;
 	border-radius:3px;
 	width: 30%;
 	text-align:center;
-	/* margin: 5px; */
 }
 .log .points_time{
 	padding-top:10px;
-	/* width: 38%; */
 	text-align: right;	
+}
+.log .points_time span{
+	white-space: normal;
 }
 /* end logs */
 
@@ -1074,11 +1082,12 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	left: 40%;
 }
 .box_points{
-	position: absolute;
-	left: 50%;
-	margin-left: -35px;
-	top: 50%;
-	margin-top: -30px;
+	display: inline-table;
+    height: 100%;
+}
+.box_points div{
+    display: table-cell;
+    vertical-align: middle;
 }
 .inspect .ui-li-has-arrow{
 	background-image: url(./images/arrow_bg.png);
@@ -1088,34 +1097,34 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 
 
 /* supplier */
-.main.log .draft .ui-btn-inner{
+.main .log .draft .ui-btn-inner{
 	white-space: normal;
 }
-.main.log .draft .ui-bar-b{
+.main .log .draft .ui-bar-b{
 	background-color:#dec1aa;
 }
-.main.log .draft .ui-li-has-arrow{
+.main .log .draft .ui-li-has-arrow{
 	background-image: url(./images/arrow_bg.png);
 	background-repeat: repeat-y;
 }
-.main.log .ui-li-has-arrow{
+.main .log .ui-li-has-arrow{
 	background-image: url(./images/arrow_green_bg.png);
 	background-repeat: repeat-y;
 }
-.main.log .left_points{
+.main .log .left_points{
 	color:#000;
 }
-.main.log .points_time{
+.main .log .points_time{
 	font-style: normal;
 	text-align:left;
 }
-.main.log .draft .points{
+.main .log .draft .points{
 	background-color: #edded2;
 }
-.main.log .points .points_class{
+.main .log .points .points_class{
 	font-style: normal;
 }
-.main.log .points .big_points{
+.main .log .points .big_points{
 	font-style: normal;
 	font-weight: bold;
 }
@@ -1149,7 +1158,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	height: 100%;
 	top: 0;
 	right: 0;
-    width: 5%;
+    width: 61px;
 }
 .order_form_selection.ui-content{ padding:0; }
 .order_form_selection .box{
@@ -1163,6 +1172,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	background-color: #92B0AF;
 	border-top-left-radius: 4px;
 	border-top-right-radius: 4px;
+	border-bottom: 1px solid #666666;
 	color: #415050;
 	font-size:140%;
 	font-style: normal;
@@ -1237,7 +1247,6 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 .draft .ui-li .ui-btn-text a.ui-link-inherit
 {
 	white-space: normal;
-	font-weight: normal;
 }
 .draft a.ui-link-inherit .ui-li-desc {
     font-size: 100%;
@@ -1246,7 +1255,6 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
     font-style: normal;
 }
 .draft.inspect .bld {
-    color: #666666;
 	float: left;
 	padding-top: 7px;
 	width: 30%;
@@ -1353,15 +1361,11 @@ padding: 1em 0;
 /* end detail draft */
 
 /* detail log */
-.log .ui-li-static.ui-li { 
-	background-image: url("./images/arrow_green_bg.png");
-    background-repeat: repeat-y;
-	border-bottom: 1px solid #666;
-	color: #2F3E46;
-	font-weight: normal;
-	padding: 1% 3%;
-}
+
 /* end detail log */
+
+.ui-content ul.withbrd li.ui-li{ border-bottom: 1px solid #666; }
+.ui-content ul.withbrd li.ui-li:last-child{ border-bottom: none; }
 
 #menu{
     display:none;

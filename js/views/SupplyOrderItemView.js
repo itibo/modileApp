@@ -54,7 +54,7 @@ var SupplyOrderEditItemView = function(item_id){
 
 Handlebars.registerHelper("editItemContent", function(item){
   var order = app.activeOrder().upd,
-      out = "<div data-role=\"content\">";
+      out = "<div data-role=\"content\" class=\"log inspect draft\">";
 
   out = out + "<div class=\"location_details\">";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
@@ -79,7 +79,7 @@ Handlebars.registerHelper("editItemContent", function(item){
   out = out + "<div data-role=\"fieldcontain\"><label for=\"total\">Total:</label><input id=\"total\" name=\"total\" type=\"text\" disabled=\"disabled\" value=\""+ (item.amount*item.price).toFixed(2) +"\" /></div>";
   out = out + "</div>";
 
-  out = out + "<div class=\"managment btn2\">";
+  out = out + "<div class=\"manage_area btn2\">";
   out = out + "<div class=\"green_btn box_add\"><button id=\"save_btn\">Save</button></div>";
   out = out + "<div class=\"green_btn box_save\"><button id=\"remove_btn\">Remove</button></div>";
   out = out + "</div>";
@@ -127,7 +127,7 @@ var SupplyOrderAddItemView = function(order_id){
               if (parseFloat(category[serial_number]["amount"]) == 0){
                 var item = category[serial_number];
                 category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
-                category_out = category_out + serial_number +"<br/>"+item.description +"<br/>"+item.measurement +"<br/>"+item.price;
+                category_out = category_out + "<span>" + serial_number +"<br/>"+item.description +"<br/>"+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
                 category_out = category_out + "</a></li>";
               }
             });
@@ -141,7 +141,7 @@ var SupplyOrderAddItemView = function(order_id){
             var item = order.supply_order_categories[chosen][serial_number];
             if (parseFloat(item.amount) == 0){
               category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
-              category_out = category_out + serial_number +"<br/>"+item.description +"<br/>"+item.measurement +"<br/>"+item.price;
+              category_out = category_out + "<span>" + serial_number +"<br/>"+item.description +"<br/>"+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
               category_out = category_out + "</a></li>";
             }
           });
@@ -174,7 +174,7 @@ Handlebars.registerHelper("backButtonItemView", function(id){
 
 Handlebars.registerHelper("addItemContent", function(){
   var order = app.activeOrder().upd,
-      out = "<div data-role=\"content\">";
+      out = "<div data-role=\"content\" class=\"log inspect draft\">";
 
   out = out + "<div class=\"location_details\">";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";

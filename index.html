@@ -72,7 +72,7 @@
         <div data-role="content">
           <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
           {{ListOfAvailiableJobsContent}}
-          <p class="check"><input type="button" id="recheck" value="Re-check"/></p>
+          <p class="check stnd_btn"><input type="button" id="recheck" value="Re-check"/></p>
         </div>
       </div><!-- /content -->
     </script>
@@ -167,8 +167,8 @@
           </span>
         </h1>
       </div><!-- /header -->
-      <div class="main log inspect">
-        <div data-role="content">
+      <div class="main">
+        <div data-role="content" class="log inspect">
           <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
           <div class="all_input  stnd_btn">
             <button type="button" class="ui-btn-hidden" aria-disabled="false">Start a new Order</button>
@@ -188,10 +188,10 @@
         </h1>
       </div><!-- /header -->
       <div class="main">
-        <div id="new_order inspect">
+        <div id="new_order" class="neworder">
           {{#newOrderStartContent order}}{{/newOrderStartContent}}
         </div>
-        <div id="edit_order">
+        <div id="edit_order" class="log inspect draft">
           {{#orderContent order}}{{/orderContent}}
         </div>
       </div><!-- /content -->
@@ -206,7 +206,7 @@
           </span>
         </h1>
       </div><!-- /header -->
-      <div class="main log inspect draft">
+      <div class="main">
         {{#editItemContent item}}{{/editItemContent}}
       </div><!-- /content -->
     </script>
@@ -219,7 +219,7 @@
           </span>
         </h1>
       </div><!-- /header -->
-      <div class="main log inspect draft">
+      <div class="main">
         {{addItemContent}}
       </div><!-- /content -->
     </script>

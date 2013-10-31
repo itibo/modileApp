@@ -80,7 +80,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
   var out="";
   if ( (app.sitesToInspect()).length > 0 ){
     out="<p>Site(s) available for inspection, based on your current position. Select site to start inspection.</p>";
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
+    out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">";
     out = out + "<li data-role=\"list-divider\" role=\"heading\">Site(s) Assigned to You</li>";
     if (sites_for_inspect.assigned.length > 0){
       for(var i=0, l=sites_for_inspect.assigned.length; i<l; i++) {
@@ -97,7 +97,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
     out = out + "</ul>";
 
     if (sites_for_inspect.not_assigned.length > 0){
-      out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
+      out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">";
       out = out + "<li data-role=\"list-divider\" role=\"heading\">Other sites</li>";
       for(var i=0, l=sites_for_inspect.not_assigned.length; i<l; i++) {
         out = out + "<li><a id=\""+sites_for_inspect.not_assigned[i].site_id+"-"+sites_for_inspect.not_assigned[i].job_id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +

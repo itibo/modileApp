@@ -23,7 +23,7 @@ var SitesListView = function(data) {
 Handlebars.registerHelper('ListOfAvailiableSitesContent', function(items) {
   var out = "";
   if (items.length>0){
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
+    out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">";
     for(var i=0, l=items.length; i<l; i++) {
       out = out + "<li>" + items[i].site  + " - <span>" + items[i].address +
 //          "<br />" +
