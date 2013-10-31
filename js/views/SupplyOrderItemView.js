@@ -54,6 +54,7 @@ var SupplyOrderEditItemView = function(item_id){
 Handlebars.registerHelper("editItemContent", function(item){
   var order = app.activeOrder().upd,
       out = "<div data-role=\"content\">";
+
   out = out + "<div class=\"location_details\">";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
@@ -81,6 +82,7 @@ Handlebars.registerHelper("editItemContent", function(item){
   out = out + "<div class=\"green_btn box_add\"><button id=\"save_btn\">Save</button></div>";
   out = out + "<div class=\"green_btn box_save\"><button id=\"remove_btn\">Remove</button></div>";
   out = out + "</div>";
+
   out = out + "</div>";
 
   return new Handlebars.SafeString(out);
@@ -167,6 +169,7 @@ Handlebars.registerHelper("addItemContent", function(){
     out = out + "<br /><strong>Budget: <span>"+order.remaining_budget+"$</strong>";
   }
   out = out + "</p></div><br />";
+
   out = out + "<select name=\"category\" id=\"category\">";
   out = out + "<option value=\"\">- Select Category -</option>";
   $.each(Object.keys(order.supply_order_categories), function( index, value ) {
@@ -174,8 +177,9 @@ Handlebars.registerHelper("addItemContent", function(){
   });
   out = out + "<option value=\"all\">All Categories</option>";
   out = out + "</select>";
-  out = out + "<div id=\"list_items\">";
-  out = out + "</div>";
+
+  out = out + "<div id=\"list_items\"></div>";
+
   out = out + "</div>";
 
   return new Handlebars.SafeString(out);

@@ -539,7 +539,8 @@ var app = {
 //    clearTimeout(app.check_interval_flag);
     if(app.token() && undefined === app.check_interval_flag){
       setTimeout(function(){
-        app.check();
+        if (app.autoconnect_flag)
+          app.check();
         app.sync_supply();
       }, 1000);
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);

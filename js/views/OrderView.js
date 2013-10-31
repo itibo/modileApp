@@ -482,7 +482,8 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
           "</div>" +
           "<div class=\"box_rightcnt\">" +
             "<button class=\"start_new_order\">Start</button>" +
-          "</div>";
+          "</div>" +
+        "</div>";
     });
     out = out + "</div></div>";
   }
@@ -495,7 +496,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
   if (!$.isEmptyObject(order_obj) && "undefined" != order_obj.id){
     var order = order_obj.upd;
 
-    out = out + "<div data-role=\"content\""+ (("draft" == order.order_status)? ' class=\"categories\"' : '') +">";
+    out = out + "<div data-role=\"content\""+ (("log" != order.order_status)? ' class=\"categories\"' : '') +">";
     out = out + "<div class=\"location_details\">";
     out = out + "<p><font>"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p>Order type: <span>"+order.order_form+"</span>";
@@ -518,7 +519,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
             category_out = category_out + "<a href=\"#editOrderItem:"+item.item_id+"\">";
           }
           category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-          category_out = category_out + item.serial_number +"<br/>"+ item.description +"<br/>"+ item.measurement +"<br/>"+ item.price +"<br/>"+ item.amount +"<br /><div class=\"bld\">Total: $<span>"+ (item.price*item.amount).toFixed(2) +"</span></div>";
+          category_out = category_out + item.serial_number +"<br/>"+ item.description +"<br/>"+ item.measurement +"<br/>"+ item.price +"$<br/>"+ item.amount +"<br /><div class=\"bld\">Total: $<span>"+ (item.price*item.amount).toFixed(2) +"</span></div>";
           if ("log" != order.order_status){
             category_out = category_out + "</a>";
           }
@@ -554,7 +555,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
       out = out + "<div class=\"green_btn box_submit\"><button id=\"submit_to_vendor\">Submit to Vendor</button></div>";
       out = out + "</div>";
     }
-    out = out + "</div></div>";
+    out = out + "</div>";
   }
   return new Handlebars.SafeString(out);
 });

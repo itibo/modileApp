@@ -110,7 +110,8 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
             "<span class=\"big_points\">$" + v.total + "</span><br />" +
             "<span class=\"procent\">Budget: ??? $</span>" +
           "</div>" +
-        "</div>";
+        "</div>" +
+      "</a></li>";
   });
   out = out + "</ul>";
   return new Handlebars.SafeString(out);
@@ -137,7 +138,8 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
             "<span class=\"big_points\">$" + v.total + "</span><br />" +
             "<span class=\"procent\">Budget: ??? $</span>" +
           "</div>" +
-        "</div>";
+        "</div>" +
+      "</a></li>";
 //        v.site_name +"<br/>"+ v.site_address +"<br/>"+ v.order_form +"<br/>Submitted: "+ v.order_date +"<br/>Total: $"+ v.total +"</a></li>";
   });
   out = out + "</ul>";
