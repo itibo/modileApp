@@ -183,7 +183,7 @@
         <h1>
           <span class="address">{{title}}</span>
           <span class="btn-back log_back">
-            <a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>
+            <a href="#orders" class="ui-btn-right" data-role="button" >Back</a>
           </span>
         </h1>
       </div><!-- /header -->
@@ -201,7 +201,8 @@
         <h1>
           <span class="address">Order Item</span>
           <span class="btn-back log_back">
-            <a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>
+            <!--<a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>-->
+            {{#backButtonItemView order_id}}{{/backButtonItemView}}
           </span>
         </h1>
       </div><!-- /header -->
@@ -214,7 +215,7 @@
         <h1>
           <span class="address">Order Item Adding</span>
           <span class="btn-back log_back">
-            <a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>
+            {{#backButtonItemView order_id}}{{/backButtonItemView}}
           </span>
         </h1>
       </div><!-- /header -->

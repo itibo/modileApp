@@ -5,6 +5,7 @@ var SupplyOrderEditItemView = function(item_id){
         self = this;
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
+    context.order_id = app.activeOrder().id;
 
     context.item = (function(){
       var return_item = {},
@@ -94,12 +95,14 @@ SupplyOrderEditItemView.template = Handlebars.compile($("#order-item-tpl").html(
 /* ---------------------------------------------------------------------------------------------------------*/
 
 var SupplyOrderAddItemView = function(order_id){
+  this.order_id = order_id || false;
 
   this.render = function(){
     var context = {},
         self = this;
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
+    context.order_id = self.order_id;
 
     this.el.html(SupplyOrderAddItemView.template(context));
     return this;
@@ -157,6 +160,17 @@ var SupplyOrderAddItemView = function(order_id){
 
   this.initialize();
 }
+
+Handlebars.registerHelper("backButtonItemView", function(id){
+  var out;
+  if (id === false){
+    out = "<a href=\"#orders\" class=\"ui-btn-right\" data-role=\"button\" >Back</a>"
+  } else {
+    out = "<a href=\"#order:"+id+"\" class=\"ui-btn-right\" data-role=\"button\" >Back</a>"
+  }
+  return new Handlebars.SafeString(out);
+});
+
 
 Handlebars.registerHelper("addItemContent", function(){
   var order = app.activeOrder().upd,

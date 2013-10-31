@@ -1009,6 +1009,7 @@ var app = {
         url: app.site+'/mobile/my_supply_orders.json',
         data: {
           id: token,
+          version: app.application_version,
           gps: pos
         },
         cache: false,
@@ -1053,6 +1054,7 @@ var app = {
         url: app.site+'/mobile/my_last_submitted_orders.json',
         data: {
           id: token,
+          version: app.application_version,
           gps: pos
         },
         cache: false,
@@ -1123,6 +1125,7 @@ var app = {
         url: app.site+'/mobile/my_sites.json',
         data: {
           id: token,
+          version: app.application_version,
           gps: pos
         },
         cache: false,
@@ -1166,6 +1169,7 @@ var app = {
         url: app.site+'/mobile/supply_order_details.json',
         data: {
           id: token,
+          version: app.application_version,
           gps: pos
         },
         cache: false,
@@ -1685,6 +1689,12 @@ var app = {
         case /^#order:(\w+)$/.test(app.current_page):
           app.route({
             toPage: window.location.href + "#orders"
+          });
+          break;
+        case /^#editOrderItem:(.+)$/.test(app.current_page):
+        case /^#addOrderItem:(.+)$/.test(app.current_page):
+          app.route({
+            toPage: window.location.href + ((app.activeOrder().id) ? "#order:" + app.activeOrder().id : "#orders")
           });
           break;
         case '#welcome' == app.current_page:
