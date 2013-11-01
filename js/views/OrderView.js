@@ -392,60 +392,70 @@ var OrderView = function(order_id){
 //      alert("mutations: " + JSON.stringify(app.ids_mutation()));
 //      alert(JSON.stringify(activeOrder));
 
-      if(String(self.order_id) == String(activeOrder.id) && !isObjectsEqual(activeOrder.proto, activeOrder.upd)){
-        var drafts = app.mySupplyOrdersDrafts(),
-            mutation = app.ids_mutation();
-        if ( RegExp('^new_on_device_','i').test(activeOrder.id) && $.inArray(String(activeOrder.id), Object.keys(mutation)) < 0 &&
-            (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.id == String(activeOrder.id)});return !(_tmp.length>0);})() ){
-          drafts.push($.extend({
-            id: activeOrder.upd.supply_order_id,
-            supply_order_id: activeOrder.upd.supply_order_id,
-            supply_order_name: activeOrder.upd.supply_order_name,
-            updated_at: activeOrder.upd.updated_at,
-            order_date: activeOrder.upd.order_date,
-            order_form: activeOrder.upd.order_form,
-            site_id: activeOrder.upd.site_id,
-            site_name: activeOrder.upd.site_name,
-            site_address: activeOrder.upd.site_address,
-            special_instructions: [],
-            remaining_budget: activeOrder.upd.remaining_budget
-          },{
-            locally_saved: activeOrder.upd
-          }));
-        } else {
-          $.each(drafts, function(i, dr){
-            if ($.inArray(String(dr.supply_order_id), [String(self.order_id), (undefined == mutation[self.order_id])? null : String(mutation[self.order_id])] ) > -1 ){
-              var _tmp = activeOrder.upd,
-                  draft_to_update = dr;
-              if (undefined != mutation[self.order_id]){
-                draft_to_update.supply_order_id = mutation[self.order_id];
-                draft_to_update.id = mutation[self.order_id];
-                _tmp.supply_order_id = mutation[self.order_id];
-              }
-              draft_to_update['locally_saved'] = _tmp;
-              drafts[i] = draft_to_update;
-              return false;
-            }
-          });
-        }
+
+      navigator.notification.confirm(
+          "Do you want to save this order as draft?",
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              if(String(self.order_id) == String(activeOrder.id) && !isObjectsEqual(activeOrder.proto, activeOrder.upd)){
+                var drafts = app.mySupplyOrdersDrafts(),
+                    mutation = app.ids_mutation();
+                if ( RegExp('^new_on_device_','i').test(activeOrder.id) && $.inArray(String(activeOrder.id), Object.keys(mutation)) < 0 &&
+                    (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.id == String(activeOrder.id)});return !(_tmp.length>0);})() ){
+                  drafts.push($.extend({
+                    id: activeOrder.upd.supply_order_id,
+                    supply_order_id: activeOrder.upd.supply_order_id,
+                    supply_order_name: activeOrder.upd.supply_order_name,
+                    updated_at: activeOrder.upd.updated_at,
+                    order_date: activeOrder.upd.order_date,
+                    order_form: activeOrder.upd.order_form,
+                    site_id: activeOrder.upd.site_id,
+                    site_name: activeOrder.upd.site_name,
+                    site_address: activeOrder.upd.site_address,
+                    special_instructions: [],
+                    remaining_budget: activeOrder.upd.remaining_budget
+                  },{
+                    locally_saved: activeOrder.upd
+                  }));
+                } else {
+                  $.each(drafts, function(i, dr){
+                    if ($.inArray(String(dr.supply_order_id), [String(self.order_id), (undefined == mutation[self.order_id])? null : String(mutation[self.order_id])] ) > -1 ){
+                      var _tmp = activeOrder.upd,
+                          draft_to_update = dr;
+                      if (undefined != mutation[self.order_id]){
+                        draft_to_update.supply_order_id = mutation[self.order_id];
+                        draft_to_update.id = mutation[self.order_id];
+                        _tmp.supply_order_id = mutation[self.order_id];
+                      }
+                      draft_to_update['locally_saved'] = _tmp;
+                      drafts[i] = draft_to_update;
+                      return false;
+                    }
+                  });
+                }
 
 //        alert("new drafts to update local storage: " + JSON.stringify(drafts));
 
-        app.mySupplyOrdersDrafts(drafts);
-        app.sync_supply();
-      }
+                app.mySupplyOrdersDrafts(drafts);
+                app.sync_supply();
+              }
 
-      setTimeout(function(){
-        alert("draft saved");
-        app.route({
-          toPage: window.location.href + "#orders"
-        });
-      },0);
+              setTimeout(function(){
+                app.route({
+                  toPage: window.location.href + "#orders"
+                });
+              },0);
+            }
+          },
+          "Supply Order",
+          'Cancel,Save'
+      );
+
     });
 
     this.el.on('click', "button#submit_to_vendor", function(e){
       navigator.notification.confirm(
-          "Are you sure you want to submit order to vendor?",
+          "Do you want to submit this order to Vendor?",
           function(buttonIndex){
             if(2 == buttonIndex){
               (function(){
@@ -478,7 +488,7 @@ var OrderView = function(order_id){
               })();
             }
           },
-          "Submit order to vendor",
+          "Supply Order",
           'Cancel,Submit'
       );
     });
@@ -587,7 +597,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
             category_out = category_out + "<a href=\"#editOrderItem:"+item.item_id+"\">";
           }
           category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-          category_out = category_out + "<span>" + item.serial_number +"<br />"+ item.description +"<br/>"+ item.measurement +"<br/>"+
+          category_out = category_out + "<span>" + item.serial_number +" - "+ item.description +"<br/>"+ item.measurement +"<br/>"+
               "<div class=\"detals\">Price: $"+item.price+"</div><div class=\"detals\">Amount: "+item.amount+"</div><div class=\"detals\">Total: $"+(item.price*item.amount).toFixed(2)+"</div>";
           if ("log" != order.order_status){
             category_out = category_out + "</a>";

@@ -142,7 +142,7 @@ var SupplyOrderAddItemView = function(order_id){
             var item = order.supply_order_categories[chosen][serial_number];
             if (parseFloat(item.amount) == 0){
               category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
-              category_out = category_out + "<span>" + serial_number +"<br/>"+item.description +"<br/>"+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
+              category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>"+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
               category_out = category_out + "</a></li>";
             }
           });
