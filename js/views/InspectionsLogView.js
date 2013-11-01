@@ -112,14 +112,15 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
     }
 
     for(var i=0, l=items.length; i<l; i++) {
-      out = out + "<li><div class=\"left_points\">" + items[i].site  + " - <span class=\"adress\">" + items[i].address + "</span>" +
-          "<br />" +
-          "<div class=\"points_time\">" +
-            "<span class=\"time\">Initiated: <font >" + items[i].arrival_time + "</font></span><br />" +
-            "<span class=\"time\">Completed: <font >" + items[i].departure_time + "</font></span>" +
+      out = out + "<li>" +
+          "<div class=\"points\">" + items[i].site  + " - <span class=\"adress\">" + items[i].address + "</span></div>" +
+          "<div class=\"left_points\">" +
+            "<div class=\"points_time\">" +
+              "<span class=\"time\">Initiated: <font >" + items[i].arrival_time + "</font></span><br />" +
+              "<span class=\"time\">Completed: <font >" + items[i].departure_time + "</font></span>" +
+            "</div>" +
           "</div>" +
-          "</div>" +
-          "<div class=\"points\">" +
+          "<div class=\"right_points\">" +
             "<div class=\"box_points\">" +
               "<div>" +
                 "<span class=\"points_class\">Score</span><br />" +

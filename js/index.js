@@ -23,8 +23,6 @@ var app = {
     this.allowToCheck = true;
     // last location object
     this.lastLocation = {};
-    // flag to send drafts from device to server
-    this.drafts_ready_to_sync = false;
 
     /* ------------------------- */
     // my_sites
@@ -555,16 +553,25 @@ var app = {
       method_when_update_sync_time = method_when_update_sync_time || '';
 
 //      alert("sync_supply fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
-      // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts", "submit_to_vendor"]
+      // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts", "submit_to_vendor", "save_orders"]
       var methods_to_chain_mapping = {
         sites: "my_sites",
         draft_order: "my_supply_orders",
         submitted_order: "my_last_submitted_orders",
         supply_order_details: "supply_order_details",
         sync_check: "sync_check",
-        update_drafts: "update_drafts",
-        submit_to_vendor: "submit_to_vendor"
-      };
+        update_drafts: "save_orders",
+        submit_to_vendor: "save_orders",
+        save_orders: "save_orders"
+      },
+          drafts_ready_to_sync = function(){
+            var _tmp = [];
+            _tmp = $.grep(app.mySupplyOrdersDrafts(), function(n,i){
+              return ( (undefined != n.submit_status && "submitting" == n.submit_status) ||
+                  (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved)) );
+            });
+            return (_tmp.length>0);
+          };
       var startdeferrpoint = $.Deferred();
           startdeferrpoint.resolve();
       var DeferredAjax = function(func){
@@ -579,19 +586,26 @@ var app = {
             gps: (position_obj) ? [position_obj] : null
           });
           switch (method) {
-            case 'update_drafts':
-              var updated = (function(){
-                var tmp_ = [];
+            case 'save_orders':
+              var to_update = (function(){
+                var updated = [],
+                    submitted = [];
+
                 $.each(app.mySupplyOrdersDrafts(), function(i,draft){
-                  if ("undefined" != draft.locally_saved && !$.isEmptyObject(draft.locally_saved)){
-                    tmp_.push(draft.locally_saved);
+                  if (undefined != draft.locally_saved && !$.isEmptyObject(draft.locally_saved)){
+                    updated.push(draft.locally_saved);
+                  }
+                  if (undefined != draft.submit_status && "submitting" == draft.submit_status){
+                    submitted.push({supply_order_id: draft.supply_order_id});
                   }
                 });
-                return tmp_;
+                return {
+                  updated_drafts: updated,
+                  submit_drafts: submitted
+                };
               })();
-              tmp = $.extend(tmp, {
-                    updated_drafts: updated
-                  });
+
+              tmp = $.extend(tmp, to_update);
               break;
             default:
               break;
@@ -599,6 +613,11 @@ var app = {
           return tmp;
         })(func);
       };
+
+      DeferredAjax.prototype.promise=function() {
+        return this.deferred.promise();
+      };
+
       DeferredAjax.prototype.invoke = function(){
         var self = this;
         return $.ajax({
@@ -619,10 +638,12 @@ var app = {
                       methods_to_chain_result.push(methods_to_chain_mapping[f]);
                     });
                     _time_to_remember = data.time;
-                    sync_process(position_obj, methods_to_chain_result, methods_to_chain_result[methods_to_chain_result.length-1]);
+                    setTimeout(function(){
+                      sync_process(position_obj, methods_to_chain_result, methods_to_chain_result[methods_to_chain_result.length-1]);
+                    }, 0);
                   }
                 break;
-              case "update_drafts":
+              case "save_orders":
                 app.ids_mutation((function(old_obj){
                   var tmp = {};
                   $.each(data.mutations, function(i,v){
@@ -632,7 +653,17 @@ var app = {
                   });
                   return $.extend(old_obj, tmp);
                 })(app.ids_mutation()));
-                app.drafts_ready_to_sync = false;
+
+                app.mySupplyOrdersDrafts((function(){
+                  mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
+                  $.each(mySupplyOrdersDrafts, function(i,draft){
+                    if ($.inArray(draft.supply_order_id, Object.keys(app.ids_mutation()) )> 0){
+                      mySupplyOrdersDrafts[i] = draft.locally_saved;
+                      return false;
+                    }
+                  });
+                  return mySupplyOrdersDrafts;
+                })());
                 break;
               case "my_sites":
                 app.mySites(data.sites);
@@ -658,14 +689,13 @@ var app = {
         });
       };
 
-      if (app.drafts_ready_to_sync){
-        methods_to_chain.push('update_drafts');
+      if (drafts_ready_to_sync()){
+        methods_to_chain.push('save_orders');
       }
       if ("" == method_when_update_sync_time){
         methods_to_chain.push('sync_check');
       }
 
-//      alert("methods_to_chain: " + JSON.stringify(methods_to_chain));
       $.each(methods_to_chain, function(ix, def_func) {
 //        alert("current method: " + def_func);
         var da = new DeferredAjax(def_func);
@@ -1688,6 +1718,7 @@ var app = {
           );
           break;
         case /^#order:(\w+)$/.test(app.current_page):
+          app.activeOrder(false);
           app.route({
             toPage: window.location.href + "#orders"
           });

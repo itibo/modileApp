@@ -79,10 +79,11 @@ Handlebars.registerHelper("editItemContent", function(item){
   out = out + "<div data-role=\"fieldcontain\"><label for=\"total\">Total:</label><input id=\"total\" name=\"total\" type=\"text\" disabled=\"disabled\" value=\""+ (item.amount*item.price).toFixed(2) +"\" /></div>";
   out = out + "</div>";
 
-  out = out + "<div class=\"manage_area btn2\">";
-  out = out + "<div class=\"green_btn box_add\"><button id=\"save_btn\">Save</button></div>";
-  out = out + "<div class=\"green_btn box_save\"><button id=\"remove_btn\">Remove</button></div>";
-  out = out + "</div>";
+  out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
+  out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_btn\">Save</button></td>";
+  out = out + "<td width=\"2%\">&nbsp;</td>";
+  out = out + "<td class=\"green_btn\"><button id=\"remove_btn\">Remove</button></td>";
+  out = out + "</tr></table>";
 
   out = out + "</div>";
 

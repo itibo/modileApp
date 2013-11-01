@@ -100,7 +100,7 @@ var OrderView = function(order_id){
               });
             } else {
               $.each(app.mySupplyOrdersDrafts(), function(i,v){
-                if (self.order_id == v.supply_order_id){
+                if (self.order_id == v.supply_order_id && (undefined == typeof (v.submit_status) || "submitting" != v.submit_status)){
                   if ("undefined" != v.locally_saved && !$.isEmptyObject(v.locally_saved)){
                     obj = v.locally_saved;
                   } else {
@@ -131,10 +131,11 @@ var OrderView = function(order_id){
 
               var tmp = (function(){
                 var _tmp = activeOrder.proto;
-                _tmp.order_status = "draft";
+                _tmp.order_status = (undefined != activeOrder.submit_status && "submitting" == activeOrder.submit_status) ? "log" : "draft";
                 if ($.isEmptyObject(_tmp)){
                   $.each(app.mySupplyOrdersDrafts(), function(i,v){
-                    if ($.inArray(String(v.supply_order_id), [String(self.order_id), String(_old_order_id)] ) > -1 ){
+                    if ($.inArray(String(v.supply_order_id), [String(self.order_id), String(_old_order_id)] ) > -1  &&
+                        !(undefined != v.submit_status && "submitting" == v.submit_status) ){
                       if (undefined != v.locally_saved && !$.isEmptyObject(v.locally_saved)){
                         _tmp = v.locally_saved;
                       } else {
@@ -143,6 +144,18 @@ var OrderView = function(order_id){
                       return false;
                     }
                   });
+                  if ($.isEmptyObject(_tmp)){
+                    $.each(app.myLastSubmittedOrders(), function(i,v){
+                      if ($.inArray(String(v.supply_order_id), [String(self.order_id), String(_old_order_id)] ) > -1 ){
+                        if (undefined != v.locally_saved && !$.isEmptyObject(v.locally_saved)){
+                          _tmp = v.locally_saved;
+                        } else {
+                          _tmp = $.extend(formatObject(v), {order_status: "log"});
+                        }
+                        return false;
+                      }
+                    });
+                  }
                 }
                 return _tmp;
               })();
@@ -335,8 +348,19 @@ var OrderView = function(order_id){
           if ("" !== res)
             $(elm).text(res + "$");
         });
+      } else {
+        $(".order_form_selection dd").html("&nbsp;");
       }
 
+    });
+
+
+    this.el.on('click', ".log_back", function(e){
+      e.preventDefault();
+      app.activeOrder(false);
+      app.route({
+        toPage: window.location.href + "#orders"
+      });
     });
 
     this.el.on('click', "button.start_new_order", function(e){
@@ -408,19 +432,55 @@ var OrderView = function(order_id){
 //        alert("new drafts to update local storage: " + JSON.stringify(drafts));
 
         app.mySupplyOrdersDrafts(drafts);
-        app.drafts_ready_to_sync = true;
         app.sync_supply();
-        setTimeout(function(){
-          alert("draft saved");
-          app.route({
-            toPage: window.location.href + "#orders"
-          });
-        },0);
       }
+
+      setTimeout(function(){
+        alert("draft saved");
+        app.route({
+          toPage: window.location.href + "#orders"
+        });
+      },0);
     });
 
     this.el.on('click', "button#submit_to_vendor", function(e){
-      alert("submit to vendor");
+      navigator.notification.confirm(
+          "Are you sure you want to submit order to vendor?",
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              (function(){
+                var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
+                    myLastSubmittedOrders = app.myLastSubmittedOrders(),
+                    submitted_item = {};
+                app.mySupplyOrdersDrafts((function(){
+                  $.each(mySupplyOrdersDrafts, function(i,v){
+                    if(app.activeOrder().id == v.supply_order_id){
+                      submitted_item = v;
+                      mySupplyOrdersDrafts[i]['submit_status'] = 'submitting';
+                      return false;
+                    }
+                  });
+                  return mySupplyOrdersDrafts;
+                })());
+
+                app.myLastSubmittedOrders((function(submitted_item){
+                  if (!$.isEmptyObject(submitted_item)){
+                    myLastSubmittedOrders.unshift(submitted_item);
+                    myLastSubmittedOrders.pop();
+                  }
+                  return myLastSubmittedOrders;
+                })(submitted_item));
+
+                app.sync_supply();
+                app.route({
+                  toPage: window.location.href + "#orders"
+                });
+              })();
+            }
+          },
+          "Submit order to vendor",
+          'Cancel,Submit'
+      );
     });
 
     this.el.on('change', 'textarea#special_instructions', function(e){
@@ -473,13 +533,15 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
     $.each(order_forms, function(i,v){
       out = out + "<div id=\""+ v.match(/^(.+?)\W/)[1].toLowerCase() +"\" class=\"box start_order\">" +
           "<div role=\"heading\" class=\"boxheader\">"+ v +"</div>" +
-          "<div class=\"boxcnt\">" +
-            "<dl class=\"budget\"><dt>Budget:</dt><dd>200$</dd></dl>" +
-            "<dl class=\"used\"><dt>Used:</dt><dd>100$</dd></dl>" +
-            "<dl class=\"remain\"><dt>Remaining:</dt><dd>100$</dd></dl>" +
-          "</div>" +
-          "<div class=\"box_rightcnt\">" +
-            "<button class=\"start_new_order\">Start</button>" +
+          "<div class=\"boxpoints\">" +
+            "<div class=\"boxcnt\">" +
+              "<dl class=\"budget\"><dt>Budget:</dt><dd>&nbsp;</dd></dl>" +
+              "<dl class=\"used\"><dt>Used:</dt><dd>&nbsp;</dd></dl>" +
+              "<dl class=\"remain\"><dt>Remaining:</dt><dd>&nbsp;</dd></dl>" +
+            "</div>" +
+            "<div class=\"box_rightcnt\">" +
+              "<button class=\"start_new_order\">Start</button>" +
+            "</div>" +
           "</div>" +
         "</div>";
     });
@@ -492,7 +554,8 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
 Handlebars.registerHelper("orderContent", function(order_obj){
   var out = "";
   if (!$.isEmptyObject(order_obj) && "undefined" != order_obj.id){
-    var order = order_obj.upd;
+    var order = order_obj.upd,
+        not_empty_items = false;
 
     out = out + "<div data-role=\"content\""+ (("log" != order.order_status)? ' class=\"categories\"' : '') +">";
     out = out + "<div class=\"location_details\">";
@@ -504,10 +567,17 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out + "</p>";
     out = out + "</div>";
 
+    if ("log" != order.order_status){
+      out = out + "<div class=\"all_input stnd_btn\">";
+      out = out + "<button id=\"add_new_item\" data-value=\""+ order_obj.id +"\" type=\"button\" class=\"ui-btn-hidden\" aria-disabled=\"false\">Add New Item</button>";
+      out = out + "</div>";
+    }
+
     $.each(Object.keys(order.supply_order_categories), function(i,v){
       var category_out = "",
           empty_flag = true,
           category = order['supply_order_categories'][v];
+      empty_flag = true,
 
       $.each(Object.keys(category), function(ik,vk){
         var item = category[vk];
@@ -517,41 +587,58 @@ Handlebars.registerHelper("orderContent", function(order_obj){
             category_out = category_out + "<a href=\"#editOrderItem:"+item.item_id+"\">";
           }
           category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-          category_out = category_out + "<span>" + item.serial_number +"<br />"+ item.description +"<br/>"+ item.measurement +"<br/>"+ item.price +"$<br/>"+ item.amount +"</span><br /><div class=\"bld\">Total: $<span>"+ (item.price*item.amount).toFixed(2) +"</span></div>";
+          category_out = category_out + "<span>" + item.serial_number +"<br />"+ item.description +"<br/>"+ item.measurement +"<br/>"+
+              "<div class=\"detals\">Price: $"+item.price+"</div><div class=\"detals\">Amount: "+item.amount+"</div><div class=\"detals\">Total: $"+(item.price*item.amount).toFixed(2)+"</div>";
           if ("log" != order.order_status){
             category_out = category_out + "</a>";
           }
           category_out = category_out + "</li>";
           empty_flag = false;
+          not_empty_items = true;
         }
       });
       if (!empty_flag)
         out = out + "<ul data-role=\"listview\" data-inset=\"true\"><li data-role=\"list-divider\" role=\"heading\">"+ v +"</li>" + category_out + "</ul>";
     });
 
+    if (!not_empty_items){
+      out = out + "<ul data-role=\"listview\" data-inset=\"true\"><li>No Supply Items</li></ul>";
+    } else {
+      if ("log" != order.order_status){
+        out = out + "<div class=\"all_input  stnd_btn\">";
+        out = out + "<button id=\"add_new_item\" data-value=\""+ order_obj.id +"\" type=\"button\" class=\"ui-btn-hidden\" aria-disabled=\"false\">Add New Item</button>";
+        out = out + "</div>";
+      }
+
+    }
+
+
     //over budget
-    out = out + "<div class=\"over_budget\">";
-    out = out + "<span>Over Budget!!!</span>";
-    out = out + "<div class=\"total\">";
-    out = out + "<p>Total: <span class=\"price\">$???</span></p>";
-    out = out + "</div>";
-    out = out + "</div>";
+//    out = out + "<div class=\"over_budget\">";
+//    out = out + "<span>Over Budget!!!</span>";
+//    out = out + "<div class=\"total\">";
+//    out = out + "<p>Total: <span class=\"price\">$???</span></p>";
+//    out = out + "</div>";
+//    out = out + "</div>";
 
     // Special Instructions
-    out = out +"<h3>Special Instructions</h3><div class=\"block-textarea\">";
+
     if ("log" != order.order_status){
+      out = out +"<h3>Special Instructions</h3><div class=\"block-textarea\">";
       out = out + "<textarea id=\"special_instructions\" name=\"special_instructions\">" + order.special_instructions + "</textarea>";
     } else {
+      out = out +"<div class=\"location_details\">";
+      out = out +"<p><font>Special Instructions</font></p>";
       out = out + "<p>" + order.special_instructions + "</p>";
+      out = out +"</div>";
     }
+
     out = out +"</div>";
 
     if ("log" != order.order_status){
-      out = out + "<div class=\"manage_area\">";
-      out = out + "<div class=\"green_btn box_add\"><button id=\"add_new_item\" data-value=\""+ order_obj.id +"\">Add New Item</button></div>";
-      out = out + "<div class=\"green_btn box_save\"><button id=\"save_draft\">Save as Draft</button></div>";
-      out = out + "<div class=\"green_btn box_submit\"><button id=\"submit_to_vendor\">Submit to Vendor</button></div>";
-      out = out + "</div>";
+      out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
+      out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td><td width=\"2%\">&nbsp;</td><td class=\"green_btn\"><button id=\"submit_to_vendor\">Submit to Vendor</button></td>";
+      out = out + "</tr></table>";
     }
     out = out + "</div>";
   }
