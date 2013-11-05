@@ -39,7 +39,6 @@ var SupplyOrderEditItemView = function(item_id){
       var order = app.activeOrder();
       order['upd']['supply_order_categories'][$("#category").text()][$("#item_id").val()]["amount"] =
           ("remove_btn" == $(e.currentTarget).attr("id")) ? 0 : $("#item_amount").val();
-
       app.activeOrder(order);
       setTimeout(function(){
         app.route({
@@ -57,13 +56,13 @@ Handlebars.registerHelper("editItemContent", function(item){
       out = "<div data-role=\"content\" class=\"log inspect draft neworder\">";
 
   out = out + "<div class=\"location_details\">";
+  out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
-  if ("draft" == order.order_status){
+  if ("log" != order.order_status){
     out = out + "<br /><strong>Budget: <span>$"+((~~order.remaining_budget == order.remaining_budget)? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
   }
   out = out + "</p>";
-  out = out + "<p>Category: <span id=\"category\">"+item.category+"</span></p>";
   out = out + "</div>";
 
   out = out + "<div data-role=\"content\" class=\"order_form_selection\">" +
@@ -73,6 +72,7 @@ Handlebars.registerHelper("editItemContent", function(item){
       "<div class=\"boxpoints\">" +
         "<div class=\"boxcntone\">" +
           "<div data-role=\"fieldcontain\">" +
+            "<dl><dt>Category:</dt><dd id=\"category\">" + item.category + "</dd></dl>"+
             "<dl><dt>Serial Number:</dt><dd>" + item.serial_number + "</dd></dl>"+
             "<dl><dt>Description:</dt><dd>" + item.description + "</dd></dl>" +
             "<dl><dt>Measurement:</dt><dd>" + item.measurement + "</dd></dl>" +

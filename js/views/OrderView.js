@@ -48,20 +48,33 @@ var OrderView = function(order_id){
 
             if (RegExp('^new_on_device_','i').test(self.order_id)){
 
-              var site_info = (function(site_id){
-                var tmp = {};
+              var site_info = (function(id_arr){
+                var site_id = id_arr[2],
+                    tmp = {};
+
                 $.each(app.mySites(), function(i,s){
                   if (site_id == s.site_id){
                     tmp = s;
                     return false;
                   }
                 });
+
                 return {
                   site_id: tmp.site_id,
                   site_name: tmp.site,
-                  site_address: tmp.address
+                  site_address: tmp.address,
+                  remaining_budget: (function(form_prefix){
+                    var budget = $.grep(Object.keys(tmp), function(n,i){
+                      return RegExp('^budget_'+ form_prefix +'(\\b|_)','i').test(n);
+                    })[0];
+                    var used = $.grep(Object.keys(tmp), function(n,i){
+                      return RegExp('^used_'+ form_prefix +'(\\b|_)','i').test(n);
+                    })[0];
+                    var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
+                    return (~~remain == remain) ? ~~remain : remain.toFixed(2);
+                  })(id_arr[1])
                 };
-              })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/)[2]);
+              })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/));
 
               var form_and_items_info = (function(form){
                 var tmp = {},
@@ -93,8 +106,7 @@ var OrderView = function(order_id){
                 supply_order_name: "",
                 updated_at: "",
                 order_date: "",
-                special_instructions: "",
-                remaining_budget: ""
+                special_instructions: ""
               },site_info, formatObject(form_and_items_info), {
                 order_status: "new"
               });
@@ -131,7 +143,6 @@ var OrderView = function(order_id){
 
               var tmp = (function(){
                 var _tmp = activeOrder.proto;
-                _tmp.order_status = (undefined != activeOrder.submit_status && "submitting" == activeOrder.submit_status) ? "log" : "draft";
                 if ($.isEmptyObject(_tmp)){
                   $.each(app.mySupplyOrdersDrafts(), function(i,v){
                     if ($.inArray(String(v.supply_order_id), [String(self.order_id), String(_old_order_id)] ) > -1  &&
@@ -142,7 +153,10 @@ var OrderView = function(order_id){
                         _tmp = $.extend(formatObject(v), {order_status: "draft"});
                       }
                       return false;
+                    } else {
+                      _tmp = activeOrder.upd;
                     }
+                    _tmp.order_status = (undefined != activeOrder.submit_status && "submitting" == activeOrder.submit_status) ? "log" : "draft";
                   });
                   if ($.isEmptyObject(_tmp)){
                     $.each(app.myLastSubmittedOrders(), function(i,v){
@@ -157,6 +171,7 @@ var OrderView = function(order_id){
                     });
                   }
                 }
+
                 return _tmp;
               })();
 
@@ -334,7 +349,7 @@ var OrderView = function(order_id){
 
           $.each(Object.keys(site_info), function(i,v){
             if (RegExp(obj_key_prefix,'i').test(v)){
-              val = (site_info[v] == ~~site_info[v]) ? ~~site_info[v] : site_info[v].toFixed(2);
+              val = (site_info[v] == ~~site_info[v]) ? ~~site_info[v] : parseFloat(site_info[v]).toFixed(2);
               return false;
             }
           });
@@ -347,6 +362,7 @@ var OrderView = function(order_id){
           var res = "";
           res = parseFloat( $(".budget>dd", $(elm).closest("div")).text().substring(1) ) -
               parseFloat( $(".used>dd", $(elm).closest("div")).text().substring(1) );
+          res = (~~res == res) ? ~~res : res.toFixed(2);
           if ("" !== res)
             $(elm).text("$" + res);
         });
@@ -406,7 +422,7 @@ var OrderView = function(order_id){
           "Do you want to save this order as draft?",
           function(buttonIndex){
             if(2 == buttonIndex){
-              if(String(self.order_id) == String(activeOrder.id) && !isObjectsEqual(activeOrder.proto, activeOrder.upd)){
+              if(String(self.order_id) == String(activeOrder.id) /*&& !isObjectsEqual(activeOrder.proto, activeOrder.upd)*/){
                 var drafts = app.mySupplyOrdersDrafts(),
                     mutation = app.ids_mutation();
                 if ( RegExp('^new_on_device_','i').test(activeOrder.id) && $.inArray(String(activeOrder.id), Object.keys(mutation)) < 0 &&
@@ -554,7 +570,7 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
 
     out = out + "<div data-role=\"content\" class=\"order_form_selection\">";
     $.each(order_forms, function(i,v){
-      out = out + "<div id=\""+ v.match(/^(.+?)\W/)[1].toLowerCase() +"\" class=\"box start_order\">" +
+      out = out + "<div id=\""+ v.match(/^(.+?)\b/)[1].toLowerCase() +"\" class=\"box start_order\">" +
           "<div role=\"heading\" class=\"boxheader\">"+ v +"</div>" +
           "<div class=\"boxpoints\">" +
             "<div class=\"boxcnt\">" +
@@ -583,10 +599,11 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
     out = out + "<div data-role=\"content\""+ (("log" != order.order_status)? ' class=\"categories\"' : '') +">";
     out = out + "<div class=\"location_details\">";
+    out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
     out = out + "<p><font>"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p>Order type: <span>"+order.order_form+"</span>";
     if ("draft" == order.order_status){
-      out = out + "<br /><strong>Budget: <span>$"+( (order.remaining_budget == ~~order.remaining_budget) ? ~~order.remaining_budget : order.remaining_budget.toFixed(2))+"</span></strong>";
+      out = out + "<br /><strong>Budget: <span>$"+( (order.remaining_budget == ~~order.remaining_budget) ? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
     }
     out = out + "</p>";
     out = out + "</div>";
