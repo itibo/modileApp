@@ -108,8 +108,8 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
             "<div class=\"box_points\">" +
               "<div>" +
                 "<span class=\"points_class\">Total:</span><br />" +
-                "<span class=\"big_points\">" + v.total + "$</span><br />" +
-              "<span class=\"procent\">Budget: "+ ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : v.remaining_budget.toFixed(2)) +"$</span>" +
+                "<span class=\"big_points\">$" + v.total + "</span><br />" +
+              "<span class=\"procent\">Budget: $"+ ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : v.remaining_budget.toFixed(2)) +"</span>" +
 // ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : v.remaining_budget.toFixed(2))
               "</div>" +
             "</div>" +
@@ -144,7 +144,7 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
           "<div class=\"box_points\">" +
             "<div>" +
               "<span class=\"points_class\">Total:</span><br />" +
-              "<span class=\"big_points\">" + v.total + "$</span><br />" +
+              "<span class=\"big_points\">$" + v.total + "</span><br />" +
 //              "<span class=\"procent\">Budget: ??? $</span>" +
             "</div>" +
           "</div>" +

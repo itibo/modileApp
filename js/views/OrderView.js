@@ -232,7 +232,6 @@ var OrderView = function(order_id){
     });
 
     this.el.on("change", "select[name^=client]", function(e){
-
       if ( $.isEmptyObject(self.reordered_sites) ) {
         var tmp = {};
         $.each(app.mySites(), function(i, value){
@@ -320,11 +319,11 @@ var OrderView = function(order_id){
       if ($("select#site").val().length>0){
         var site_info = (function(){
           var site = {};
-          $.each(self.reordered_sites[$("select#client").val()][("" == $("select#client_group").val())?"null":$("select#client_group").val()], function(i,v){
-            if ($("select#site").val() == v.site_id){
+          $.each(self.reordered_sites[$("select#client").val()][((0 == $("select#client_group").val().length)?'null':$("select#client_group").val())], function(i,v){
+            if ($("select#site").val() == String(v.site_id)){
               site = v;
+              return false;
             }
-            return false;
           });
           return site;
         })();
@@ -332,7 +331,7 @@ var OrderView = function(order_id){
         $(".order_form_selection dd").each(function(i, elm){
           var obj_key_prefix = $(elm).parent().attr('class') + "_" + $(elm).closest("div.start_order").attr('id');
           var val = "";
-//          alert(obj_key_prefix  + "; " + JSON.stringify(site_info));
+
           $.each(Object.keys(site_info), function(i,v){
             if (RegExp(obj_key_prefix,'i').test(v)){
               val = (site_info[v] == ~~site_info[v]) ? ~~site_info[v] : site_info[v].toFixed(2);
@@ -340,15 +339,16 @@ var OrderView = function(order_id){
             }
           });
           if ("" !== val){
-            $(elm).text(val + "$");
+            $(elm).text("$" + val);
           }
         });
 
         $(".order_form_selection .remain>dd").each(function(i, elm){
           var res = "";
-          res = parseFloat( $(".budget>dd", $(elm).closest("div")).text() ) - parseFloat( $(".used>dd", $(elm).closest("div")).text() );
+          res = parseFloat( $(".budget>dd", $(elm).closest("div")).text().substring(1) ) -
+              parseFloat( $(".used>dd", $(elm).closest("div")).text().substring(1) );
           if ("" !== res)
-            $(elm).text(res + "$");
+            $(elm).text("$" + res);
         });
       } else {
         $(".order_form_selection dd").html("&nbsp;");
@@ -586,7 +586,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out + "<p><font>"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p>Order type: <span>"+order.order_form+"</span>";
     if ("draft" == order.order_status){
-      out = out + "<br /><strong>Budget: <span>"+order.remaining_budget+"$</span></strong>";
+      out = out + "<br /><strong>Budget: <span>$"+( (order.remaining_budget == ~~order.remaining_budget) ? ~~order.remaining_budget : order.remaining_budget.toFixed(2))+"</span></strong>";
     }
     out = out + "</p>";
     out = out + "</div>";
@@ -603,22 +603,29 @@ Handlebars.registerHelper("orderContent", function(order_obj){
           category = order['supply_order_categories'][v];
 
       $.each(Object.keys(category), function(ik,vk){
-        var item = category[vk];
-        if (item.amount > 0){
+        var item = category[vk],
+            price = parseFloat(item.price),
+            amount = parseFloat(item.amount),
+            _total = price * amount;
+        if (amount > 0){
           category_out = category_out + "<li>";
           if ("log" != order.order_status){
             category_out = category_out + "<a href=\"#editOrderItem:"+item.item_id+"\">";
           }
-          category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-          category_out = category_out + "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>"+
-              "<div class=\"detals\">Price: $"+item.price+"</div><div class=\"detals\">Amount: "+item.amount+"</div><div class=\"detals\">Total: $"+(item.price*item.amount).toFixed(2)+"</div>";
+          category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
+            "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
+              "<div class=\"detals\">Price: $"+ ( (~~price == price) ? ~~price : price.toFixed(2) ) + "</div>" +
+              "<div class=\"detals\">Amount: "+ ( (~~amount == amount)? ~~amount : amount ) + "</div>" +
+              "<div class=\"detals\">Total: $"+ ( (~~_total == _total)? ~~_total : _total.toFixed(2) ) + "</div>" +
+            "</span>";
+
           if ("log" != order.order_status){
             category_out = category_out + "</a>";
           }
           category_out = category_out + "</li>";
           empty_flag = false;
           not_empty_items = true;
-          total = total + (item.price*item.amount);
+          total = total + _total;
         }
       });
       if (!empty_flag)

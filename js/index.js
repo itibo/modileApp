@@ -614,13 +614,13 @@ var app = {
         })(func);
       };
 
-      DeferredAjax.prototype.promise=function() {
+      DeferredAjax.prototype.promise = function() {
         return this.deferred.promise();
       };
 
       DeferredAjax.prototype.invoke = function(){
         var self = this;
-        return $.ajax({
+        $.ajax({
           type: "POST",
           url: self.url,
           data: self.data,
@@ -630,18 +630,19 @@ var app = {
           global: false,
           timeout: 30000,
           success: function(data){
+
             switch (self.func) {
               case "sync_check":
-                  if (data.sync_list.length > 0){
-                    methods_to_chain_result = [];
-                    $.each(data.sync_list, function(i,f){
-                      methods_to_chain_result.push(methods_to_chain_mapping[f]);
-                    });
-                    _time_to_remember = data.time;
-                    setTimeout(function(){
-                      sync_process(position_obj, methods_to_chain_result, methods_to_chain_result[methods_to_chain_result.length-1]);
-                    }, 0);
-                  }
+                if (data.sync_list.length > 0){
+                  methods_to_chain_result = [];
+                  $.each(data.sync_list, function(i,f){
+                    methods_to_chain_result.push(methods_to_chain_mapping[f]);
+                  });
+                  _time_to_remember = data.time;
+                  setTimeout(function(){
+                    sync_process(position_obj, methods_to_chain_result, methods_to_chain_result[methods_to_chain_result.length-1]);
+                  }, 0);
+                }
                 break;
               case "save_orders":
                 app.ids_mutation((function(old_obj){
@@ -684,9 +685,12 @@ var app = {
             if (method_when_update_sync_time == self.func && "" != _time_to_remember){
               app.last_supply_sync_date(_time_to_remember);
             }
+
             self.deferred.resolve();
           }
         });
+
+        return self.deferred.promise();
       };
 
       if (drafts_ready_to_sync()){
@@ -697,7 +701,6 @@ var app = {
       }
 
       $.each(methods_to_chain, function(ix, def_func) {
-//        alert("current method: " + def_func);
         var da = new DeferredAjax(def_func);
         $.when( startdeferrpoint, app.check_online(true) ).then(function(){
           da.invoke();

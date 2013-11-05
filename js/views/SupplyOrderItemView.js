@@ -31,7 +31,7 @@ var SupplyOrderEditItemView = function(item_id){
 
     this.el.on("change", "#item_amount", function(e){
       e.preventDefault();
-      $("#total").text( "$" + (parseFloat($(e.currentTarget).val()) * parseFloat($("#price").text())).toFixed(2) );
+      $("#total").text( "$" + (parseFloat($(e.currentTarget).val()) * parseFloat($("#price").text().substring(1))).toFixed(2) );
     });
 
     this.el.on("click", "button", function(e){
@@ -60,7 +60,7 @@ Handlebars.registerHelper("editItemContent", function(item){
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
   if ("draft" == order.order_status){
-    out = out + "<br /><strong>Budget: <span>"+order.remaining_budget+"$</span></strong>";
+    out = out + "<br /><strong>Budget: <span>$"+((~~order.remaining_budget == order.remaining_budget)? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
   }
   out = out + "</p>";
   out = out + "<p>Category: <span id=\"category\">"+item.category+"</span></p>";
@@ -138,7 +138,7 @@ var SupplyOrderAddItemView = function(order_id){
                 var item = category[serial_number];
                 category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
                 category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-                category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
+                category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: $"+ ((~~item.price == item.price) ? ~~item.price: parseFloat(item.price).toFixed(2)) +"</div>";
                 category_out = category_out + "</a></li>";
               }
             });
@@ -153,7 +153,7 @@ var SupplyOrderAddItemView = function(order_id){
             if (parseFloat(item.amount) == 0){
               category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
               category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-              category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
+              category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: $"+ ((~~item.price == item.price) ? ~~item.price: parseFloat(item.price).toFixed(2)) +"</div>";
               category_out = category_out + "</a></li>";
             }
           });
@@ -192,7 +192,7 @@ Handlebars.registerHelper("addItemContent", function(){
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
   if ("draft" == order.order_status){
-    out = out + "<br /><strong>Budget: <span>"+order.remaining_budget+"$</strong>";
+    out = out + "<br /><strong>Budget: <span>$"+((~~order.remaining_budget == order.remaining_budget)? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
   }
   out = out + "</p></div><br />";
 
