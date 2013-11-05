@@ -40,6 +40,7 @@ var SupplierView = function(){
             site_address: v.site_address,
             order_form: v.order_form,
             order_date: v.order_date,
+            updated_at: v.updated_at,
             remaining_budget: v.remaining_budget,
             total: calculate_total(v)
           });
@@ -59,6 +60,7 @@ var SupplierView = function(){
           site_address: v.site_address,
           order_form: v.order_form,
           order_date: v.order_date,
+          updated_at: v.updated_at,
           total: calculate_total(v)
         });
       });
@@ -99,7 +101,7 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
           "<div class=\"left_points\">" +
             "<div class=\"points_time\">" +
               "<span class=\"time\">" + v.order_form + "</span><br />" +
-              "<span class=\"time\">Draft saved: <strong>" + v.order_date + "</strong></span>" +
+              "<span class=\"time\">Draft saved: <strong>" + v.updated_at + "</strong></span>" +
             "</div>" +
           "</div>" +
           "<div class=\"right_points\">" +
@@ -135,7 +137,7 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
         "<div class=\"left_points\">" +
           "<div class=\"points_time\">" +
             "<span class=\"time\">" + v.order_form + "</span><br />" +
-            "<span class=\"time\">Submitted: <strong>" + v.order_date + "</strong></span>" +
+            "<span class=\"time\">Submitted: <strong>" + v.updated_at + "</strong></span>" +
           "</div>" +
         "</div>" +
         "<div class=\"right_points\">" +
