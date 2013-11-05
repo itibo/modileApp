@@ -31,7 +31,7 @@ var SupplyOrderEditItemView = function(item_id){
 
     this.el.on("change", "#item_amount", function(e){
       e.preventDefault();
-      $("#total").val((parseFloat($(e.currentTarget).val()) * parseFloat($("#price").val())).toFixed(2));
+      $("#total").text( "$" + (parseFloat($(e.currentTarget).val()) * parseFloat($("#price").text())).toFixed(2) );
     });
 
     this.el.on("click", "button", function(e){
@@ -54,7 +54,7 @@ var SupplyOrderEditItemView = function(item_id){
 
 Handlebars.registerHelper("editItemContent", function(item){
   var order = app.activeOrder().upd,
-      out = "<div data-role=\"content\" class=\"log inspect draft\">";
+      out = "<div data-role=\"content\" class=\"log inspect draft neworder\">";
 
   out = out + "<div class=\"location_details\">";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
@@ -64,20 +64,29 @@ Handlebars.registerHelper("editItemContent", function(item){
   }
   out = out + "</p>";
   out = out + "<p>Category: <span id=\"category\">"+item.category+"</span></p>";
-  out = out + "</div><br />";
-
-  out = out + "<div class=\"order_item_descr\">";
-  out = out + "<input id=\"item_id\" name=\"item_id\" type=\"hidden\" value=\"" + item.item_id + "\" />";
-  out = out + "<div data-role=\"fieldcontain\"><label for=\"serial_number\">Serial Number:</label><input id=\"serial_number\" name=\"serial_number\" disabled=\"disabled\" type=\"text\" value=\"" + item.serial_number + "\" /></div>";
-  out = out + "<div data-role=\"fieldcontain\"><label for=\"description\">Description:</label><input id=\"description\" name=\"description\" type=\"text\" disabled=\"disabled\" value=\"" + (item.description).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + "\" /></div>";
-  out = out + "<div data-role=\"fieldcontain\"><label for=\"measurement\">Measurement:</label><input id=\"measurement\" name=\"measurement\" type=\"text\" disabled=\"disabled\" value=\"" + item.measurement + "\" /></div>";
-  out = out + "<div data-role=\"fieldcontain\"><label for=\"price\">Price:</label><input id=\"price\" name=\"price\" type=\"text\" disabled=\"disabled\" value=\"" + item.price + "\" /></div>";
-  out = out + "<div data-role=\"fieldcontain\"><label for=\"item_amount\">Amount:</label>";
-  out = out + "<input id=\"item_amount\" name=\"item_amount\" type=\"number\"" +
-      "value=\""+(("Each" == item.measurement)? parseInt(item.amount):parseFloat(item.amount))+"\""+
-      "pattern=\""+(("Each" == item.measurement)? "[0-9]+":"[0-9\.]+[0-9]$")+"\" /></div>";
-  out = out + "<div data-role=\"fieldcontain\"><label for=\"total\">Total:</label><input id=\"total\" name=\"total\" type=\"text\" disabled=\"disabled\" value=\""+ (item.amount*item.price).toFixed(2) +"\" /></div>";
   out = out + "</div>";
+
+  out = out + "<div data-role=\"content\" class=\"order_form_selection\">" +
+    "<input id=\"item_id\" name=\"item_id\" type=\"hidden\" value=\"" + item.item_id + "\" />" +
+    "<div class=\"box paper\">" +
+      "<div role=\"heading\" class=\"boxheader\">Order Item Info</div>" +
+      "<div class=\"boxpoints\">" +
+        "<div class=\"boxcntone\">" +
+          "<div data-role=\"fieldcontain\">" +
+            "<dl><dt>Serial Number:</dt><dd>" + item.serial_number + "</dd></dl>"+
+            "<dl><dt>Description:</dt><dd>" + item.description + "</dd></dl>" +
+            "<dl><dt>Measurement:</dt><dd>" + item.measurement + "</dd></dl>" +
+            "<dl><dt>Price:</dt><dd id=\"price\">$" + item.price + "</dd></dl>" +
+            "<dl><dt>Total:</dt><dd id=\"total\">$"+ (item.amount*item.price).toFixed(2) +"</dd></dl></dl>" +
+            "<div data-role=\"fieldcontain\">" +
+              "<label for=\"item_amount\">Amount:</label>" +
+              "<input id=\"item_amount\" name=\"item_amount\" type=\"number\" value=\""+(("Each" == item.measurement)? parseInt(item.amount):parseFloat(item.amount))+"\" pattern=\""+(("Each" == item.measurement)? "[0-9]+":"[0-9\.]+[0-9]$")+"\" />" +
+            "</div>" +
+          "</div>" +
+        "</div>" +
+      "</div>" +
+    "</div>" +
+  "</div>";
 
   out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
   out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_btn\">Save</button></td>";
@@ -128,7 +137,8 @@ var SupplyOrderAddItemView = function(order_id){
               if (parseFloat(category[serial_number]["amount"]) == 0){
                 var item = category[serial_number];
                 category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
-                category_out = category_out + "<span>" + serial_number +"<br/>"+item.description +"<br/>"+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
+                category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
+                category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
                 category_out = category_out + "</a></li>";
               }
             });
@@ -142,7 +152,8 @@ var SupplyOrderAddItemView = function(order_id){
             var item = order.supply_order_categories[chosen][serial_number];
             if (parseFloat(item.amount) == 0){
               category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
-              category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>"+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
+              category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
+              category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: "+ item.price +"$</div>";
               category_out = category_out + "</a></li>";
             }
           });

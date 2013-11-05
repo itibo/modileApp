@@ -328,12 +328,14 @@ var OrderView = function(order_id){
           });
           return site;
         })();
+
         $(".order_form_selection dd").each(function(i, elm){
           var obj_key_prefix = $(elm).parent().attr('class') + "_" + $(elm).closest("div.start_order").attr('id');
           var val = "";
+//          alert(obj_key_prefix  + "; " + JSON.stringify(site_info));
           $.each(Object.keys(site_info), function(i,v){
             if (RegExp(obj_key_prefix,'i').test(v)){
-              val = site_info[v];
+              val = (site_info[v] == ~~site_info[v]) ? ~~site_info[v] : site_info[v].toFixed(2);
               return false;
             }
           });
@@ -365,7 +367,14 @@ var OrderView = function(order_id){
 
     this.el.on('click', "button.start_new_order", function(e){
       if ($("select#site").val() == ""){
-        alert("select site");
+
+        navigator.notification.alert(
+            "Please, select site to continue.", // message
+            function(){},   // callback
+            "New Order",    // title
+            'Ok'            // buttonName
+        );
+
       } else {
         setTimeout(function(){
           app.route({
@@ -402,7 +411,7 @@ var OrderView = function(order_id){
                     mutation = app.ids_mutation();
                 if ( RegExp('^new_on_device_','i').test(activeOrder.id) && $.inArray(String(activeOrder.id), Object.keys(mutation)) < 0 &&
                     (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.id == String(activeOrder.id)});return !(_tmp.length>0);})() ){
-                  drafts.push($.extend({
+                  drafts.unshift($.extend({
                     id: activeOrder.upd.supply_order_id,
                     supply_order_id: activeOrder.upd.supply_order_id,
                     supply_order_name: activeOrder.upd.supply_order_name,
@@ -461,13 +470,17 @@ var OrderView = function(order_id){
               (function(){
                 var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
                     myLastSubmittedOrders = app.myLastSubmittedOrders(),
+                    activeOrder = app.activeOrder().upd,
                     submitted_item = {};
                 app.mySupplyOrdersDrafts((function(){
                   $.each(mySupplyOrdersDrafts, function(i,v){
-                    if(app.activeOrder().id == v.supply_order_id){
+                    if(activeOrder.supply_order_id == v.supply_order_id){
                       submitted_item = v;
                       mySupplyOrdersDrafts[i]['submit_status'] = 'submitting';
-                      return false;
+                    }
+                    if (activeOrder.order_form == v.order_form && activeOrder.site_id == v.site_id){
+                      mySupplyOrdersDrafts[i]['remaining_budget'] = (parseFloat(v.remaining_budget) -
+                          parseFloat($(".over_budget span.price").text().substring(1))).toFixed(2) ;
                     }
                   });
                   return mySupplyOrdersDrafts;
@@ -565,7 +578,8 @@ Handlebars.registerHelper("orderContent", function(order_obj){
   var out = "";
   if (!$.isEmptyObject(order_obj) && "undefined" != order_obj.id){
     var order = order_obj.upd,
-        not_empty_items = false;
+        not_empty_items = false,
+        total = 0;
 
     out = out + "<div data-role=\"content\""+ (("log" != order.order_status)? ' class=\"categories\"' : '') +">";
     out = out + "<div class=\"location_details\">";
@@ -587,7 +601,6 @@ Handlebars.registerHelper("orderContent", function(order_obj){
       var category_out = "",
           empty_flag = true,
           category = order['supply_order_categories'][v];
-      empty_flag = true,
 
       $.each(Object.keys(category), function(ik,vk){
         var item = category[vk];
@@ -597,7 +610,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
             category_out = category_out + "<a href=\"#editOrderItem:"+item.item_id+"\">";
           }
           category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-          category_out = category_out + "<span>" + item.serial_number +" - "+ item.description +"<br/>"+ item.measurement +"<br/>"+
+          category_out = category_out + "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>"+
               "<div class=\"detals\">Price: $"+item.price+"</div><div class=\"detals\">Amount: "+item.amount+"</div><div class=\"detals\">Total: $"+(item.price*item.amount).toFixed(2)+"</div>";
           if ("log" != order.order_status){
             category_out = category_out + "</a>";
@@ -605,6 +618,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
           category_out = category_out + "</li>";
           empty_flag = false;
           not_empty_items = true;
+          total = total + (item.price*item.amount);
         }
       });
       if (!empty_flag)
@@ -622,14 +636,13 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
     }
 
-
     //over budget
-//    out = out + "<div class=\"over_budget\">";
-//    out = out + "<span>Over Budget!!!</span>";
-//    out = out + "<div class=\"total\">";
-//    out = out + "<p>Total: <span class=\"price\">$???</span></p>";
-//    out = out + "</div>";
-//    out = out + "</div>";
+    out = out + "<div class=\"over_budget\">";
+    out = out + "<span style=\"visibility:" + ((total>order.remaining_budget)?'visible':'hidden') + ";\">Over Budget!!!</span>";
+    out = out + "<div class=\"total\">";
+    out = out + "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>";
+    out = out + "</div>";
+    out = out + "</div>";
 
     // Special Instructions
 

@@ -1,7 +1,28 @@
 var SupplierView = function(){
 
   this.render = function(){
-    var context = {};
+    var context = {},
+        calculate_total = function(order){
+          var tmp = 0;
+          if (undefined != order.locally_saved && !$.isEmptyObject(order.locally_saved)){
+            $.each(Object.keys(order.locally_saved.supply_order_categories), function(ie,ve){
+              var category = order['locally_saved']['supply_order_categories'][ve];
+              $.each(Object.keys(category), function(ik, vk){
+                var item = category[vk];
+                if (item.amount > 0){
+                  tmp += parseFloat(item.price) * parseFloat(item.amount);
+                }
+              });
+            });
+          } else {
+            $.each(order.supply_order_categories, function(ie,ve){
+              $.each(ve.supply_order_detail, function(ik, vk){
+                tmp += parseFloat(vk.price) * parseFloat(vk.amount);
+              });
+            });
+          }
+          return (tmp == ~~tmp)? ~~tmp : tmp.toFixed(2);
+        };
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
     context.drafts = (function(){
@@ -12,29 +33,6 @@ var SupplierView = function(){
         if (undefined != typeof (v.submit_status) && "submitting" == v.submit_status){
           // skip
         } else {
-          var total = (function(draft){
-            var tmp = 0;
-            if (undefined != draft.locally_saved && !$.isEmptyObject(draft.locally_saved)){
-//            alert(JSON.stringify(draft.locally_saved));
-              $.each(Object.keys(draft.locally_saved.supply_order_categories), function(ie,ve){
-                var category = draft['locally_saved']['supply_order_categories'][ve];
-                $.each(Object.keys(category), function(ik, vk){
-                  var item = category[vk];
-                  if (item.amount > 0){
-                    tmp += parseFloat(item.price) * parseFloat(item.amount);
-                  }
-                });
-              });
-            } else {
-              $.each(draft.supply_order_categories, function(ie,ve){
-                $.each(ve.supply_order_detail, function(ik, vk){
-                  tmp += parseFloat(vk.price) * parseFloat(vk.amount);
-                });
-              });
-            }
-
-            return tmp.toFixed(2);
-          })(v);
           return_arr.push({
             supply_order_id: v.supply_order_id,
             supply_order_name: v.supply_order_name,
@@ -42,7 +40,8 @@ var SupplierView = function(){
             site_address: v.site_address,
             order_form: v.order_form,
             order_date: v.order_date,
-            total: total
+            remaining_budget: v.remaining_budget,
+            total: calculate_total(v)
           });
         }
       });
@@ -53,28 +52,6 @@ var SupplierView = function(){
       var return_arr = [],
           submitted_orders = app.myLastSubmittedOrders();
       $.each(submitted_orders, function(i,v){
-        var total = (function(submitted_order){
-          var tmp = 0;
-          if (undefined != submitted_order.locally_saved && !$.isEmptyObject(submitted_order.locally_saved)){
-//            alert(JSON.stringify(draft.locally_saved));
-            $.each(Object.keys(submitted_order.locally_saved.supply_order_categories), function(ie,ve){
-              var category = submitted_order['locally_saved']['supply_order_categories'][ve];
-              $.each(Object.keys(category), function(ik, vk){
-                var item = category[vk];
-                if (item.amount > 0){
-                  tmp += parseFloat(item.price) * parseFloat(item.amount);
-                }
-              });
-            });
-          } else {
-            $.each(submitted_order.supply_order_categories, function(ie,ve){
-              $.each(ve.supply_order_detail, function(ik, vk){
-                tmp += parseFloat(vk.price) * parseFloat(vk.amount);
-              });
-            });
-          }
-          return tmp.toFixed(2);
-        })(v);
         return_arr.push({
           supply_order_id: v.supply_order_id,
           supply_order_name: v.supply_order_name,
@@ -82,7 +59,7 @@ var SupplierView = function(){
           site_address: v.site_address,
           order_form: v.order_form,
           order_date: v.order_date,
-          total: total
+          total: calculate_total(v)
         });
       });
       return return_arr;
@@ -129,8 +106,9 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
             "<div class=\"box_points\">" +
               "<div>" +
                 "<span class=\"points_class\">Total:</span><br />" +
-                "<span class=\"big_points\">$" + v.total + "</span><br />" +
-//              "<span class=\"procent\">Budget: ??? $</span>" +
+                "<span class=\"big_points\">" + v.total + "$</span><br />" +
+              "<span class=\"procent\">Budget: "+ ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : v.remaining_budget.toFixed(2)) +"$</span>" +
+// ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : v.remaining_budget.toFixed(2))
               "</div>" +
             "</div>" +
           "</div>" +
@@ -157,14 +135,14 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
         "<div class=\"left_points\">" +
           "<div class=\"points_time\">" +
             "<span class=\"time\">" + v.order_form + "</span><br />" +
-            "<span class=\"time\">Order submitted: <strong>" + v.order_date + "</strong></span>" +
+            "<span class=\"time\">Submitted: <strong>" + v.order_date + "</strong></span>" +
           "</div>" +
         "</div>" +
         "<div class=\"right_points\">" +
           "<div class=\"box_points\">" +
             "<div>" +
               "<span class=\"points_class\">Total:</span><br />" +
-              "<span class=\"big_points\">$" + v.total + "</span><br />" +
+              "<span class=\"big_points\">" + v.total + "$</span><br />" +
 //              "<span class=\"procent\">Budget: ??? $</span>" +
             "</div>" +
           "</div>" +
