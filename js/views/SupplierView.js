@@ -4,23 +4,17 @@ var SupplierView = function(){
     var context = {},
         calculate_total = function(order){
           var tmp = 0;
-          if (undefined != order.locally_saved && !$.isEmptyObject(order.locally_saved)){
-            $.each(Object.keys(order.locally_saved.supply_order_categories), function(ie,ve){
-              var category = order['locally_saved']['supply_order_categories'][ve];
-              $.each(Object.keys(category), function(ik, vk){
-                var item = category[vk];
-                if (item.amount > 0){
-                  tmp += parseFloat(item.price) * parseFloat(item.amount);
-                }
-              });
+
+          $.each(Object.keys(order.supply_order_categories), function(ie,ve){
+            var category = order['supply_order_categories'][ve];
+            $.each(Object.keys(category), function(ik, vk){
+              var item = category[vk];
+              if (item.amount > 0){
+                tmp += parseFloat(item.price) * parseFloat(item.amount);
+              }
             });
-          } else {
-            $.each(order.supply_order_categories, function(ie,ve){
-              $.each(ve.supply_order_detail, function(ik, vk){
-                tmp += parseFloat(vk.price) * parseFloat(vk.amount);
-              });
-            });
-          }
+          });
+
           return (tmp == ~~tmp)? ~~tmp : tmp.toFixed(2);
         };
     context.userInfo = app.getUserInfo();
@@ -42,7 +36,7 @@ var SupplierView = function(){
             order_date: v.order_date,
             updated_at: v.updated_at,
             remaining_budget: v.remaining_budget,
-            total: calculate_total(v)
+            total: String(calculate_total(v))
           });
         }
       });
@@ -109,8 +103,8 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
               "<div>" +
                 "<span class=\"points_class\">Total:</span><br />" +
                 "<span class=\"big_points\">$" + v.total + "</span><br />" +
-              "<span class=\"procent\">Budget: $"+ ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : v.remaining_budget.toFixed(2)) +"</span>" +
-// ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : v.remaining_budget.toFixed(2))
+              "<span class=\"procent\">Budget: $"+ ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : parseFloat(v.remaining_budget).toFixed(2)) +"</span>" +
+
               "</div>" +
             "</div>" +
           "</div>" +
@@ -145,7 +139,6 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
             "<div>" +
               "<span class=\"points_class\">Total:</span><br />" +
               "<span class=\"big_points\">$" + v.total + "</span><br />" +
-//              "<span class=\"procent\">Budget: ??? $</span>" +
             "</div>" +
           "</div>" +
         "</div>" +

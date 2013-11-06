@@ -189,6 +189,7 @@ Handlebars.registerHelper("addItemContent", function(){
       out = "<div data-role=\"content\" class=\"log inspect draft\">";
 
   out = out + "<div class=\"location_details\">";
+  out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
   if ("draft" == order.order_status){

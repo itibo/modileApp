@@ -547,6 +547,23 @@ var app = {
 
   sync_supply: function(){
     var _time_to_remember='';
+    var formatSupplyOrders = function(object){
+      var tmp_obj = {};
+      $.each(Object.keys(object), function(obj_key_ind, obj_key_val){
+        if ($.inArray(typeof object[obj_key_val], ["string", "number", "boolean"])>-1){
+          tmp_obj[obj_key_val] = object[obj_key_val];
+        } else {
+          tmp_obj[obj_key_val] = {};
+        }
+      });
+      $.each(object.supply_order_categories, function(category_ind, category_val){
+        tmp_obj['supply_order_categories'][category_val.category] = {};
+        $.each(category_val.supply_order_detail, function(item_ind, item_val){
+          tmp_obj['supply_order_categories'][category_val.category][item_val.item_id] = item_val;
+        });
+      });
+      return tmp_obj;
+    };
     var sync_process = function(position_obj, methods_to_chain, method_when_update_sync_time){
       position_obj = position_obj || false;
       methods_to_chain = methods_to_chain || [];
@@ -591,14 +608,33 @@ var app = {
                 var updated = [],
                     submitted = [];
 
-                $.each(app.mySupplyOrdersDrafts(), function(i,draft){
-                  if (undefined != draft.locally_saved && !$.isEmptyObject(draft.locally_saved)){
-                    updated.push(draft.locally_saved);
-                  }
-                  if (undefined != draft.submit_status && "submitting" == draft.submit_status){
-                    submitted.push({supply_order_id: draft.supply_order_id});
-                  }
-                });
+                app.mySupplyOrdersDrafts((function(){
+                  mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
+                  $.each(mySupplyOrdersDrafts, function(i,draft){
+                    if (undefined != draft.locally_saved && !$.isEmptyObject(draft.locally_saved)){
+                      updated.push(draft.locally_saved);
+                    }
+                    if (undefined != draft.submit_status && "submitting" == draft.submit_status){
+                      submitted.push({supply_order_id: draft.supply_order_id});
+                    }
+                    mySupplyOrdersDrafts[i] = (function(q){
+                      var _tmp = q;
+                      if (undefined != q.locally_saved && !$.isEmptyObject(q.locally_saved)){
+                        var _tmp = q.locally_saved;
+                        _tmp['_locally_saved'] = q;
+                        _tmp['_locally_saved']['locally_saved'] = void 0;
+                      }
+                      if (undefined != q.submit_status && "submitting" == q.submit_status){
+                        _tmp['_submit_status'] = "submitting";
+                        _tmp['submit_status'] = void 0;
+                      }
+                      return _tmp;
+                    })(draft);
+                  });
+                })());
+
+                app.mySupplyOrdersDrafts(mySupplyOrdersDrafts);
+
                 return {
                   updated_drafts: updated,
                   submit_drafts: submitted
@@ -670,10 +706,18 @@ var app = {
                 app.mySites(data.sites);
                 break;
               case "my_supply_orders":
-                app.mySupplyOrdersDrafts(data.supply_orders_list );
+                  var tmp = [];
+                  $.each(data.supply_orders_list, function(i,v){
+                    tmp.push(formatSupplyOrders(v));
+                  });
+                app.mySupplyOrdersDrafts(tmp);
                 break;
               case "my_last_submitted_orders":
-                app.myLastSubmittedOrders(data.supply_orders_list );
+                var tmp = [];
+                $.each(data.supply_orders_list, function(i,v){
+                  tmp.push(formatSupplyOrders(v));
+                });
+                app.myLastSubmittedOrders(tmp);
                 break;
               case "supply_order_details":
                 app.supplyOrdersTemplate(data.order_details);
@@ -1034,6 +1078,23 @@ var app = {
 
   mySupplyOrders: function(success_callback){
     var self = this;
+    var formatSupplyOrders = function(object){
+      var tmp_obj = {};
+      $.each(Object.keys(object), function(obj_key_ind, obj_key_val){
+        if ($.inArray(typeof object[obj_key_val], ["string", "number", "boolean"])>-1){
+          tmp_obj[obj_key_val] = object[obj_key_val];
+        } else {
+          tmp_obj[obj_key_val] = {};
+        }
+      });
+      $.each(object.supply_order_categories, function(category_ind, category_val){
+        tmp_obj['supply_order_categories'][category_val.category] = {};
+        $.each(category_val.supply_order_detail, function(item_ind, item_val){
+          tmp_obj['supply_order_categories'][category_val.category][item_val.item_id] = item_val;
+        });
+      });
+      return tmp_obj;
+    };
     var ajax_call = function(pos){
 
       var token = app.token();
@@ -1052,7 +1113,11 @@ var app = {
         timeout: 60000,
         success: function(data) {
           if (data.token == token){
-            app.mySupplyOrdersDrafts(data.supply_orders_list );
+            var tmp = [];
+            $.each(data.supply_orders_list, function(i,v){
+              tmp.push(formatSupplyOrders(v));
+            });
+            app.mySupplyOrdersDrafts(tmp);
 /*            if (typeof success_callback == "function"){
               success_callback();
             }*/
@@ -1097,7 +1162,11 @@ var app = {
         timeout: 60000,
         success: function(data) {
           if (data.token == token){
-            app.myLastSubmittedOrders(data.supply_orders_list );
+            var tmp = [];
+            $.each(data.supply_orders_list, function(i,v){
+              tmp.push(formatSupplyOrders(v));
+            });
+            app.myLastSubmittedOrders(tmp);
           } else {
             app.setToken(false);
             app.route();
@@ -1659,6 +1728,7 @@ var app = {
       app.supplyOrdersTemplate(false);
       app.mySupplyOrdersDrafts(false);
       app.myLastSubmittedOrders(false);
+      app.activeOrder(false);
       app.last_supply_sync_date(false);
       app.ids_mutation(false);
 
