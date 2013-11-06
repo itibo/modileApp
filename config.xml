@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.azati.dcsmobile_alpha" version="0.3.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.azati.dcsmobile_alpha" version="0.3.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
 <!--<widget id="com.azati.dcsmobilen" version="0.2.6" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">-->
     <name>DCS - QA Inspections Alpha</name>
     <!--<name>DCS - QA Inspections Beta</name>-->

@@ -3,7 +3,9 @@ var SupplierView = function(){
   this.render = function(){
     var context = {},
         calculate_total = function(order){
-          var tmp = 0;
+          var tmp = 0,
+              order = ((undefined != order.locally_saved && !$.isEmptyObject(order.locally_saved)) ?
+                  order.locally_saved : order );
 
           $.each(Object.keys(order.supply_order_categories), function(ie,ve){
             var category = order['supply_order_categories'][ve];

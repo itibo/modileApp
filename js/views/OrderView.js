@@ -116,13 +116,29 @@ var OrderView = function(order_id){
               }
             }
 
-            activeOrder = app.activeOrder($.extend({
-              id: self.order_id,
-              status: obj.order_status
-            }, {
-              proto: (obj.order_status == "new") ? {} : obj,
-              upd: obj
-            }));
+            if ($.isEmptyObject(obj)){
+              navigator.notification.alert(
+                  "Please re-choose order", // message
+                  function(){
+                    setTimeout(function(){
+                      app.activeOrder(false);
+                      app.route({
+                        toPage: window.location.href + "#orders"
+                      });
+                    },0);
+                  },   // callback
+                  "Error",    // title
+                  'Ok'            // buttonName
+              );
+            } else {
+              activeOrder = app.activeOrder($.extend({
+                id: self.order_id,
+                status: obj.order_status
+              }, {
+                proto: (obj.order_status == "new") ? {} : obj,
+                upd: obj
+              }));
+            }
 
           } else {
             // возвращаемся со страницы добавления/редактирования айтема
@@ -370,9 +386,10 @@ var OrderView = function(order_id){
               if(String(self.order_id) == String(activeOrder.id) && !isObjectsEqual(activeOrder.proto, activeOrder.upd)){
                 var drafts = app.mySupplyOrdersDrafts(),
                     mutation = app.ids_mutation();
-                if ( RegExp('^new_on_device_','i').test(activeOrder.id) && $.inArray(String(activeOrder.id), Object.keys(mutation)) < 0 &&
+                if ( RegExp('^new_on_device_','i').test(activeOrder.id) &&
                     (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.id == String(activeOrder.id)});return !(_tmp.length>0);})() ){
                   // новый черновик, не присутствующий в ЛС, добавляем его туда
+
 
                   drafts.unshift($.extend({
                     id: activeOrder.upd.supply_order_id,
@@ -392,20 +409,34 @@ var OrderView = function(order_id){
                 } else {
                   $.each(drafts, function(i, dr){
                     if ($.inArray(String(dr.supply_order_id), [String(self.order_id), (undefined == mutation[self.order_id])? null : String(mutation[self.order_id])] ) > -1 ){
-                      var _tmp = activeOrder.upd,
-                          draft_to_update = dr;
+                      var draft_to_update = {};
+
                       if (undefined != mutation[self.order_id]){
-                        draft_to_update.supply_order_id = mutation[self.order_id];
-                        draft_to_update.id = mutation[self.order_id];
-                        _tmp.supply_order_id = mutation[self.order_id];
+                        activeOrder.upd.supply_order_id = mutation[self.order_id];
+                        activeOrder.upd.id = mutation[self.order_id];
                       }
-                      draft_to_update['locally_saved'] = _tmp;
+
+                      draft_to_update = $.extend({
+                        id: activeOrder.upd.supply_order_id,
+                        supply_order_id: activeOrder.upd.supply_order_id,
+                        supply_order_name: activeOrder.upd.supply_order_name,
+                        updated_at: activeOrder.upd.updated_at,
+                        order_date: activeOrder.upd.order_date,
+                        order_form: activeOrder.upd.order_form,
+                        site_id: activeOrder.upd.site_id,
+                        site_name: activeOrder.upd.site_name,
+                        site_address: activeOrder.upd.site_address,
+                        special_instructions: activeOrder.upd.special_instructions,
+                        remaining_budget: activeOrder.upd.remaining_budget
+                      },{
+                        locally_saved: activeOrder.upd
+                      });
+
                       drafts[i] = draft_to_update;
                       return false;
                     }
                   });
                 }
-
                 app.mySupplyOrdersDrafts(drafts);
                 app.sync_supply();
               }
@@ -424,14 +455,16 @@ var OrderView = function(order_id){
     });
 
     this.el.on('click', "button#submit_to_vendor", function(e){
-      navigator.notification.confirm(
-          "Do you want to submit this order to Vendor?",
-          function(buttonIndex){
-            if(2 == buttonIndex){
-              (function(){
+
+      if (parseFloat($(".over_budget span.price").text().substring(1)) > 0) {
+        navigator.notification.confirm(
+            "Do you want to submit this order to Vendor?",
+            function(buttonIndex){
+              if(2 == buttonIndex){
+
                 var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
+                    activeOrder = app.activeOrder(),
                     myLastSubmittedOrders = app.myLastSubmittedOrders(),
-                    activeOrder = app.activeOrder().upd,
                     submitted_item = {};
 
                 // новый черновик, не присутствующий в ЛС, добавляем его туда
@@ -439,29 +472,50 @@ var OrderView = function(order_id){
                     (function(){var _tmp = [];_tmp = $.grep(mySupplyOrdersDrafts, function(n,i){return n.id == String(activeOrder.supply_order_id)});return !(_tmp.length>0);})() ){
 
                   mySupplyOrdersDrafts.unshift($.extend({
-                    id: activeOrder.supply_order_id,
-                    supply_order_id: activeOrder.supply_order_id,
-                    supply_order_name: activeOrder.supply_order_name,
-                    updated_at: activeOrder.updated_at,
-                    order_date: activeOrder.order_date,
-                    order_form: activeOrder.order_form,
-                    site_id: activeOrder.site_id,
-                    site_name: activeOrder.site_name,
-                    site_address: activeOrder.site_address,
-                    special_instructions: activeOrder.special_instructions,
-                    remaining_budget: activeOrder.remaining_budget
+                    id: activeOrder.upd.supply_order_id,
+                    supply_order_id: activeOrder.upd.supply_order_id,
+                    supply_order_name: activeOrder.upd.supply_order_name,
+                    updated_at: activeOrder.upd.updated_at,
+                    order_date: activeOrder.upd.order_date,
+                    order_form: activeOrder.upd.order_form,
+                    site_id: activeOrder.upd.site_id,
+                    site_name: activeOrder.upd.site_name,
+                    site_address: activeOrder.upd.site_address,
+                    special_instructions: activeOrder.upd.special_instructions,
+                    remaining_budget: activeOrder.upd.remaining_budget
                   },{
-                    locally_saved: activeOrder
+                    locally_saved: activeOrder.upd
+                  }, {
+                    order_status:"log"
                   }));
                 }
 
                 app.mySupplyOrdersDrafts((function(){
                   $.each(mySupplyOrdersDrafts, function(i,v){
-                    if(String(activeOrder.supply_order_id) == String(v.id)){
-                      submitted_item = v;
-                      mySupplyOrdersDrafts[i]['submit_status'] = 'submitting';
+                    if(String(activeOrder.upd.supply_order_id) == String(v.supply_order_id)){
+
+                      mySupplyOrdersDrafts[i] = $.extend({
+                        id: activeOrder.upd.supply_order_id,
+                        supply_order_id: activeOrder.upd.supply_order_id,
+                        supply_order_name: activeOrder.upd.supply_order_name,
+                        updated_at: activeOrder.upd.updated_at,
+                        order_date: activeOrder.upd.order_date,
+                        order_form: activeOrder.upd.order_form,
+                        site_id: activeOrder.upd.site_id,
+                        site_name: activeOrder.upd.site_name,
+                        site_address: activeOrder.upd.site_address,
+                        special_instructions: activeOrder.upd.special_instructions,
+                        remaining_budget: activeOrder.upd.remaining_budget
+                      },{
+                        locally_saved: activeOrder.upd
+                      }, {
+                        submit_status: "submitting"
+                      },{
+                        order_status:"log"
+                      });
+                      submitted_item = mySupplyOrdersDrafts[i];
                     }
-                    if (activeOrder.order_form == v.order_form && activeOrder.site_id == v.site_id){
+                    if (activeOrder.upd.order_form == v.order_form && activeOrder.upd.site_id == v.site_id){
                       mySupplyOrdersDrafts[i]['remaining_budget'] = (parseFloat(v.remaining_budget) -
                           parseFloat($(".over_budget span.price").text().substring(1))).toFixed(2) ;
                     }
@@ -479,15 +533,27 @@ var OrderView = function(order_id){
                 })(submitted_item));
 
                 app.sync_supply();
-                app.route({
-                  toPage: window.location.href + "#orders"
-                });
-              })();
-            }
-          },
-          "Supply Order",
-          'Cancel,Submit'
-      );
+                setTimeout(function(){
+                  app.activeOrder(false);
+                  app.route({
+                    toPage: window.location.href + "#orders"
+                  });
+                }, 0);
+
+              }
+            },
+            "Supply Order",
+            'Cancel,Submit'
+        );
+      } else {
+        navigator.notification.alert(
+            "There are no items selected to submit to the vendor.", // message
+            function(){},    // callback
+            "Supply Order",       // title
+            'Ok'         // buttonName
+        );
+      }
+
     });
 
     this.el.on('change', 'textarea#special_instructions', function(e){

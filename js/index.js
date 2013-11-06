@@ -14,7 +14,7 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
-    this.application_version = "0.3.0";
+    this.application_version = "0.3.1";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -606,34 +606,22 @@ var app = {
             case 'save_orders':
               var to_update = (function(){
                 var updated = [],
-                    submitted = [];
+                    submitted = [],
+                    mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
 
-                app.mySupplyOrdersDrafts((function(){
-                  mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
+                app.mySupplyOrdersDrafts( (function(){
                   $.each(mySupplyOrdersDrafts, function(i,draft){
-                    if (undefined != draft.locally_saved && !$.isEmptyObject(draft.locally_saved)){
+                    if (undefined != draft.locally_saved && !$.isEmptyObject(draft.locally_saved) && undefined == draft.sending){
                       updated.push(draft.locally_saved);
+                      mySupplyOrdersDrafts[i]["sending"] = true;
                     }
-                    if (undefined != draft.submit_status && "submitting" == draft.submit_status){
+                    if (undefined != draft.submit_status && "submitting" == draft.submit_status && undefined == draft.submitting){
                       submitted.push({supply_order_id: draft.supply_order_id});
+                      mySupplyOrdersDrafts[i]["submitting"] = true;
                     }
-                    mySupplyOrdersDrafts[i] = (function(q){
-                      var _tmp = q;
-                      if (undefined != q.locally_saved && !$.isEmptyObject(q.locally_saved)){
-                        var _tmp = q.locally_saved;
-                        _tmp['_locally_saved'] = q;
-                        _tmp['_locally_saved']['locally_saved'] = void 0;
-                      }
-                      if (undefined != q.submit_status && "submitting" == q.submit_status){
-                        _tmp['_submit_status'] = "submitting";
-                        _tmp['submit_status'] = void 0;
-                      }
-                      return _tmp;
-                    })(draft);
                   });
-                })());
-
-                app.mySupplyOrdersDrafts(mySupplyOrdersDrafts);
+                  return mySupplyOrdersDrafts;
+                })() );
 
                 return {
                   updated_drafts: updated,
