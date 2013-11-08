@@ -406,7 +406,7 @@ var OrderView = function(order_id){
               if(String(self.order_id) == String(activeOrder.id) && !isObjectsEqual(activeOrder.proto, activeOrder.upd)){
                 var drafts = app.mySupplyOrdersDrafts(),
                     mutation = app.ids_mutation();
-                if ( RegExp('^new_on_device_','i').test(activeOrder.id) &&
+                if ( RegExp('^new_on_device_','i').test(activeOrder.upd.supply_order_id) &&
                     (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.id == String(activeOrder.id)});return !(_tmp.length>0);})() ){
                   // новый черновик, не присутствующий в ЛС, добавляем его туда
 

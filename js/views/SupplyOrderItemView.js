@@ -34,6 +34,11 @@ var SupplyOrderEditItemView = function(item_id){
       $("#total").text( "$" + (parseFloat($(e.currentTarget).val()) * parseFloat($("#price").text().substring(1))).toFixed(2) );
     });
 
+    this.el.on("click", "#item_amount", function(e){
+      e.preventDefault();
+      $(e.currentTarget).select();
+    });
+
     this.el.on("click", "button", function(e){
       e.preventDefault();
       var order = app.activeOrder();
