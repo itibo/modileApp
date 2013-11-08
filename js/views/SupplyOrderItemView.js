@@ -65,7 +65,7 @@ Handlebars.registerHelper("editItemContent", function(item){
   out = out + "</p>";
   out = out + "</div>";
 
-  out = out + "<div data-role=\"content\" class=\"order_form_selection\">" +
+  out = out + "<div class=\"order_form_selection\">" +
     "<input id=\"item_id\" name=\"item_id\" type=\"hidden\" value=\"" + item.item_id + "\" />" +
     "<div class=\"box paper\">" +
       "<div role=\"heading\" class=\"boxheader\">Order Item Info</div>" +
@@ -192,7 +192,7 @@ Handlebars.registerHelper("addItemContent", function(){
   out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
-  if ("draft" == order.order_status){
+  if ("log" != order.order_status){
     out = out + "<br /><strong>Budget: <span>$"+((~~order.remaining_budget == order.remaining_budget)? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
   }
   out = out + "</p></div><br />";

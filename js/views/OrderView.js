@@ -341,10 +341,28 @@ var OrderView = function(order_id){
 
     this.el.on('click', ".log_back", function(e){
       e.preventDefault();
-      app.activeOrder(false);
-      app.route({
-        toPage: window.location.href + "#orders"
-      });
+      var activeOrder = app.activeOrder(),
+          cancellProcess = function (){
+            app.activeOrder(false);
+            app.route({
+              toPage: window.location.href + "#orders"
+            });
+          };
+
+      if (isObjectsEqual(activeOrder.proto, activeOrder.upd)){
+        cancellProcess();
+      } else {
+        navigator.notification.confirm(
+          "Changes you have entered may not be saved. Do you want to cancel the editing?",
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              cancellProcess();
+            }
+          },
+          "Are you sure?",
+          'No,Yes'
+        );
+      }
     });
 
     this.el.on('click', "button.start_new_order", function(e){
@@ -569,6 +587,15 @@ var OrderView = function(order_id){
 Handlebars.registerHelper("newOrderStartContent", function(order){
   var out = "";
   if ($.isEmptyObject(order)){
+
+    out = out + "<div style=\"padding: 20px 10px 0 0\"><h5>Supply Period: <font>"+
+        (function(){
+          var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+          var formattedDate = new Date();
+          return monthNames[formattedDate.getMonth()] + " " + formattedDate.getFullYear();
+        })() +
+        "</font></h5></div>";
+
     out = out + "<div data-role=\"content\" class=\"select_location\">";
     var my_sites = app.mySites(),
         clients = (function(){
@@ -633,7 +660,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
     out = out + "<p><font>"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p>Order type: <span>"+order.order_form+"</span>";
-    if ("draft" == order.order_status){
+    if ("log" != order.order_status){
       out = out + "<br /><strong>Budget: <span>$"+( (order.remaining_budget == ~~order.remaining_budget) ? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
     }
     out = out + "</p>";

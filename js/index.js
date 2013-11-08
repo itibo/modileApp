@@ -589,6 +589,7 @@ var app = {
             });
             return (_tmp.length>0);
           };
+      var allow_to_chain_methods = true;
       var startdeferrpoint = $.Deferred();
           startdeferrpoint.resolve();
       var DeferredAjax = function(func){
@@ -640,6 +641,27 @@ var app = {
 
       DeferredAjax.prototype.promise = function() {
         return this.deferred.promise();
+      };
+
+      DeferredAjax.prototype.decline = function(){
+        var self = this;
+
+        switch (self.func) {
+          case "save_orders":
+            var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
+            app.mySupplyOrdersDrafts((function(){
+              $.each(mySupplyOrdersDrafts, function(i,v){
+                mySupplyOrdersDrafts[i]["sending"] = void 0;
+                mySupplyOrdersDrafts[i]["submitting"] = void 0;
+              });
+              return mySupplyOrdersDrafts;
+            })());
+            break;
+          default:
+            break;
+        }
+
+        self.deferred.reject();
       };
 
       DeferredAjax.prototype.invoke = function(){
@@ -719,6 +741,9 @@ var app = {
             }
 
             self.deferred.resolve();
+          },
+          error: function(err){
+            self.deferred.reject();
           }
         });
 
@@ -734,10 +759,19 @@ var app = {
 
       $.each(methods_to_chain, function(ix, def_func) {
         var da = new DeferredAjax(def_func);
-        $.when( startdeferrpoint, app.check_online(true) ).then(function(){
+        $.when( startdeferrpoint, app.check_online(true) ).then(
+        function(){
           da.invoke();
+        },
+        function(){
+          da.decline();
+          allow_to_chain_methods = false;
         });
-        startdeferrpoint = da;
+        if (allow_to_chain_methods){
+          startdeferrpoint = da;
+        } else {
+          return false;
+        }
       });
     };
 

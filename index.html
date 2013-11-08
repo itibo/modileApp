@@ -32,7 +32,10 @@
       </div>
     </div>
     <div id="menu">
-      <div><a href="#logout">Logout</a></div>
+      <div data-role="footer" class="footer">
+        <a class="logout" data-role="button" href="#logout"><img src="css/images/icons_logout.png" /> <span class="foot-txt">Logout</span></a>
+<!--        <a class="delete" data-role="button" href="#"><img src="css/images/icons_delete.png" /> <span class="foot-txt">Delete</span></a>-->
+      </div>
     </div>
     <script id="welcome-tpl" type="text/x-handlebars-template">
       <div data-role="header">
@@ -72,7 +75,9 @@
         <div data-role="content">
           <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
           {{ListOfAvailiableJobsContent}}
-          <p class="check stnd_btn"><input type="button" id="recheck" value="Re-check"/></p>
+          <div class="all_input stnd_btn">
+            <input type="button" id="recheck" value="Re-check"/>
+          </div>
         </div>
       </div><!-- /content -->
     </script>
@@ -170,6 +175,7 @@
       <div class="main">
         <div data-role="content" class="log inspect">
           <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
+          <h5>Supply Period: <font>{{supplyPeriod}}</font></h5>
           <div class="all_input  stnd_btn">
             <button type="button" class="ui-btn-hidden" aria-disabled="false">Start a new Order</button>
           </div>
@@ -183,7 +189,7 @@
         <h1>
           <span class="address">{{title}}</span>
           <span class="btn-back log_back">
-            <a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>
+            <a href="/#orders" class="ui-btn-right" data-role="button">Cancel</a>
           </span>
         </h1>
       </div><!-- /header -->

@@ -79,7 +79,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
 
   var out="";
   if ( (app.sitesToInspect()).length > 0 ){
-    out="<p>Site(s) available for inspection, based on your current position. Select site to start inspection.</p>";
+    out = out + "<div class=\"location_details\"><p>Site(s) available for inspection, based on your current position. Select site to start inspection.</p></div>";
     out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">";
     out = out + "<li data-role=\"list-divider\" role=\"heading\">Site(s) Assigned to You</li>";
     if (sites_for_inspect.assigned.length > 0){
@@ -110,7 +110,7 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
       out = out + "</ul>";
     }
   } else {
-    out = out + "<p>No site(s) available for inspection, based on your current position.</p>";
+    out = out + "<div class=\"location_details\"><p>No site(s) available for inspection, based on your current position.</p></div>";
   }
 
   return new Handlebars.SafeString(out);

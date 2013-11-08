@@ -114,21 +114,21 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
     for(var i=0, l=items.length; i<l; i++) {
       out = out + "<li>" +
           "<div class=\"points\">" + items[i].site  + " - <span class=\"adress\">" + items[i].address + "</span></div>" +
-          "<div class=\"left_points\">" +
-            "<div class=\"points_time\">" +
+          "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+            "<td class=\"points_time\">" +
               "<span class=\"time\">Initiated: <font >" + items[i].arrival_time + "</font></span><br />" +
               "<span class=\"time\">Completed: <font >" + items[i].departure_time + "</font></span>" +
-            "</div>" +
-          "</div>" +
-          "<div class=\"right_points\">" +
-            "<div class=\"box_points\">" +
-              "<div>" +
-                "<span class=\"points_class\">Score</span><br />" +
-                "<span class=\"big_points\">" + items[i].percent + "%</span><br />" +
-                "<span class=\"procent\">(" + items[i].points + " of " + items[i].total_points + ")</span>" +
+            "</td>" +
+            "<td class=\"right_points\">" +
+              "<div class=\"box_points\">" +
+                "<div>" +
+                  "<span class=\"points_class\">Score</span><br />" +
+                  "<span class=\"big_points\">" + items[i].percent + "%</span><br />" +
+                  "<span class=\"procent\">(" + items[i].points + " of " + items[i].total_points + ")</span>" +
+                "</div>" +
               "</div>" +
-            "</div>" +
-          "</div>" +
+            "</td>" +
+          "</tr></table>" +
         "</li>";
     }
     out = out + "</ul>";

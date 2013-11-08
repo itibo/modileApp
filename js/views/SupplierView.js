@@ -21,6 +21,11 @@ var SupplierView = function(){
         };
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
+    context.supplyPeriod = (function(){
+      var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+      var formattedDate = new Date();
+      return monthNames[formattedDate.getMonth()] + " " + formattedDate.getFullYear();
+    })();
     context.drafts = (function(){
       var return_arr = [],
           drafts = app.mySupplyOrdersDrafts();
@@ -94,22 +99,21 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
       out = out + "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
           "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
           "<div class=\"points\">Order #: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : v.supply_order_id) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
-          "<div class=\"left_points\">" +
-            "<div class=\"points_time\">" +
+          "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+            "<td class=\"points_time\">" +
               "<span class=\"time\">" + v.order_form + "</span><br />" +
               "<span class=\"time\">Draft saved: <strong>" + v.updated_at + "</strong></span>" +
-            "</div>" +
-          "</div>" +
-          "<div class=\"right_points\">" +
-            "<div class=\"box_points\">" +
-              "<div>" +
-                "<span class=\"points_class\">Total:</span><br />" +
-                "<span class=\"big_points\">$" + v.total + "</span><br />" +
-              "<span class=\"procent\">Budget: $"+ ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : parseFloat(v.remaining_budget).toFixed(2)) +"</span>" +
-
+            "</td>" +
+            "<td class=\"right_points\">" +
+              "<div class=\"box_points\">" +
+                "<div>" +
+                  "<span class=\"points_class\">Total:</span><br />" +
+                  "<span class=\"big_points\">$" + v.total + "</span><br />" +
+                  "<span class=\"procent\">Budget: $"+ ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : parseFloat(v.remaining_budget).toFixed(2)) +"</span>" +
+                "</div>" +
               "</div>" +
-            "</div>" +
-          "</div>" +
+            "</td>" +
+          "</tr></table>" +
         "</a></li>";
     }
   });
@@ -130,20 +134,20 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
     out = out + "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
         "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
         "<div class=\"points\">Order #: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : v.supply_order_id) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
-        "<div class=\"left_points\">" +
-          "<div class=\"points_time\">" +
+        "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+          "<td class=\"points_time\">" +
             "<span class=\"time\">" + v.order_form + "</span><br />" +
             "<span class=\"time\">Submitted: <strong>" + v.updated_at + "</strong></span>" +
-          "</div>" +
-        "</div>" +
-        "<div class=\"right_points\">" +
-          "<div class=\"box_points\">" +
-            "<div>" +
-              "<span class=\"points_class\">Total:</span><br />" +
-              "<span class=\"big_points\">$" + v.total + "</span><br />" +
+          "</td>" +
+          "<td class=\"right_points\">" +
+            "<div class=\"box_points\">" +
+              "<div>" +
+                "<span class=\"points_class\">Total:</span><br />" +
+                "<span class=\"big_points\">$" + v.total + "</span><br />" +
+              "</div>" +
             "</div>" +
-          "</div>" +
-        "</div>" +
+          "</td>" +
+        "</tr></table>" +
       "</a></li>";
 //        v.site_name +"<br/>"+ v.site_address +"<br/>"+ v.order_form +"<br/>Submitted: "+ v.order_date +"<br/>Total: $"+ v.total +"</a></li>";
   });
