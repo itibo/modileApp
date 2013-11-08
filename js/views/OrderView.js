@@ -12,6 +12,7 @@ var OrderView = function(order_id){
     if ("new" == self.order_id){
       context.title = "New Order";
       context.new = "new";
+      context.backTitle = "Cancel";
     } else {
       context.title = "Order Details";
 
@@ -58,7 +59,7 @@ var OrderView = function(order_id){
                           return RegExp('^used_'+ form_prefix +'(\\b|_)','i').test(n);
                         })[0];
                         var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
-                        return ( (~~remain == remain) ? ~~remain : parseFloat(remain).toFixed(2));
+                        return parseFloat(remain).toFixed(2);
                       })(id_arr[1])
                     }
                   })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/)),
@@ -162,7 +163,8 @@ var OrderView = function(order_id){
 //          alert("activeOrder on the end of content rendering: " + JSON.stringify(activeOrder));
           return activeOrder;
         })();
-
+        context.backTitle = "Cancel";
+        context.backTitle = (context.order.upd.order_status == "log") ? "Back" : "Cancel";
         app.ids_mutation(mutations_obj);
       })(app.ids_mutation());
     }
@@ -315,7 +317,7 @@ var OrderView = function(order_id){
 
           $.each(Object.keys(site_info), function(i,v){
             if (RegExp(obj_key_prefix,'i').test(v)){
-              val = (site_info[v] == ~~site_info[v]) ? ~~site_info[v] : parseFloat(site_info[v]).toFixed(2);
+              val = parseFloat(site_info[v]).toFixed(2);
               return false;
             }
           });
@@ -328,7 +330,7 @@ var OrderView = function(order_id){
           var res = "";
           res = parseFloat( $(".budget>dd", $(elm).closest("div")).text().substring(1) ) -
               parseFloat( $(".used>dd", $(elm).closest("div")).text().substring(1) );
-          res = (~~res == res) ? ~~res : res.toFixed(2);
+          res = res.toFixed(2);
           if ("" !== res)
             $(elm).text("$" + res);
         });
@@ -342,7 +344,7 @@ var OrderView = function(order_id){
     this.el.on('click', ".log_back", function(e){
       e.preventDefault();
       var activeOrder = app.activeOrder(),
-          cancellProcess = function (){
+          cancelProcess = function (){
             app.activeOrder(false);
             app.route({
               toPage: window.location.href + "#orders"
@@ -350,13 +352,13 @@ var OrderView = function(order_id){
           };
 
       if (isObjectsEqual(activeOrder.proto, activeOrder.upd)){
-        cancellProcess();
+        cancelProcess();
       } else {
         navigator.notification.confirm(
           "Changes you have entered may not be saved. Do you want to cancel the editing?",
           function(buttonIndex){
             if(2 == buttonIndex){
-              cancellProcess();
+              cancelProcess();
             }
           },
           "Are you sure?",
@@ -473,20 +475,30 @@ var OrderView = function(order_id){
     });
 
     this.el.on('click', "button#submit_to_vendor", function(e){
+      var _total = parseFloat($(".over_budget span.price").text().substring(1)),
+          activeOrder = app.activeOrder();
 
-      if (parseFloat($(".over_budget span.price").text().substring(1)) > 0) {
-        navigator.notification.confirm(
+      if ( _total > 0) {
+
+        if (_total > parseFloat(activeOrder.upd.remaining_budget)){
+          navigator.notification.alert(
+              "Order can't be submitted to vendor since budget is exceeded. Please correct the order details to be in the limits of available budget.", // message
+              function(){},    // callback
+              "Over budget.",       // title
+              'Ok'         // buttonName
+          );
+        } else {
+          navigator.notification.confirm(
             "Do you want to submit this order to Vendor?",
             function(buttonIndex){
               if(2 == buttonIndex){
 
                 var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
-                    activeOrder = app.activeOrder(),
                     myLastSubmittedOrders = app.myLastSubmittedOrders(),
                     submitted_item = {};
 
                 // новый черновик, не присутствующий в ЛС, добавляем его туда
-                if ( RegExp('^new_on_device_','i').test(activeOrder.supply_order_id) &&
+                if ( RegExp('^new_on_device_','i').test(activeOrder.upd.supply_order_id) &&
                     (function(){var _tmp = [];_tmp = $.grep(mySupplyOrdersDrafts, function(n,i){return n.id == String(activeOrder.supply_order_id)});return !(_tmp.length>0);})() ){
 
                   mySupplyOrdersDrafts.unshift($.extend({
@@ -562,7 +574,9 @@ var OrderView = function(order_id){
             },
             "Supply Order",
             'Cancel,Submit'
-        );
+          );
+        }
+
       } else {
         navigator.notification.alert(
             "There are no items selected to submit to the vendor.", // message
@@ -661,7 +675,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out + "<p><font>"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p>Order type: <span>"+order.order_form+"</span>";
     if ("log" != order.order_status){
-      out = out + "<br /><strong>Budget: <span>$"+( (order.remaining_budget == ~~order.remaining_budget) ? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
+      out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span></strong>";
     }
     out = out + "</p>";
     out = out + "</div>";
@@ -689,9 +703,9 @@ Handlebars.registerHelper("orderContent", function(order_obj){
           }
           category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
             "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
-              "<div class=\"detals\">Price: $"+ ( (~~price == price) ? ~~price : price.toFixed(2) ) + "</div>" +
-              "<div class=\"detals\">Amount: "+ ( (~~amount == amount)? ~~amount : amount ) + "</div>" +
-              "<div class=\"detals\">Total: $"+ ( (~~_total == _total)? ~~_total : _total.toFixed(2) ) + "</div>" +
+              "<div class=\"detals\">Price: $"+ price.toFixed(2)  + "</div>" +
+              "<div class=\"detals\">Amount: "+ amount + "</div>" +
+              "<div class=\"detals\">Total: $"+ _total.toFixed(2) + "</div>" +
             "</span>";
 
           if ("log" != order.order_status){
@@ -720,7 +734,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
     //over budget
     out = out + "<div class=\"over_budget\">";
-    out = out + "<span style=\"visibility:" + ((total>order.remaining_budget)?'visible':'hidden') + ";\">Over Budget!!!</span>";
+    out = out + "<span style=\"visibility:" + ((total>order.remaining_budget && "log" != order.order_status)?'visible':'hidden') + ";\">Over Budget!!!</span>";
     out = out + "<div class=\"total\">";
     out = out + "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>";
     out = out + "</div>";
@@ -731,7 +745,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     if ("log" != order.order_status){
       out = out +"<h3>Special Instructions</h3><div class=\"block-textarea\">";
       out = out + "<textarea id=\"special_instructions\" name=\"special_instructions\">" + order.special_instructions + "</textarea>";
-    } else {
+    } else if ($.trim(order.special_instructions).length > 0) {
       out = out +"<div class=\"location_details\">";
       out = out +"<p><font>Special Instructions</font></p>";
       out = out + "<p>" + order.special_instructions + "</p>";

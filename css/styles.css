@@ -1032,6 +1032,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	font: bold 120% Arial, sans-serif;
 	padding: 1%;
 	overflow: hidden;
+	margin-bottom: 1em;
 }
 .over_budget div{
 	float:left;

@@ -17,7 +17,7 @@ var SupplierView = function(){
             });
           });
 
-          return (tmp == ~~tmp)? ~~tmp : tmp.toFixed(2);
+          return tmp.toFixed(2);
         };
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
@@ -89,73 +89,67 @@ var SupplierView = function(){
 }
 
 Handlebars.registerHelper('DraftsOrderContent', function(drafts){
-  var out = "",
-      empty_list = true;
-  out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"draft\">";
-  out = out + "<li data-role=\"list-divider\" role=\"heading\">Draft Orders</li>";
-  $.each(drafts, function(i,v){
-    if (!(undefined != v.submit_status && "submitting" == v.submit_status)){
-      empty_list = false;
-      out = out + "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
-          "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
+  var out = "";
+  if (drafts.length > 0){
+    out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"draft\">";
+    out = out + "<li data-role=\"list-divider\" role=\"heading\">Draft Orders</li>";
+    $.each(drafts, function(i,v){
+      if (!(undefined != v.submit_status && "submitting" == v.submit_status)){
+        out = out +
+            "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
+            "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
+            "<div class=\"points\">Order #: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : v.supply_order_id) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
+              "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+                "<td class=\"points_time\">" +
+                  "<span class=\"time\">" + v.order_form + "</span><br />" +
+                  "<span class=\"time\">Draft saved: <strong>" + v.updated_at + "</strong></span>" +
+                "</td>" +
+                "<td class=\"right_points\">" +
+                  "<div class=\"box_points\">" +
+                    "<div>" +
+                      "<span class=\"points_class\">Total:</span><br />" +
+                      "<span class=\"big_points\">$" + v.total + "</span><br />" +
+                      "<span class=\"procent\">Budget: $"+ parseFloat(v.remaining_budget).toFixed(2) +"</span>" +
+                    "</div>" +
+                  "</div>" +
+                "</td>" +
+              "</tr></table>" +
+            "</a></li>";
+      }
+    });
+    out = out + "</ul>";
+  }
+
+  return new Handlebars.SafeString(out);
+});
+
+Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
+  var out = "";
+  if (submitted_orders.length>0){
+    out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
+    out = out + "<li data-role=\"list-divider\" role=\"heading\">Last 5 Submitted Orders</li>";
+    $.each(submitted_orders, function(i,v){
+      out = out + "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
+          "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
           "<div class=\"points\">Order #: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : v.supply_order_id) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
               "<span class=\"time\">" + v.order_form + "</span><br />" +
-              "<span class=\"time\">Draft saved: <strong>" + v.updated_at + "</strong></span>" +
+              "<span class=\"time\">Submitted: <strong>" + v.updated_at + "</strong></span>" +
             "</td>" +
             "<td class=\"right_points\">" +
               "<div class=\"box_points\">" +
                 "<div>" +
                   "<span class=\"points_class\">Total:</span><br />" +
                   "<span class=\"big_points\">$" + v.total + "</span><br />" +
-                  "<span class=\"procent\">Budget: $"+ ((v.remaining_budget == ~~v.remaining_budget)? ~~v.remaining_budget : parseFloat(v.remaining_budget).toFixed(2)) +"</span>" +
                 "</div>" +
               "</div>" +
             "</td>" +
           "</tr></table>" +
         "</a></li>";
-    }
-  });
-  if (empty_list){
-    out = out + "<li>Empty</li>";
+    });
+    out = out + "</ul>";
   }
-  out = out + "</ul>";
-  return new Handlebars.SafeString(out);
-});
-
-Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
-  var out = "",
-      empty_list = true;
-  out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
-  out = out + "<li data-role=\"list-divider\" role=\"heading\">Last 5 Submitted Orders</li>";
-  $.each(submitted_orders, function(i,v){
-    empty_list = false;
-    out = out + "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
-        "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
-        "<div class=\"points\">Order #: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : v.supply_order_id) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
-        "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
-          "<td class=\"points_time\">" +
-            "<span class=\"time\">" + v.order_form + "</span><br />" +
-            "<span class=\"time\">Submitted: <strong>" + v.updated_at + "</strong></span>" +
-          "</td>" +
-          "<td class=\"right_points\">" +
-            "<div class=\"box_points\">" +
-              "<div>" +
-                "<span class=\"points_class\">Total:</span><br />" +
-                "<span class=\"big_points\">$" + v.total + "</span><br />" +
-              "</div>" +
-            "</div>" +
-          "</td>" +
-        "</tr></table>" +
-      "</a></li>";
-//        v.site_name +"<br/>"+ v.site_address +"<br/>"+ v.order_form +"<br/>Submitted: "+ v.order_date +"<br/>Total: $"+ v.total +"</a></li>";
-  });
-  if (empty_list){
-    out = out + "<li>Empty</li>";
-  }
-  out = out + "</ul>";
-
   return new Handlebars.SafeString(out);
 });
 

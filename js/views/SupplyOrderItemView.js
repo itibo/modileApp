@@ -60,7 +60,7 @@ Handlebars.registerHelper("editItemContent", function(item){
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
   if ("log" != order.order_status){
-    out = out + "<br /><strong>Budget: <span>$"+((~~order.remaining_budget == order.remaining_budget)? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
+    out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2)+"</span></strong>";
   }
   out = out + "</p>";
   out = out + "</div>";
@@ -76,8 +76,8 @@ Handlebars.registerHelper("editItemContent", function(item){
             "<dl><dt>Serial Number:</dt><dd>" + item.serial_number + "</dd></dl>"+
             "<dl><dt>Description:</dt><dd>" + item.description + "</dd></dl>" +
             "<dl><dt>Measurement:</dt><dd>" + item.measurement + "</dd></dl>" +
-            "<dl><dt>Price:</dt><dd id=\"price\">$" + item.price + "</dd></dl>" +
-            "<dl><dt>Total:</dt><dd id=\"total\">$"+ (item.amount*item.price).toFixed(2) +"</dd></dl></dl>" +
+            "<dl><dt>Price:</dt><dd id=\"price\">$" + parseFloat(item.price).toFixed(2) + "</dd></dl>" +
+            "<dl><dt>Total:</dt><dd id=\"total\">$"+ parseFloat(item.amount*item.price).toFixed(2) +"</dd></dl></dl>" +
             "<div data-role=\"fieldcontain\">" +
               "<label for=\"item_amount\">Amount:</label>" +
               "<input id=\"item_amount\" name=\"item_amount\" type=\"number\" value=\""+(("Each" == item.measurement)? parseInt(item.amount):parseFloat(item.amount))+"\" pattern=\""+(("Each" == item.measurement)? "[0-9]+":"[0-9\.]+[0-9]$")+"\" />" +
@@ -138,7 +138,7 @@ var SupplyOrderAddItemView = function(order_id){
                 var item = category[serial_number];
                 category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
                 category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-                category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: $"+ ((~~item.price == item.price) ? ~~item.price: parseFloat(item.price).toFixed(2)) +"</div>";
+                category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: $"+ parseFloat(item.price).toFixed(2) +"</div>";
                 category_out = category_out + "</a></li>";
               }
             });
@@ -153,7 +153,7 @@ var SupplyOrderAddItemView = function(order_id){
             if (parseFloat(item.amount) == 0){
               category_out = category_out + "<li><a href=\"#editOrderItem:"+serial_number+"\">";
               category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
-              category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: $"+ ((~~item.price == item.price) ? ~~item.price: parseFloat(item.price).toFixed(2)) +"</div>";
+              category_out = category_out + "<span>" + item.serial_number +" - "+item.description +"<br/>Measurement: "+item.measurement +"</span><br /><div class=\"bld\">Price: $"+ parseFloat(item.price).toFixed(2) +"</div>";
               category_out = category_out + "</a></li>";
             }
           });
@@ -193,7 +193,7 @@ Handlebars.registerHelper("addItemContent", function(){
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
   if ("log" != order.order_status){
-    out = out + "<br /><strong>Budget: <span>$"+((~~order.remaining_budget == order.remaining_budget)? ~~order.remaining_budget : parseFloat(order.remaining_budget).toFixed(2))+"</span></strong>";
+    out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span></strong>";
   }
   out = out + "</p></div><br />";
 

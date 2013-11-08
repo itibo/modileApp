@@ -1227,7 +1227,7 @@ var app = {
       });
     };
 
-    if (app.mySupplyOrdersDrafts().length > 0 && app.myLastSubmittedOrders().length > 0){
+    if (app.mySupplyOrdersDrafts().length > 0 || app.myLastSubmittedOrders().length > 0){
       success_callback();
     } else {
       $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
