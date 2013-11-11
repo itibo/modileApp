@@ -16,178 +16,178 @@ var OrderView = function(order_id){
     } else {
       context.title = "Order Details";
 
-      (function(mutations_obj){
-        var activeOrder = app.activeOrder(),
-            _old_order_id = self.order_id,
-            drafts = app.mySupplyOrdersDrafts(),
-            logs = app.myLastSubmittedOrders(),
-            ids_in_ls = (function(){
-              var return_arr = [];
-              return_arr = $.merge($.merge(return_arr, $.map(drafts, function(d){return d.supply_order_id;})),
-                  $.map(logs, function(l){return l.supply_order_id;}));
-              return return_arr;
-            })();
 
-        if (!$.isEmptyObject(mutations_obj)){
-          if ($.inArray(self.order_id, Object.keys(mutations_obj))>-1){
-            self.order_id = mutations_obj[self.order_id];
-            mutations_obj[_old_order_id] = void 0;
-            delete mutations_obj[_old_order_id];
+      var activeOrder = app.activeOrder(),
+          _old_order_id = self.order_id,
+          drafts = app.mySupplyOrdersDrafts(),
+          logs = app.myLastSubmittedOrders(),
+          ids_in_ls = (function(){
+            var return_arr = [];
+            return_arr = $.merge($.merge(return_arr, $.map(drafts, function(d){return d.supply_order_id;})),
+                $.map(logs, function(l){return l.supply_order_id;}));
+            return return_arr;
+          })(),
+          mutations_obj = app.ids_mutation();
+
+      if (!$.isEmptyObject(mutations_obj)){
+        if ($.inArray(self.order_id, Object.keys(mutations_obj))>-1){
+          self.order_id = mutations_obj[self.order_id];
+          mutations_obj[_old_order_id] = void 0;
+          delete mutations_obj[_old_order_id];
+        }
+      }
+
+      if (!$.isEmptyObject(mutations_obj)){
+        for(var cnt = 0; cnt<Object.keys(mutations_obj).length; cnt++){
+          var key = Object.keys(mutations_obj)[cnt];
+          if ( $.inArray(key, ids_in_ls) < 0 ){
+            mutations_obj[key] = void 0;
+            delete mutations_obj[key];
           }
         }
+      }
 
-        if (!$.isEmptyObject(mutations_obj)){
-          for(var cnt = 0; cnt<Object.keys(mutations_obj).length; cnt++){
-            var key = Object.keys(mutations_obj)[cnt];
-            if ( $.inArray(key, ids_in_ls) < 0 ){
-              mutations_obj[key] = void 0;
-              delete mutations_obj[key];
-            }
-          }
-        }
+      context.order = (function(){
 
-        context.order = (function(){
+        if ($.isEmptyObject(activeOrder) || undefined == activeOrder.id || $.inArray( activeOrder.id, [self.order_id, _old_order_id] ) < 0 ){
+          // впервые открываем любой драфт, как вновь созданный, так и уже существкющий
 
-          if ($.isEmptyObject(activeOrder) || undefined == activeOrder.id || $.inArray( activeOrder.id, [self.order_id, _old_order_id] ) < 0 ){
-            // впервые открываем любой драфт, как вновь созданный, так и уже существкющий
+          var obj = {};
 
-            var obj = {};
+          if (RegExp('^new_on_device_','i').test(self.order_id) &&
+              ($.grep(drafts, function(n,i){return $.inArray(n.id, [_old_order_id,self.order_id ])>-1 })).length < 1){
+            // вновь созданный драфт, не сохраненный еще в ЛС
 
-            if (RegExp('^new_on_device_','i').test(self.order_id) &&
-                ($.grep(drafts, function(n,i){return $.inArray(n.id, [_old_order_id,self.order_id ])>-1 })).length < 1){
-              // вновь созданный драфт, не сохраненный еще в ЛС
+            var site_info = (function(id_arr){
+                  var site_id = id_arr[2],
+                      tmp = {};
 
-              var site_info = (function(id_arr){
-                    var site_id = id_arr[2],
-                        tmp = {};
-
-                    $.each(app.mySites(), function(i,s){
-                      if (site_id == s.site_id){
-                        tmp = s;
-                        return false;
-                      }
-                    });
-
-                    return {
-                      site_id: tmp.site_id,
-                      site_name: tmp.site,
-                      site_address: tmp.address,
-                      remaining_budget: (function(form_prefix){
-                        var budget = $.grep(Object.keys(tmp), function(n,i){
-                          return RegExp('^budget_'+ form_prefix +'(\\b|_)','i').test(n);
-                        })[0];
-                        var used = $.grep(Object.keys(tmp), function(n,i){
-                          return RegExp('^used_'+ form_prefix +'(\\b|_)','i').test(n);
-                        })[0];
-                        var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
-                        return parseFloat(remain).toFixed(2);
-                      })(id_arr[1])
+                  $.each(app.mySites(), function(i,s){
+                    if (site_id == s.site_id){
+                      tmp = s;
+                      return false;
                     }
-                  })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/)),
-                  form_and_items_info = (function(form){
-                    var tmp = {},
-                        return_obj = {};
+                  });
 
-                    $.each(app.supplyOrdersTemplate(), function(i,tmpl){
-                      if ( RegExp('^'+ form +'\\b','i').test(tmpl.order_form) ){
-                        tmp = tmpl;
-                        return false;
-                      }
+                  return {
+                    site_id: tmp.site_id,
+                    site_name: tmp.site,
+                    site_address: tmp.address,
+                    remaining_budget: (function(form_prefix){
+                      var budget = $.grep(Object.keys(tmp), function(n,i){
+                        return RegExp('^budget_'+ form_prefix +'(\\b|_)','i').test(n);
+                      })[0];
+                      var used = $.grep(Object.keys(tmp), function(n,i){
+                        return RegExp('^used_'+ form_prefix +'(\\b|_)','i').test(n);
+                      })[0];
+                      var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
+                      return parseFloat(remain).toFixed(2);
+                    })(id_arr[1])
+                  }
+                })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/)),
+                form_and_items_info = (function(form){
+                  var tmp = {},
+                      return_obj = {};
+
+                  $.each(app.supplyOrdersTemplate(), function(i,tmpl){
+                    if ( RegExp('^'+ form +'\\b','i').test(tmpl.order_form) ){
+                      tmp = tmpl;
+                      return false;
+                    }
+                  });
+
+                  return_obj.order_form = tmp.order_form;
+                  return_obj.supply_order_categories = {};
+
+                  $.each(tmp.categories, function(i,cat){
+                    return_obj['supply_order_categories'][cat.category] = {};
+                    $.each(cat.items, function(ik,item){
+                      return_obj['supply_order_categories'][cat.category][item.item_id] = $.extend(item, {amount: 0});
                     });
+                  });
+                  return return_obj;
+                })(self.order_id.match(/^new_on_device_(.+)_(.+)_(.*)$/)[1]);
 
-                    return_obj.order_form = tmp.order_form;
-                    return_obj.supply_order_categories = {};
+            obj = $.extend(obj, {
+              supply_order_id: self.order_id,
+              supply_order_name: "",
+              updated_at: "",
+              order_date: "",
+              special_instructions: ""
+            }, site_info, form_and_items_info, {
+              order_status: "new"
+            });
 
-                    $.each(tmp.categories, function(i,cat){
-                      return_obj['supply_order_categories'][cat.category] = {};
-                      $.each(cat.items, function(ik,item){
-                        return_obj['supply_order_categories'][cat.category][item.item_id] = $.extend(item, {amount: 0});
-                      });
-                    });
-                    return return_obj;
-                  })(self.order_id.match(/^new_on_device_(.+)_(.+)_(.*)$/)[1]);
+          } else {
+            // открывает драфт/сабмитед ордер из ЛС
 
-              obj = $.extend(obj, {
-                supply_order_id: self.order_id,
-                supply_order_name: "",
-                updated_at: "",
-                order_date: "",
-                special_instructions: ""
-              }, site_info, form_and_items_info, {
-                order_status: "new"
-              });
+            $.each(drafts, function(i,v){
+              if (String(self.order_id) == String(v.supply_order_id) &&
+                  (undefined == typeof (v.submit_status) || "submitting" != v.submit_status)){
+                obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "draft"});
+                return false;
+              }
+            });
 
-            } else {
-              // открывает драфт/сабмитед ордер из ЛС
-
-              $.each(drafts, function(i,v){
-                if (String(self.order_id) == String(v.supply_order_id) &&
-                    (undefined == typeof (v.submit_status) || "submitting" != v.submit_status)){
-                  obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "draft"});
+            if ($.isEmptyObject(obj)){
+              $.each(logs, function(i,v){
+                if (String(self.order_id) == String(v.supply_order_id)){
+                  obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "log"});
                   return false;
                 }
               });
-
-              if ($.isEmptyObject(obj)){
-                $.each(logs, function(i,v){
-                  if (String(self.order_id) == String(v.supply_order_id)){
-                    obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "log"});
-                    return false;
-                  }
-                });
-              }
             }
-
-            if ($.isEmptyObject(obj)){
-              navigator.notification.alert(
-                  "Please re-choose order", // message
-                  function(){
-                    setTimeout(function(){
-                      app.activeOrder(false);
-                      app.route({
-                        toPage: window.location.href + "#orders"
-                      });
-                    },0);
-                  },   // callback
-                  "Error",    // title
-                  'Ok'            // buttonName
-              );
-            } else {
-              activeOrder = app.activeOrder($.extend({
-                id: self.order_id,
-                status: obj.order_status
-              }, {
-                proto: (obj.order_status == "new") ? {} : obj,
-                upd: obj
-              }));
-            }
-
-          } else {
-            // возвращаемся со страницы добавления/редактирования айтема
-
-            activeOrder = app.activeOrder((function(){
-              // mutations in action
-              var muted = function(obj){
-                if (_old_order_id != self.order_id){
-                  obj.id = self.order_id
-                  obj.supply_order_id = self.order_id
-                }
-                obj.order_status = obj.order_status || "draft";
-                return obj;
-              };
-              return $.extend({id: self.order_id}, {
-                proto: muted(activeOrder.proto),
-                upd: muted(activeOrder.upd)
-              })
-            })());
           }
+
+          if ($.isEmptyObject(obj)){
+            navigator.notification.alert(
+                "Please re-choose order", // message
+                function(){
+                  setTimeout(function(){
+                    app.activeOrder(false);
+                    app.route({
+                      toPage: window.location.href + "#orders"
+                    });
+                  },0);
+                },   // callback
+                "Error",    // title
+                'Ok'            // buttonName
+            );
+          } else {
+            activeOrder = app.activeOrder($.extend({
+              id: self.order_id,
+              status: obj.order_status
+            }, {
+              proto: (obj.order_status == "new") ? {} : obj,
+              upd: obj
+            }));
+          }
+
+        } else {
+          // возвращаемся со страницы добавления/редактирования айтема
+
+          activeOrder = app.activeOrder((function(){
+            // mutations in action
+            var muted = function(obj){
+              if (_old_order_id != self.order_id){
+                obj.id = self.order_id
+                obj.supply_order_id = self.order_id
+              }
+              obj.order_status = obj.order_status || "draft";
+              return obj;
+            };
+            return $.extend({id: self.order_id}, {
+              proto: muted(activeOrder.proto),
+              upd: muted(activeOrder.upd)
+            })
+          })());
+        }
 //          alert("activeOrder on the end of content rendering: " + JSON.stringify(activeOrder));
-          return activeOrder;
-        })();
-        context.backTitle = "Cancel";
-        context.backTitle = (context.order.upd.order_status == "log") ? "Back" : "Cancel";
-        app.ids_mutation(mutations_obj);
-      })(app.ids_mutation());
+        return activeOrder;
+      })();
+      context.backTitle = "Cancel";
+      context.backTitle = (context.order.upd.order_status == "log") ? "Back" : "Cancel";
+      app.ids_mutation(mutations_obj);
     }
 
     this.el.html(OrderView.template(context));
