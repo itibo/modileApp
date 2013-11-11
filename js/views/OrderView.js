@@ -28,15 +28,21 @@ var OrderView = function(order_id){
               return return_arr;
             })();
 
-        if ($.inArray(self.order_id, Object.keys(mutations_obj))>-1){
-          self.order_id = mutations_obj[self.order_id];
-          mutations_obj[_old_order_id] = void 0;
+        if (!$.isEmptyObject(mutations_obj)){
+          if ($.inArray(self.order_id, Object.keys(mutations_obj))>-1){
+            self.order_id = mutations_obj[self.order_id];
+            mutations_obj[_old_order_id] = void 0;
+            delete mutations_obj[_old_order_id];
+          }
         }
 
-        for(var cnt = 0; cnt>mutations_obj.length; cnt++){
-          var key = Object.keys(mutations_obj)[cnt];
-          if ( $.inArray(key, ids_in_ls) < 0 ){
-            mutations_obj[key] = void 0;
+        if (!$.isEmptyObject(mutations_obj)){
+          for(var cnt = 0; cnt<Object.keys(mutations_obj).length; cnt++){
+            var key = Object.keys(mutations_obj)[cnt];
+            if ( $.inArray(key, ids_in_ls) < 0 ){
+              mutations_obj[key] = void 0;
+              delete mutations_obj[key];
+            }
           }
         }
 
@@ -357,6 +363,7 @@ var OrderView = function(order_id){
 
 
     this.el.on('click', ".log_back", function(e){
+      e.preventDefault();
       app.backButton();
     });
 
