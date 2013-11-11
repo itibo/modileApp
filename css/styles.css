@@ -1,11 +1,11 @@
 div[data-role=page]{ 
 	background-color: #c4c4c5; 
-	background-image: -ms-linear-gradient(top, #e7e7e7 0%, #c0c0c1 100%);
-	background-image: -moz-linear-gradient(top, #e7e7e7 0%, #c0c0c1 100%);
-	background-image: -o-linear-gradient(top, #e7e7e7 0%, #c0c0c1 100%);
-	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #e7e7e7), color-stop(1, #c0c0c1));
-	background-image: -webkit-linear-gradient(top, #e7e7e7 0%, #c0c0c1 100%);
-	background-image: linear-gradient(to bottom, #e7e7e7 0%, #c0c0c1 100%);
+	background-image: -ms-linear-gradient(top, #e7e7e7 0%, #e7e7e7 100%);
+	background-image: -moz-linear-gradient(top, #e7e7e7 0%, #e7e7e7 100%);
+	background-image: -o-linear-gradient(top, #e7e7e7 0%, #e7e7e7 100%);
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #e7e7e7), color-stop(1, #e7e7e7));
+	background-image: -webkit-linear-gradient(top, #e7e7e7 0%, #e7e7e7 100%);
+	background-image: linear-gradient(to bottom, #e7e7e7 0%, #e7e7e7 100%);
 }
 .ui-body-c,.ui-btn-up-c{
 	text-shadow:none !important;
@@ -114,42 +114,31 @@ a.btn-main div span.ui-btn-inner { padding-bottom:1em; }
 div.block { padding-right:3em; position:relative; }
 div.block .number { display:none; }
 div.block.active .number {
-    display:block;
-    font-size:3.6em;
+    font-size:330%;
     margin:0px; padding:0px;
     position:absolute;
-    right:-5px;
     text-align:center;
     text-shadow:none;
-    top:0px;
 	background:#aeb8b7;
 	color:#075d52;
-	width: 50px;
-	border-radius:3px;
-	height: 100%;
 	line-height: 50px;
 }
 div.block.active .number.na {
 	line-height: 30px;  
-	font-size:1.6em;
-	top:0px; 
-	right: -5px; height:100%;
-	background:#aeb8b7;
-	border-radius:3px;
-	width: 50px;
+	font-size:150%
  }
 div.block.active .number.na span{
 color:#075d52;
 }
 div.block .number{ 
-	position: absolute;
-	display:block;
-	top:0px; 
-	right: -5px; height:100%;
 	background:#c6b1a3;
 	border-radius:3px;
-	width: 50px;
-	height: 100%;
+	display:block;
+	height:100%;
+	right: 0;
+	position: absolute;
+	top:0;
+	width: 45px;
 }
 
 ul[data-role=listview] li a.inspectable {

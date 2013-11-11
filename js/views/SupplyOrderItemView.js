@@ -61,11 +61,11 @@ Handlebars.registerHelper("editItemContent", function(item){
       out = "<div data-role=\"content\" class=\"log inspect draft neworder\">";
 
   out = out + "<div class=\"location_details\">";
-  out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
+  out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? '-': order.supply_order_id)+"</em></p>";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
-  out = out + "<br />Order date: <span>"+ (('' != order.order_date) ? order.order_date : 'N/A') +"</span>";
-  out = out + "<br />Draft saved: <span>"+ (('' != order.updated_at) ? order.updated_at : 'N/A') +"</span>";
+  out = out + "<br />Order date: <span>"+ (('' != order.order_date) ? order.order_date : '-') +"</span>";
+  out = out + "<br />Draft saved: <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
   if ("log" != order.order_status){
     out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2)+"</span></strong>";
   }
@@ -96,9 +96,9 @@ Handlebars.registerHelper("editItemContent", function(item){
   "</div>";
 
   out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
-  out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_btn\">Save</button></td>";
+  out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_btn\">Set</button></td>";
   out = out + "<td width=\"2%\">&nbsp;</td>";
-  out = out + "<td class=\"green_btn\"><button id=\"remove_btn\">Remove</button></td>";
+  out = out + "<td class=\"green_btn\"><button id=\"remove_btn\">Clear</button></td>";
   out = out + "</tr></table>";
 
   out = out + "</div>";
@@ -196,11 +196,11 @@ Handlebars.registerHelper("addItemContent", function(){
       out = "<div data-role=\"content\" class=\"log inspect draft\">";
 
   out = out + "<div class=\"location_details\">";
-  out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
+  out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? '-': order.supply_order_id)+"</em></p>";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
-  out = out + "<br />Order date: <span>"+ (('' != order.order_date) ? order.order_date : 'N/A') +"</span>";
-  out = out + "<br />Draft saved: <span>"+ (('' != order.updated_at) ? order.updated_at : 'N/A') +"</span>";
+  out = out + "<br />Order date: <span>"+ (('' != order.order_date) ? order.order_date : '-') +"</span>";
+  out = out + "<br />Draft saved: <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
   if ("log" != order.order_status){
     out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span></strong>";
   }

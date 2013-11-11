@@ -102,8 +102,8 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
               "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
                 "<td class=\"points_time\">" +
                   "<span class=\"time\">" + v.order_form + "</span><br />" +
-                  "<span class=\"time\">Order date: <strong>" + (('' != v.order_date) ? v.order_date : 'N/A') + "</strong></span><br />" +
-                  "<span class=\"time\">Draft saved: <strong>" + (('' != v.updated_at) ? v.updated_at : 'N/A') + "</strong></span>" +
+                  "<span class=\"time\">Order date: <strong>" + (('' != v.order_date) ? v.order_date : '-') + "</strong></span><br />" +
+                  "<span class=\"time\">Draft saved: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
                 "</td>" +
                 "<td class=\"right_points\">" +
                   "<div class=\"box_points\">" +
@@ -136,8 +136,8 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
               "<span class=\"time\">" + v.order_form + "</span><br />" +
-              "<span class=\"time\">Order date: <strong>" + (('' != v.order_date) ? v.order_date : 'N/A') + "</strong></span><br />" +
-              "<span class=\"time\">Submitted: <strong>" + (('' != v.updated_at) ? v.updated_at : 'N/A') + "</strong></span>" +
+              "<span class=\"time\">Order date: <strong>" + (('' != v.order_date) ? v.order_date : '-') + "</strong></span><br />" +
+              "<span class=\"time\">Submitted: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
             "</td>" +
             "<td class=\"right_points\">" +
               "<div class=\"box_points\">" +
