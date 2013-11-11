@@ -19,10 +19,25 @@ var OrderView = function(order_id){
       (function(mutations_obj){
         var activeOrder = app.activeOrder(),
             _old_order_id = self.order_id,
-            drafts = app.mySupplyOrdersDrafts();
+            drafts = app.mySupplyOrdersDrafts(),
+            logs = app.myLastSubmittedOrders(),
+            ids_in_ls = (function(){
+              var return_arr = [];
+              return_arr = $.merge($.merge(return_arr, $.map(drafts, function(d){return d.supply_order_id;})),
+                  $.map(logs, function(l){return l.supply_order_id;}));
+              return return_arr;
+            })();
+
         if ($.inArray(self.order_id, Object.keys(mutations_obj))>-1){
           self.order_id = mutations_obj[self.order_id];
           mutations_obj[_old_order_id] = void 0;
+        }
+
+        for(var cnt = 0; cnt>mutations_obj.length; cnt++){
+          var key = Object.keys(mutations_obj)[cnt];
+          if ( $.inArray(key, ids_in_ls) < 0 ){
+            mutations_obj[key] = void 0;
+          }
         }
 
         context.order = (function(){
@@ -108,7 +123,7 @@ var OrderView = function(order_id){
               });
 
               if ($.isEmptyObject(obj)){
-                $.each(app.myLastSubmittedOrders(), function(i,v){
+                $.each(logs, function(i,v){
                   if (String(self.order_id) == String(v.supply_order_id)){
                     obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "log"});
                     return false;
