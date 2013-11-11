@@ -1460,6 +1460,7 @@ var app = {
       case /^#editOrderItem:(.+)$/.test(urlObj.hash):
         var item_id = urlObj.hash.match(/^#editOrderItem:(.+)$/)[1];
         $container.html(new SupplyOrderEditItemView(item_id).render().el).trigger('pagecreate');
+        (function(){$("#item_amount", $container).focus();})();
         break;
       case /^#addOrderItem:(.+)$/.test(urlObj.hash):
         var order_id = urlObj.hash.match(/^#addOrderItem:(.+)$/)[1];
@@ -1813,10 +1814,56 @@ var app = {
           );
           break;
         case /^#order:(\w+)$/.test(app.current_page):
-          app.activeOrder(false);
-          app.route({
-            toPage: window.location.href + "#orders"
-          });
+
+          var activeOrder = app.activeOrder(),
+              cancelProcess = function (){
+                app.activeOrder(false);
+                app.route({
+                  toPage: window.location.href + "#orders"
+                });
+              },
+              isObjectsEqual = function(o1,o2,cfg,reverse){
+                cfg = cfg || {};
+                cfg.exclude = cfg.exclude || {};
+                //first we check the reference. we don't care if null== undefined
+                if( cfg.strictMode ){
+                  if( o1 === o2 ) return true;
+                }
+                else{
+                  if( o1 == o2 ) return true;
+                }
+                if( typeof o1 == "number" || typeof o1 == "string" || typeof o1 == "boolean" || !o1 ||
+                    typeof o2 == "number" || typeof o2 == "string" || typeof o2 == "boolean" || !o2 ){
+                  return false;
+                }
+                if( ((o1 instanceof Array) && !(o2 instanceof Array)) ||
+                    ((o2 instanceof Array) && !(o1 instanceof Array))) return false;
+
+                for( var p in o1 ){
+                  if( cfg.exclude[p] || !o1.hasOwnProperty(p) ) continue;
+                  if( !isObjectsEqual.call(self,o1[p],o2[p], cfg ) ) return false;
+                }
+                if( !reverse && !cfg.noReverse ){
+                  reverse = true;
+                  return isObjectsEqual.call(self,o2,o1,cfg,reverse);
+                }
+                return true;
+              };
+
+          if (isObjectsEqual(activeOrder.proto, activeOrder.upd)){
+            cancelProcess();
+          } else {
+            navigator.notification.confirm(
+                "Changes you have entered may not be saved. Do you want to cancel the editing?",
+                function(buttonIndex){
+                  if(2 == buttonIndex){
+                    cancelProcess();
+                  }
+                },
+                "Are you sure?",
+                'No,Yes'
+            );
+          }
           break;
         case /^#editOrderItem:(.+)$/.test(app.current_page):
         case /^#addOrderItem:(.+)$/.test(app.current_page):

@@ -64,6 +64,8 @@ Handlebars.registerHelper("editItemContent", function(item){
   out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
+  out = out + "<br />Order date: <span>"+ (('' != order.order_date) ? order.order_date : 'N/A') +"</span>";
+  out = out + "<br />Draft saved: <span>"+ (('' != order.updated_at) ? order.updated_at : 'N/A') +"</span>";
   if ("log" != order.order_status){
     out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2)+"</span></strong>";
   }
@@ -197,6 +199,8 @@ Handlebars.registerHelper("addItemContent", function(){
   out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
   out = out + "<p><font>"+order.site_name+"</font><br /><em>"+order.site_address+"</em></p>";
   out = out + "<p>Order type: <span>"+order.order_form+"</span>";
+  out = out + "<br />Order date: <span>"+ (('' != order.order_date) ? order.order_date : 'N/A') +"</span>";
+  out = out + "<br />Draft saved: <span>"+ (('' != order.updated_at) ? order.updated_at : 'N/A') +"</span>";
   if ("log" != order.order_status){
     out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span></strong>";
   }

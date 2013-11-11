@@ -99,10 +99,10 @@ var OrderView = function(order_id){
             } else {
               // открывает драфт/сабмитед ордер из ЛС
 
-              $.each(app.mySupplyOrdersDrafts(), function(i,v){
+              $.each(drafts, function(i,v){
                 if (String(self.order_id) == String(v.supply_order_id) &&
                     (undefined == typeof (v.submit_status) || "submitting" != v.submit_status)){
-                  obj = $.extend(v, {order_status: "draft"});
+                  obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "draft"});
                   return false;
                 }
               });
@@ -110,7 +110,7 @@ var OrderView = function(order_id){
               if ($.isEmptyObject(obj)){
                 $.each(app.myLastSubmittedOrders(), function(i,v){
                   if (String(self.order_id) == String(v.supply_order_id)){
-                    obj = $.extend(v, {order_status: "log"});
+                    obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "log"});
                     return false;
                   }
                 });
@@ -342,29 +342,7 @@ var OrderView = function(order_id){
 
 
     this.el.on('click', ".log_back", function(e){
-      e.preventDefault();
-      var activeOrder = app.activeOrder(),
-          cancelProcess = function (){
-            app.activeOrder(false);
-            app.route({
-              toPage: window.location.href + "#orders"
-            });
-          };
-
-      if (isObjectsEqual(activeOrder.proto, activeOrder.upd)){
-        cancelProcess();
-      } else {
-        navigator.notification.confirm(
-          "Changes you have entered may not be saved. Do you want to cancel the editing?",
-          function(buttonIndex){
-            if(2 == buttonIndex){
-              cancelProcess();
-            }
-          },
-          "Are you sure?",
-          'No,Yes'
-        );
-      }
+      app.backButton();
     });
 
     this.el.on('click', "button.start_new_order", function(e){
@@ -462,6 +440,7 @@ var OrderView = function(order_id){
               }
 
               setTimeout(function(){
+                app.activeOrder(false);
                 app.route({
                   toPage: window.location.href + "#orders"
                 });
@@ -588,7 +567,7 @@ var OrderView = function(order_id){
 
     });
 
-    this.el.on('change', 'textarea#special_instructions', function(e){
+    this.el.on('input propertychange', 'textarea#special_instructions', function(e){
       var activeOrder = app.activeOrder();
       activeOrder.upd.special_instructions = $(e.currentTarget).val();
       app.activeOrder(activeOrder);
@@ -674,6 +653,8 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? 'N/A': order.supply_order_id)+"</em></p>";
     out = out + "<p><font>"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p>Order type: <span>"+order.order_form+"</span>";
+    out = out + "<br />Order date: <span>"+ (('' != order.order_date) ? order.order_date : 'N/A') +"</span>";
+    out = out + "<br />Draft saved: <span>"+ (('' != order.updated_at) ? order.updated_at : 'N/A') +"</span>";
     if ("log" != order.order_status){
       out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span></strong>";
     }
