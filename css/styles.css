@@ -182,11 +182,20 @@ border: 1px solid #a0a0a2;
 	margin: 0 auto;
 	position:relative;
 }
-
 .all_input{	
 	text-align:center; 
 	margin: 0 auto;
 	width:300px;
+}
+#context_menu .all_input{	
+	padding: 0 20%;
+	width:auto;
+}
+#context_menu .ui-header{
+	background: #b7b8bb;
+	border:0 none;
+	border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 }
 .input_text{
 	width:300px;

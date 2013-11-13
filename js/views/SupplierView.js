@@ -83,6 +83,13 @@ var SupplierView = function(){
       });
     });
 
+    this.el.on('taphold', 'li.inspectable', function(event){
+      event.preventDefault();
+      var draft_id = $("a", $(event.currentTarget)).attr("href").match(/^#order:(.+)$/)[1];
+      $("#context_menu input").val( draft_id );
+      $("#context_menu").popup("open");
+    });
+
   };
 
   this.initialize();
