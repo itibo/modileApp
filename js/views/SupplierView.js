@@ -31,7 +31,7 @@ var SupplierView = function(){
           drafts = app.mySupplyOrdersDrafts();
 
       $.each(drafts, function(i,v){
-        if (undefined != typeof (v.submit_status) && "submitting" == v.submit_status){
+        if ( (undefined != v.submit_status && "submitting" == v.submit_status) || ( undefined != v.removing )){
           // skip
         } else {
           return_arr.push({
@@ -76,18 +76,112 @@ var SupplierView = function(){
     var self = this;
     this.el = $('<div/>');
 
-    this.el.on('click', 'button', function(event){
+    this.el.on('click', 'button#start_new', function(event){
       event.preventDefault();
       app.route({
         toPage: window.location.href + "#order:new"
       });
     });
 
-    this.el.on('taphold', 'li.inspectable', function(event){
+    this.el.on('taphold', 'li.editable', function(event){
       event.preventDefault();
-      var draft_id = $("a", $(event.currentTarget)).attr("href").match(/^#order:(.+)$/)[1];
-      $("#context_menu input").val( draft_id );
-      $("#context_menu").popup("open");
+      var draft_id = $("a", $(event.currentTarget)).attr("href").match(/^#order:(.+)$/)[1],
+          $popup = $("#context_menu"),
+          $overlay = $("<div />", {
+            class: "popup-overlay"
+          }).on("click", function(e){
+            e.preventDefault();
+            $overlay.remove();
+            $("input", $popup).val( "" );
+            $popup.css("visibility","hidden");
+
+          });
+
+      $overlay.appendTo("body").trigger("create");
+      $("input", $popup).val( draft_id );
+      $popup.css( "left",  Math.round( ($(window).width() - $popup.width())/2 ) );
+      $popup.css("top", $(document).scrollTop() + Math.round(($(window).height() - $popup.height())/2) + "px");
+      $popup.css("visibility","visible");
+    });
+
+    this.el.on('click', 'button#remove_draft', function(e){
+      e.preventDefault();
+
+      navigator.notification.confirm(
+          "Are you sure you want to remove this draft?",
+          function(buttonIndex){
+            $("#context_menu").css("visibility","hidden");
+            $(".popup-overlay").remove();
+            if(2 == buttonIndex){
+              var drafts = app.mySupplyOrdersDrafts(),
+                  mutation = app.ids_mutation(),
+                  check_array,
+                  removing = String($("input", $(e.currentTarget).parents("div#context_menu").eq(0)).val());
+
+              app.mySupplyOrdersDrafts((function(){
+                $.each(drafts, function(i,v){
+                  check_array = [];
+                  try {
+                    check_array = $.merge([String(v.supply_order_id)], (function(){
+                      if (undefined != mutation[v.supply_order_id])
+                        return [String(mutation[v.supply_order_id])];
+                      else
+                        return [];
+                    })());
+                  } catch(e){
+                    check_array = [String(v.supply_order_id)];
+                  }
+
+                  if ($.inArray(removing, check_array) > -1 ){
+                    drafts[i]['removing'] = true;
+                    if (undefined != mutation[v.supply_order_id]){
+                      drafts[i]["supply_order_id"] = mutation[v.supply_order_id];
+                      drafts[i]["id"] = mutation[v.supply_order_id];
+                    }
+                    return false;
+                  }
+                });
+                return drafts;
+              })());
+
+              setTimeout(function(){
+                app.sync_supply();
+                app.route({
+                  toPage: window.location.href + "#orders"
+                });
+              },0);
+            }
+          },
+          "Drafts",
+          'Cancel,Remove'
+      );
+    });
+
+    this.el.on('click', 'button#submit_to_vendor', function(e){
+      e.preventDefault();
+      $("#context_menu").css("visibility","hidden");
+      $(".popup-overlay").remove();
+      // do nothing
+/*      navigator.notification.confirm(
+          "Are you sure you want to remove this draft?",
+          function(buttonIndex){
+            $("#context_menu").css("visibility","hidden");
+            $(".popup-overlay").remove();
+            if(2 == buttonIndex){
+
+              alert($("input", $(e.currentTarget).parents("div#context_menu").eq(0)).val());
+
+              setTimeout(function(){
+                app.route({
+                  toPage: window.location.href + "#orders"
+                });
+              },0);
+            }
+          },
+          "Drafts",
+          'Cancel,Remove'
+      );
+ */
     });
 
   };
@@ -103,7 +197,7 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
     $.each(drafts, function(i,v){
       if (!(undefined != v.submit_status && "submitting" == v.submit_status)){
         out = out +
-            "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
+            "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
             "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
             "<div class=\"points\">Order #: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : v.supply_order_id) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
               "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +

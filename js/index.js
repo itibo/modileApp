@@ -585,7 +585,8 @@ var app = {
             var _tmp = [];
             _tmp = $.grep(app.mySupplyOrdersDrafts(), function(n,i){
               return ( (undefined != n.submit_status && "submitting" == n.submit_status) ||
-                  (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved)) );
+                  (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved)) ||
+                  (undefined != n.removing) );
             });
             return (_tmp.length>0);
           };
@@ -608,6 +609,7 @@ var app = {
               var to_update = (function(){
                 var updated = [],
                     submitted = [],
+                    delete_drafts = [];
                     mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
 
                 app.mySupplyOrdersDrafts( (function(){
@@ -620,13 +622,17 @@ var app = {
                       submitted.push({supply_order_id: draft.supply_order_id});
                       mySupplyOrdersDrafts[i]["submitting"] = true;
                     }
+                    if(undefined != draft.removing) {
+                      delete_drafts.push({supply_order_id: draft.supply_order_id})
+                    }
                   });
                   return mySupplyOrdersDrafts;
                 })() );
 
                 return {
                   updated_drafts: updated,
-                  submit_drafts: submitted
+                  submit_drafts: submitted,
+                  delete_drafts: delete_drafts
                 };
               })();
 

@@ -164,6 +164,21 @@
       </div><!-- /content -->
     </script>
     <script id="supplier-main-tpl" type="text/x-handlebars-template">
+      <div id="context_menu" class="pop_up">
+        <input type="hidden" value="" />
+        <ul>
+          <li>
+            <div class="all_input stnd_btn">
+              <button id="remove_draft" type="button">Remove</button>
+            </div>
+          </li>
+<!--          <li>
+            <div class="all_input stnd_btn">
+              <button id="submit_to_vendor" type="button">Submit to vendor</button>
+            </div>
+          </li>-->
+        </ul>
+      </div>
       <div data-role="header">
         <h1>
           <span class="address">Supplier</span>
@@ -177,24 +192,11 @@
           <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
           <h5>Supply Period: <font>{{supplyPeriod}}</font></h5>
           <div class="all_input  stnd_btn">
-            <button type="button" class="ui-btn-hidden" aria-disabled="false">Start a new Order</button>
+            <button id="start_new" type="button" class="ui-btn-hidden" aria-disabled="false">Start a new Order</button>
           </div>
           {{#DraftsOrderContent drafts}}{{/DraftsOrderContent}}
           {{#SubmittedOrderContent submitted_orders}}{{/SubmittedOrderContent}}
         </div>
-      </div>
-
-      <div data-role="popup" id="context_menu" data-overlay-theme="e">
-        <input type="hidden" value="" />
-        <ul data-role="listview" data-inset="true">
-          <li data-role="header" role="banner">Action</li>
-          <li>
-            <!--<a class="context_btn" href="#">Remove</a>-->
-            <div class="all_input stnd_btn">
-              <button type="button" class="ui-btn-hidden" aria-disabled="false">Remove</button>
-            </div>
-          </li>
-        </ul>
       </div><!-- /content -->
     </script>
     <script id="order-tpl" type="text/x-handlebars-template">
