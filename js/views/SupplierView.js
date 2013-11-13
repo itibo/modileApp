@@ -199,11 +199,10 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
         out = out +
             "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
             "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
-            "<div class=\"points\">Order #: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : v.supply_order_id) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
+            "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
               "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
                 "<td class=\"points_time\">" +
                   "<span class=\"time\">" + v.order_form + "</span><br />" +
-                  "<span class=\"time\">Order date: <strong>" + (('' != v.order_date) ? v.order_date : '-') + "</strong></span><br />" +
                   "<span class=\"time\">Draft saved: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
                 "</td>" +
                 "<td class=\"right_points\">" +
@@ -233,11 +232,10 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
     $.each(submitted_orders, function(i,v){
       out = out + "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
           "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
-          "<div class=\"points\">Order #: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : v.supply_order_id) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
+          "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>sync required</span>' : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) + "<br/ >"+v.site_name +"<br/><span class=\"adress\">"+ v.site_address +"</span><br/>"+"</div>" +
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
               "<span class=\"time\">" + v.order_form + "</span><br />" +
-              "<span class=\"time\">Order date: <strong>" + (('' != v.order_date) ? v.order_date : '-') + "</strong></span><br />" +
               "<span class=\"time\">Submitted: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
             "</td>" +
             "<td class=\"right_points\">" +

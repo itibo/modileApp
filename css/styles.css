@@ -197,6 +197,9 @@ border: 1px solid #a0a0a2;
 	border-top-left-radius: 8px;
     border-top-right-radius: 8px;
 }
+#context_menu .ui-btn-inner{
+	white-space: normal;
+}
 .input_text{
 	width:300px;
 }
@@ -1194,6 +1197,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	.log .right_points{ padding: 10% 0; width:40%; }
 	.log .right_points span.big_points{ font-size:1em; }
 	.all_input{ width:auto; }
+	#context_menu .all_input{ padding:0 2%; }
 	.over_budget div{ font-size:90%; }
 	.boxcnt, .box_rightcnt{ font-size:120%; float:none; padding:2% 3%; width:94%; }
 	.boxcnt{ width:85%; }

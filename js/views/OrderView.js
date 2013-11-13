@@ -16,7 +16,6 @@ var OrderView = function(order_id){
     } else {
       context.title = "Order Details";
 
-
       var activeOrder = app.activeOrder(),
           _old_order_id = self.order_id,
           drafts = app.mySupplyOrdersDrafts(),
@@ -60,29 +59,45 @@ var OrderView = function(order_id){
 
             var site_info = (function(id_arr){
                   var site_id = id_arr[2],
+                      my_sites = app.mySites(),
                       tmp = {};
 
-                  $.each(app.mySites(), function(i,s){
+                  $.each(my_sites, function(i,s){
                     if (site_id == s.site_id){
                       tmp = s;
                       return false;
                     }
                   });
 
-                  return {
-                    site_id: tmp.site_id,
-                    site_name: tmp.site,
-                    site_address: tmp.address,
-                    remaining_budget: (function(form_prefix){
-                      var budget = $.grep(Object.keys(tmp), function(n,i){
-                        return RegExp('^budget_'+ form_prefix +'(\\b|_)','i').test(n);
-                      })[0];
-                      var used = $.grep(Object.keys(tmp), function(n,i){
-                        return RegExp('^used_'+ form_prefix +'(\\b|_)','i').test(n);
-                      })[0];
-                      var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
-                      return parseFloat(remain).toFixed(2);
-                    })(id_arr[1])
+                  if ($.isEmptyObject(tmp)){
+                    return {
+                      site_id: "",
+                      site_name: "Diamond Corporate Office",
+                      site_address: "2249 N. Hollywood Way, Burbank CA 91505",
+                      remaining_budget: (function(form_prefix){
+                        var val = 0;
+                        if ("discretionary" == form_prefix) {
+                          val = parseFloat(my_sites[0]["budget_discretionary"]) - parseFloat(my_sites[0]["used_discretionary"]);
+                        }
+                        return val.toFixed(2);
+                      })(id_arr[1])
+                    }
+                  } else {
+                    return {
+                      site_id: tmp.site_id,
+                      site_name: tmp.site,
+                      site_address: tmp.address,
+                      remaining_budget: (function(form_prefix){
+                        var budget = $.grep(Object.keys(tmp), function(n,i){
+                          return RegExp('^budget_'+ form_prefix +'(\\b|_)','i').test(n);
+                        })[0];
+                        var used = $.grep(Object.keys(tmp), function(n,i){
+                          return RegExp('^used_'+ form_prefix +'(\\b|_)','i').test(n);
+                        })[0];
+                        var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
+                        return parseFloat(remain).toFixed(2);
+                      })(id_arr[1])
+                    }
                   }
                 })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/)),
                 form_and_items_info = (function(form){
@@ -237,104 +252,15 @@ var OrderView = function(order_id){
       }
     });
 
-    this.el.on("change", "select[name^=client]", function(e){
-      if ( $.isEmptyObject(self.reordered_sites) ) {
-        var tmp = {};
-        $.each(app.mySites(), function(i, value){
-          if ("undefined" == typeof tmp[value.client]){
-            tmp[value.client] = {};
-          }
-          if ("undefined" == typeof tmp[value.client][value.client_group]){
-            tmp[value.client][value.client_group] = [];
-          }
-          tmp[value.client][value.client_group].push(value);
-        });
-        self.reordered_sites = tmp;
-      }
-
-      if ("client" == $(e.currentTarget).attr("id")){
-        switch (true) {
-          case $(e.currentTarget).val().length == 0:
-            $("select#client_group").html("<option value=\"\">- Select Client Group -</option>");
-            $("select#client_group").selectmenu('disable').selectmenu('refresh', true);
-            $("select#site").html("<option value=\"\">- Select Site Location -</option>");
-            $("select#site").selectmenu('disable').selectmenu('refresh', true);
-            break;
-          case $(e.currentTarget).val().length > 0:
-          default:
-            var client_groups_array = Object.keys(self.reordered_sites[$(e.currentTarget).val()]);
-            if (1 == client_groups_array.length ){
-              if ("null" == client_groups_array[0]){
-                $("select#client_group").html("<option value=\"null\"></option>");
-                $("select#client_group").selectmenu('disable').selectmenu('refresh', true);
-              } else {
-                $("select#client_group").html("<option value=\""+ client_groups_array[0] +"\">"+ client_groups_array[0] +"</option>");
-                $("select#client_group").selectmenu('enable').selectmenu('refresh', true);
-              }
-
-              var sites_options,
-                  client_group_sites_arr = self.reordered_sites[$(e.currentTarget).val()][ client_groups_array[0] ];
-
-              if ( 1 == client_group_sites_arr.length ){
-                sites_options = "<option value=\""+ client_group_sites_arr[0].site_id +"\">"+ client_group_sites_arr[0].site +"</option>";
-              } else {
-                sites_options = "<option value=\"\">- Select Site Location -</option>";
-                $.each(client_group_sites_arr, function(i,v){
-                  sites_options = sites_options + "<option value=\""+ v.site_id +"\">"+ v.site +"</option>";
-                });
-              }
-              $("select#site").html(sites_options);
-              $("select#site").selectmenu('enable').selectmenu('refresh', true);
-            } else {
-              var client_groups_options = "<option value=\"\">- Select Client Group -</option>";
-              $.each(client_groups_array, function(i,v){
-                client_groups_options = client_groups_options + "<option value=\""+ v +"\">"+ v +"</option>";
-              });
-              $("select#client_group").html(client_groups_options);
-              $("select#client_group").selectmenu('enable').selectmenu('refresh', true);
-
-              $("select#site").html("<option value=\"\">- Select Site Location -</option>");
-              $("select#site").selectmenu('disable').selectmenu('refresh', true);
-            }
-            break;
-        }
-      } else if ("client_group" == $(e.currentTarget).attr("id")){
-        switch (true) {
-          case $(e.currentTarget).val().length == 0:
-            $("select#site").html("<option>- Select Site Location -</option>");
-            $("select#site").selectmenu('disable').selectmenu('refresh', true);
-            break;
-          case $(e.currentTarget).val().length > 0:
-          default:
-              var sites_options="",
-                  sites_arr = self.reordered_sites[$("select#client").val()][$(e.currentTarget).val()];
-              if (1 == sites_arr.length){
-                sites_options = "<option value=\""+ sites_arr[0].site_id +"\">"+ sites_arr[0].site +"</option>";
-              } else {
-                sites_options = "<option value=\"\">- Select Site Location -</option>";
-                $.each(sites_arr, function(i,v){
-                  sites_options = sites_options + "<option value=\""+ v.site_id +"\">"+ v.site +"</option>";
-                });
-              }
-              $("select#site").html(sites_options);
-              $("select#site").selectmenu('enable').selectmenu('refresh', true);
-            break;
-        }
-      }
+    this.el.on("change", "select[name=client_site]", function(e){
+      var my_sites = app.mySites();
 
       if ($("select#site").val().length>0){
-        var site_info = (function(){
-          var site = {};
-          $.each(self.reordered_sites[$("select#client").val()][((0 == $("select#client_group").val().length)?'null':$("select#client_group").val())], function(i,v){
-            if ($("select#site").val() == String(v.site_id)){
-              site = v;
-              return false;
-            }
-          });
-          return site;
-        })();
+        var site_info = $.grep(my_sites, function(n,i){
+          return String(n.site_id) == String($("select#site").val())}
+        )[0];
 
-        $(".order_form_selection dd").each(function(i, elm){
+        $(".order_form_selection>.site_dependent dd").each(function(i, elm){
           var obj_key_prefix = $(elm).parent().attr('class') + "_" + $(elm).closest("div.start_order").attr('id');
           var val = "";
 
@@ -349,7 +275,7 @@ var OrderView = function(order_id){
           }
         });
 
-        $(".order_form_selection .remain>dd").each(function(i, elm){
+        $(".order_form_selection>.site_dependent .remain>dd").each(function(i, elm){
           var res = "";
           res = parseFloat( $(".budget>dd", $(elm).closest("div")).text().substring(1) ) -
               parseFloat( $(".used>dd", $(elm).closest("div")).text().substring(1) );
@@ -358,11 +284,9 @@ var OrderView = function(order_id){
             $(elm).text("$" + res);
         });
       } else {
-        $(".order_form_selection dd").html("&nbsp;");
+        $(".order_form_selection>.site_dependent dd").html("&nbsp;");
       }
-
     });
-
 
     this.el.on('click', ".log_back", function(e){
       e.preventDefault();
@@ -370,7 +294,7 @@ var OrderView = function(order_id){
     });
 
     this.el.on('click', "button.start_new_order", function(e){
-      if ($("select#site").val() == ""){
+      if ($("select#site").val() == "" && "discretionary" != $(e.currentTarget).closest("div.start_order").attr("id") ){
 
         navigator.notification.alert(
             "Please, select site to continue.", // message
@@ -384,7 +308,7 @@ var OrderView = function(order_id){
           app.route({
             toPage: window.location.href + "#order:new_on_device_" +
                 $(e.currentTarget).closest("div.start_order").attr("id") +
-                "_" + $("select#site").val() + "_" + (new Date()).getTime()
+                "_" + ((""!=$("select#site").val())? $("select#site").val() : '0000') + "_" + (new Date()).getTime()
           });
         },0);
       }
@@ -605,7 +529,7 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
   var out = "";
   if ($.isEmptyObject(order)){
 
-    out = out + "<div style=\"padding: 20px 10px 0 0\"><h5>Supply Period: <font>"+
+    out = out + "<div style=\"padding: 15px 10px 0 0\"><h5>Supply Period: <font>"+
         (function(){
           var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
           var formattedDate = new Date();
@@ -615,43 +539,40 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
 
     out = out + "<div data-role=\"content\" class=\"select_location\">";
     var my_sites = app.mySites(),
-        clients = (function(){
-      var arr = [];
-      $.each(my_sites, function(i, value){
-        if ($.inArray(value.client, arr) < 0){
-          arr.push(value.client);
-        }
-      });
-      return arr;
-    })();
-    var order_forms = (function(){
-      var arr = [];
-      $.each(app.supplyOrdersTemplate(), function(i, value){
-        if ($.inArray(value.order_form, arr) < 0){
-          arr.push(value.order_form);
-        }
-      });
-      return arr;
-    })();
+        current_order_type,
+        order_forms = (function(){
+          var arr = [];
+          $.each(app.supplyOrdersTemplate(), function(i, value){
+            if ($.inArray(value.order_form, arr) < 0){
+              arr.push(value.order_form);
+            }
+          });
+          return arr;
+        })(),
+        discretionary_budget_info = (function(){
+          return {
+            budget_discretionary: parseFloat(my_sites[0]["budget_discretionary"]).toFixed(2),
+            used_discretionary: parseFloat(my_sites[0]["used_discretionary"]).toFixed(2),
+            remain_discretionary: (parseFloat(my_sites[0]["budget_discretionary"]) - parseFloat(my_sites[0]["used_discretionary"])).toFixed(2)
+          }
+        })();
 
-    out = out + "<select name=\"client\" id=\"client\">";
-    out = out + "<option value=\"\">- Select Client -</option>";
-    $.each(clients, function( index, value ) {
-      out = out + "<option value=\"" + value + "\">" + value + "</option>";
+    out = out + "<select name=\"client_site\" id=\"site\"><option value=\"\">- Select Site Location -</option>";
+    $.each(my_sites, function( index, value ) {
+      out = out + "<option value=\"" + value.site_id + "\">" + value.site + "</option>";
     });
     out = out + "</select>";
-    out = out + "<select disabled=\"disabled\" name=\"client_group\" id=\"client_group\"><option value=\"\">- Select Client Group -</option></select>";
-    out = out + "<select disabled=\"disabled\" name=\"client_site\" id=\"site\"><option value=\"\">- Select Site Location -</option></select>";
 
     out = out + "<div data-role=\"content\" class=\"order_form_selection\">";
     $.each(order_forms, function(i,v){
-      out = out + "<div id=\""+ v.match(/^(.+?)\b/)[1].toLowerCase() +"\" class=\"box start_order\">" +
+      current_order_type = v.match(/^(.+?)\b/)[1].toLowerCase();
+      out = out + "<div id=\""+ current_order_type +"\" class=\"box start_order"+ (("discretionary" != current_order_type)?' site_dependent':'') +"\">" +
           "<div role=\"heading\" class=\"boxheader\">"+ v +"</div>" +
           "<div class=\"boxpoints\">" +
             "<div class=\"boxcnt\">" +
-              "<dl class=\"budget\"><dt>Budget:</dt><dd>&nbsp;</dd></dl>" +
-              "<dl class=\"used\"><dt>Used:</dt><dd>&nbsp;</dd></dl>" +
-              "<dl class=\"remain\"><dt>Remaining:</dt><dd>&nbsp;</dd></dl>" +
+              "<dl class=\"budget\"><dt>Budget:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.budget_discretionary)) +"</dd></dl>" +
+              "<dl class=\"used\"><dt>Used:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.used_discretionary)) +"</dd></dl>" +
+              "<dl class=\"remain\"><dt>Remaining:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.remain_discretionary)) +"</dd></dl>" +
             "</div>" +
             "<div class=\"box_rightcnt\">" +
               "<button class=\"start_new_order\">Start</button>" +
@@ -674,14 +595,13 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
     out = out + "<div data-role=\"content\""+ (("log" != order.order_status)? ' class=\"categories\"' : '') +">";
     out = out + "<div class=\"location_details\">";
-    out = out + "<p>Order #: <em>"+ ((/^new_on_device/ig).test(order.supply_order_id)? '-': order.supply_order_id)+"</em></p>";
-    out = out + "<p><font>"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
+    out = out + "<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>sync required</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>'));
+    out = out + "<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p>Order type: <span>"+order.order_form+"</span>";
-    out = out + "<br />Order date: <span>"+ (('' != order.order_date) ? order.order_date : '-') +"</span>";
-    out = out + "<br />Draft saved: <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
     if ("log" != order.order_status){
-      out = out + "<br /><strong>Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span></strong>";
+      out = out + "<br /><strong>Remaining Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span></strong>";
     }
+    out = out + "<br />"+(("log" != order.order_status)?'Draft saved':'Submitted' )+": <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
     out = out + "</p>";
     out = out + "</div>";
 
@@ -705,9 +625,10 @@ Handlebars.registerHelper("orderContent", function(order_obj){
           category_out = category_out + "<li>";
           if ("log" != order.order_status){
             category_out = category_out + "<a href=\"#editOrderItem:"+item.item_id+"\">";
+            category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
           }
-          category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
-            "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
+          category_out = category_out +
+              "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
               "<div class=\"detals\">Price: $"+ price.toFixed(2)  + "</div>" +
               "<div class=\"detals\">Amount: "+ amount + "</div>" +
               "<div class=\"detals\">Total: $"+ _total.toFixed(2) + "</div>" +
@@ -734,7 +655,6 @@ Handlebars.registerHelper("orderContent", function(order_obj){
         out = out + "<button id=\"add_new_item\" data-value=\""+ order_obj.id +"\" type=\"button\" class=\"ui-btn-hidden\" aria-disabled=\"false\">Add New Item</button>";
         out = out + "</div>";
       }
-
     }
 
     //over budget
@@ -748,11 +668,11 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     // Special Instructions
 
     if ("log" != order.order_status){
-      out = out +"<h3>Special Instructions</h3><div class=\"block-textarea\">";
+      out = out +"<h3>Special Instructions:</h3><div class=\"block-textarea\">";
       out = out + "<textarea id=\"special_instructions\" name=\"special_instructions\">" + order.special_instructions + "</textarea>";
     } else if ($.trim(order.special_instructions).length > 0) {
       out = out +"<div class=\"location_details\">";
-      out = out +"<p><font>Special Instructions</font></p>";
+      out = out +"<p><font>Special Instructions:</font></p>";
       out = out + "<p>" + order.special_instructions + "</p>";
       out = out +"</div>";
     }
