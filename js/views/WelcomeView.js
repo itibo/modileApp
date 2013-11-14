@@ -12,7 +12,6 @@ var WelcomeView = function() {
     var context = {};
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
-//    context.jobsAvailiableToInspect = app.sitesToInspect();
 
     this.el.html(WelcomeView.template(context));
     return this;
@@ -49,20 +48,11 @@ var WelcomeView = function() {
   this.initialize();
 
 }
-/*
-Handlebars.registerHelper('MyJobs', function() {
-  return new Handlebars.SafeString(
-    '<li>' + ((app.jobsAvailiableToInspect.length>0)? "<a href=\"#my_jobs\">":"") + 'My Jobs' +
-        ((app.jobsAvailiableToInspect.length>0)? "<span class=\"ui-li-count\">"+app.jobsAvailiableToInspect.length +
-        "</span></a>":"") + '</li>'
-  );
-});
-*/
 
 Handlebars.registerHelper('SupplierMenuItem', function() {
   var return_html='';
   try{
-    if ("Area Supervisor" == this.userInfo.role){
+    if (/^Area Supervisor/i.test(this.userInfo.role)){
       return_html = '<li><a href="#orders"><img src="css/images/icons_4.png"/>Supply</a></li>';
     }
   } catch(e) {

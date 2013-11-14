@@ -187,19 +187,6 @@ border: 1px solid #a0a0a2;
 	margin: 0 auto;
 	width:300px;
 }
-#context_menu .all_input{	
-	padding: 0 20%;
-	width:auto;
-}
-#context_menu .ui-header{
-	background: #b7b8bb;
-	border:0 none;
-	border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-}
-#context_menu .ui-btn-inner{
-	white-space: normal;
-}
 .input_text{
 	width:300px;
 }
@@ -784,6 +771,44 @@ body .popup-overlay {
     width: 100%;
     z-index: 100 !important;
 }
+
+#context_menu.pop_up{
+	padding-top: 0;
+	overflow: hidden;
+	width:300px;
+}
+#context_menu.pop_up .header{
+	background-color: #f3f3f3;
+	border-bottom: 1px solid #ccc;
+	font-weight: bold;
+	color: #555;
+	padding: 1.5% 15px;
+}
+#context_menu.pop_up ul{
+	background-color: #fff;
+	padding:0px;
+	overflow: hidden;
+}
+#context_menu.pop_up ul li{
+	float: left;
+	list-style: none;
+	display: inline;
+	margin: 0 5%;
+	width:40%;
+}
+.pop_up .all_input{
+	/*width:auto;*/
+	width:200px;
+}
+.pop_up .ui-header{
+	background: #b7b8bb;
+	border:0 none;
+	border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+.pop_up .ui-btn-inner{
+	white-space: normal;
+}
 /* end my popup */
 
 
@@ -1179,12 +1204,13 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 @media screen and (max-width:854px) {
 }
 @media screen and (max-width:480px) {
-	.logo_img{ background: url(../img/logo_280x108.png) no-repeat; width:300px; height:108px; text-align:center; margin:0 auto; position:relative; }
-}
-@media screen and (max-width:480px) {
 	body{ font-size:90%; }
+	.logo_img{ background: url(../img/logo_280x108.png) no-repeat; width:300px; height:108px; text-align:center; margin:0 auto; position:relative; }
 	.log .right_points span.big_points{ font-size:1.2em; }
 	.all_input{ width:280px; }
+	#context_menu.pop_up .header{ padding:3% 15px; }
+	/*.pop_up .all_input{ margin:0 10%; }*/
+	#context_menu.pop_up ul li{ float:none; margin:0; }
 	.boxcntone label.ui-input-text{ text-align: left; }
 	.boxcntone dd{ margin: 0 0 3%; }
 	.boxcntone dt{ float:none; width:100%; text-align:left; }
@@ -1197,7 +1223,9 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	.log .right_points{ padding: 10% 0; width:40%; }
 	.log .right_points span.big_points{ font-size:1em; }
 	.all_input{ width:auto; }
-	#context_menu .all_input{ padding:0 2%; }
+	#context_menu.pop_up{ width:200px; }
+	#context_menu.pop_up .all_input{ width:140px; }
+	.pop_up .all_input{ padding:0 2%; }
 	.over_budget div{ font-size:90%; }
 	.boxcnt, .box_rightcnt{ font-size:120%; float:none; padding:2% 3%; width:94%; }
 	.boxcnt{ width:85%; }

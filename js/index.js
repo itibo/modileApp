@@ -1506,9 +1506,11 @@ var app = {
         u = $.mobile.path.parseUrl(u.hrefNoHash + "#inspection:" + job_insp_cont.site_id + "-" + job_insp_cont.job_id);
       }
 
-      if (/^#order[:]?(\w+)$/.test(u.hash) && "Area Supervisor" != app.getUserInfo().role){
+      if ( (/^#order[:]?(\w+)$/.test(u.hash) || /^(edit|add)OrderItem:(.*)$/i.test(u.hash) ) &&
+          !(/^Area Supervisor/i.test(app.getUserInfo().role)) ){
         u = $.mobile.path.parseUrl(u.hrefNoHash);
       }
+
     } else {
       u = $.mobile.path.parseUrl(u.hrefNoHash + "#login");
     }

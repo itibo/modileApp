@@ -73,7 +73,11 @@ var SupplierView = function(){
   };
 
   this.initialize = function() {
-    var self = this;
+    var self = this,
+        holdCords = {
+          holdX : 0,
+          holdY : 0
+        };
     this.el = $('<div/>');
 
     this.el.on('click', 'button#start_new', function(event){
@@ -81,6 +85,11 @@ var SupplierView = function(){
       app.route({
         toPage: window.location.href + "#order:new"
       });
+    });
+
+    this.el.on('vmousedown', 'li.editable', function(event){
+      holdCords.holdX = event.pageX;
+      holdCords.holdY = event.pageY;
     });
 
     this.el.on('taphold', 'li.editable', function(event){
@@ -94,13 +103,12 @@ var SupplierView = function(){
             $overlay.remove();
             $("input", $popup).val( "" );
             $popup.css("visibility","hidden");
-
           });
 
       $overlay.appendTo("body").trigger("create");
       $("input", $popup).val( draft_id );
-      $popup.css( "left",  Math.round( ($(window).width() - $popup.width())/2 ) );
-      $popup.css("top", $(document).scrollTop() + Math.round(($(window).height() - $popup.height())/2) + "px");
+      $popup.css( "left", ( ( (holdCords.holdX + $popup.width())< $(window).width() ) ? holdCords.holdX : ( $(window).width() - $popup.width()) ) + "px" );
+      $popup.css("top", ( ( ($(document).scrollTop() + $(window).height() - holdCords.holdY)< $popup.height()) ? (holdCords.holdY - $popup.height()) : (holdCords.holdY - $popup.height()/2) ) + "px");
       $popup.css("visibility","visible");
     });
 
@@ -225,10 +233,9 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
 });
 
 Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
-  var out = "";
+  var out = "<ul data-role=\"listview\" data-inset=\"true\">";
+  out = out + "<li data-role=\"list-divider\" role=\"heading\">Last 5 Submitted Orders</li>";
   if (submitted_orders.length>0){
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
-    out = out + "<li data-role=\"list-divider\" role=\"heading\">Last 5 Submitted Orders</li>";
     $.each(submitted_orders, function(i,v){
       out = out + "<li class=\"inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
           "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
@@ -250,6 +257,8 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
         "</a></li>";
     });
     out = out + "</ul>";
+  } else {
+    out = out + "<li>Empty</li></ul>";
   }
   return new Handlebars.SafeString(out);
 });
