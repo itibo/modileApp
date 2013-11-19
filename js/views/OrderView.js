@@ -1,6 +1,7 @@
 var OrderView = function(order_id){
   this.order_id = order_id || "new";
   this.reordered_sites = {};
+  this.activeOrder = {};
 
   this.render = function(){
     var context = {},
@@ -8,7 +9,7 @@ var OrderView = function(order_id){
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
     context.order = {};
-//    alert("order_id on load: " + self.order_id);
+
     if ("new" == self.order_id){
       context.title = "New Order";
       context.new = "new";
@@ -16,8 +17,7 @@ var OrderView = function(order_id){
     } else {
       context.title = "Order Details";
 
-      var activeOrder = app.activeOrder(),
-          _old_order_id = self.order_id,
+      var _old_order_id = self.order_id,
           drafts = app.mySupplyOrdersDrafts(),
           logs = app.myLastSubmittedOrders(),
           ids_in_ls = (function(){
@@ -27,6 +27,8 @@ var OrderView = function(order_id){
             return return_arr;
           })(),
           mutations_obj = app.ids_mutation();
+
+      self.activeOrder = app.activeOrder();
 
       if (!$.isEmptyObject(mutations_obj)){
         if ($.inArray(self.order_id, Object.keys(mutations_obj))>-1){
@@ -48,7 +50,7 @@ var OrderView = function(order_id){
 
       context.order = (function(){
 
-        if ($.isEmptyObject(activeOrder) || undefined == activeOrder.id || $.inArray( activeOrder.id, [self.order_id, _old_order_id] ) < 0 ){
+        if ($.isEmptyObject(self.activeOrder) || undefined == self.activeOrder.id || $.inArray( self.activeOrder.id, [self.order_id, _old_order_id] ) < 0 ){
           // впервые открываем любой драфт, как вновь созданный, так и уже существкющий
 
           var obj = {};
@@ -159,6 +161,7 @@ var OrderView = function(order_id){
                 "Please re-choose order", // message
                 function(){
                   setTimeout(function(){
+                    self.activeOrder = {};
                     app.activeOrder(false);
                     app.route({
                       toPage: window.location.href + "#orders"
@@ -169,7 +172,7 @@ var OrderView = function(order_id){
                 'Ok'            // buttonName
             );
           } else {
-            activeOrder = app.activeOrder($.extend({
+            self.activeOrder = app.activeOrder($.extend({
               id: self.order_id,
               status: obj.order_status
             }, {
@@ -177,11 +180,10 @@ var OrderView = function(order_id){
               upd: obj
             }));
           }
-
         } else {
           // возвращаемся со страницы добавления/редактирования айтема
 
-          activeOrder = app.activeOrder((function(){
+          self.activeOrder = app.activeOrder((function(){
             // mutations in action
             var muted = function(obj){
               if (_old_order_id != self.order_id){
@@ -192,13 +194,13 @@ var OrderView = function(order_id){
               return obj;
             };
             return $.extend({id: self.order_id}, {
-              proto: muted(activeOrder.proto),
-              upd: muted(activeOrder.upd)
+              proto: muted(self.activeOrder.proto),
+              upd: muted(self.activeOrder.upd)
             })
           })());
         }
 //          alert("activeOrder on the end of content rendering: " + JSON.stringify(activeOrder));
-        return activeOrder;
+        return self.activeOrder;
       })();
 
       try {
@@ -208,6 +210,38 @@ var OrderView = function(order_id){
     }
 
     this.el.html(OrderView.template(context));
+    return this;
+  };
+
+  this.close_popup = function(){
+    $(".popup-overlay").remove();
+    $(".pop_up > input[type=hidden]").val("");
+    $(".pop_up").css("visibility", "hidden");
+    return this;
+  };
+
+  this.recalculate_total = function(){
+    var self = this,
+        total = 0,
+        category,
+        item;
+
+    $.each(Object.keys(self.activeOrder.upd.supply_order_categories), function(i,v){
+      category = self.activeOrder.upd.supply_order_categories[v];
+      $.each(Object.keys(category), function(ik,vk){
+        item = category[vk];
+        if(parseFloat(item.amount) > 0){
+          total = total + (parseFloat(item.price) * parseFloat(item.amount));
+        }
+      });
+    });
+
+    if (parseFloat(self.activeOrder.upd.remaining_budget) > parseFloat(total)){
+      $(".over_budget > span").css("visibility", "hidden");
+    } else {
+      $(".over_budget > span").css("visibility", "visible");
+    }
+    $("div.over_budget span.price").text("$" + total.toFixed(2));
     return this;
   };
 
@@ -323,34 +357,33 @@ var OrderView = function(order_id){
     });
 
     this.el.on('click', "button#save_draft", function(e){
-      var activeOrder = app.activeOrder();
 
       navigator.notification.confirm(
           "Do you want to save this order as draft?",
           function(buttonIndex){
             if(2 == buttonIndex){
-              if(String(self.order_id) == String(activeOrder.id) && !isObjectsEqual(activeOrder.proto, activeOrder.upd)){
+              if(String(self.order_id) == String(self.activeOrder.id) && !isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
                 var drafts = app.mySupplyOrdersDrafts(),
                     mutation = app.ids_mutation();
-                if ( RegExp('^new_on_device_','i').test(activeOrder.upd.supply_order_id) &&
-                    (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.id == String(activeOrder.id)});return !(_tmp.length>0);})() ){
+                if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
+                    (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.id == String(self.activeOrder.id)});return !(_tmp.length>0);})() ){
                   // новый черновик, не присутствующий в ЛС, добавляем его туда
 
 
                   drafts.unshift($.extend({
-                    id: activeOrder.upd.supply_order_id,
-                    supply_order_id: activeOrder.upd.supply_order_id,
-                    supply_order_name: activeOrder.upd.supply_order_name,
-                    updated_at: activeOrder.upd.updated_at,
-                    order_date: activeOrder.upd.order_date,
-                    order_form: activeOrder.upd.order_form,
-                    site_id: activeOrder.upd.site_id,
-                    site_name: activeOrder.upd.site_name,
-                    site_address: activeOrder.upd.site_address,
-                    special_instructions: activeOrder.upd.special_instructions,
-                    remaining_budget: activeOrder.upd.remaining_budget
+                    id: self.activeOrder.upd.supply_order_id,
+                    supply_order_id: self.activeOrder.upd.supply_order_id,
+                    supply_order_name: self.activeOrder.upd.supply_order_name,
+                    updated_at: self.activeOrder.upd.updated_at,
+                    order_date: self.activeOrder.upd.order_date,
+                    order_form: self.activeOrder.upd.order_form,
+                    site_id: self.activeOrder.upd.site_id,
+                    site_name: self.activeOrder.upd.site_name,
+                    site_address: self.activeOrder.upd.site_address,
+                    special_instructions: self.activeOrder.upd.special_instructions,
+                    remaining_budget: self.activeOrder.upd.remaining_budget
                   },{
-                    locally_saved: activeOrder.upd
+                    locally_saved: self.activeOrder.upd
                   }));
                 } else {
                   $.each(drafts, function(i, dr){
@@ -358,24 +391,24 @@ var OrderView = function(order_id){
                       var draft_to_update = {};
 
                       if (undefined != mutation[self.order_id]){
-                        activeOrder.upd.supply_order_id = mutation[self.order_id];
-                        activeOrder.upd.id = mutation[self.order_id];
+                        self.activeOrder.upd.supply_order_id = mutation[self.order_id];
+                        self.activeOrder.upd.id = mutation[self.order_id];
                       }
 
                       draft_to_update = $.extend({
-                        id: activeOrder.upd.supply_order_id,
-                        supply_order_id: activeOrder.upd.supply_order_id,
-                        supply_order_name: activeOrder.upd.supply_order_name,
-                        updated_at: activeOrder.upd.updated_at,
-                        order_date: activeOrder.upd.order_date,
-                        order_form: activeOrder.upd.order_form,
-                        site_id: activeOrder.upd.site_id,
-                        site_name: activeOrder.upd.site_name,
-                        site_address: activeOrder.upd.site_address,
-                        special_instructions: activeOrder.upd.special_instructions,
-                        remaining_budget: activeOrder.upd.remaining_budget
+                        id: self.activeOrder.upd.supply_order_id,
+                        supply_order_id: self.activeOrder.upd.supply_order_id,
+                        supply_order_name: self.activeOrder.upd.supply_order_name,
+                        updated_at: self.activeOrder.upd.updated_at,
+                        order_date: self.activeOrder.upd.order_date,
+                        order_form: self.activeOrder.upd.order_form,
+                        site_id: self.activeOrder.upd.site_id,
+                        site_name: self.activeOrder.upd.site_name,
+                        site_address: self.activeOrder.upd.site_address,
+                        special_instructions: self.activeOrder.upd.special_instructions,
+                        remaining_budget: self.activeOrder.upd.remaining_budget
                       },{
-                        locally_saved: activeOrder.upd
+                        locally_saved: self.activeOrder.upd
                       });
 
                       drafts[i] = draft_to_update;
@@ -388,6 +421,7 @@ var OrderView = function(order_id){
               }
 
               setTimeout(function(){
+                self.activeOrder = {};
                 app.activeOrder(false);
                 app.route({
                   toPage: window.location.href + "#orders"
@@ -402,12 +436,11 @@ var OrderView = function(order_id){
     });
 
     this.el.on('click', "button#submit_to_vendor", function(e){
-      var _total = parseFloat($(".over_budget span.price").text().substring(1)),
-          activeOrder = app.activeOrder();
+      var _total = parseFloat($(".over_budget span.price").text().substring(1));
 
       if ( _total > 0) {
 
-        if (_total > parseFloat(activeOrder.upd.remaining_budget)){
+        if (_total > parseFloat(self.activeOrder.upd.remaining_budget)){
           navigator.notification.alert(
               "Order can't be submitted to vendor since budget is exceeded. Please correct the order details to be in the limits of available budget.", // message
               function(){},    // callback
@@ -425,23 +458,23 @@ var OrderView = function(order_id){
                     submitted_item = {};
 
                 // новый черновик, не присутствующий в ЛС, добавляем его туда
-                if ( RegExp('^new_on_device_','i').test(activeOrder.upd.supply_order_id) &&
-                    (function(){var _tmp = [];_tmp = $.grep(mySupplyOrdersDrafts, function(n,i){return n.id == String(activeOrder.supply_order_id)});return !(_tmp.length>0);})() ){
+                if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
+                    (function(){var _tmp = [];_tmp = $.grep(mySupplyOrdersDrafts, function(n,i){return n.id == String(self.activeOrder.supply_order_id)});return !(_tmp.length>0);})() ){
 
                   mySupplyOrdersDrafts.unshift($.extend({
-                    id: activeOrder.upd.supply_order_id,
-                    supply_order_id: activeOrder.upd.supply_order_id,
-                    supply_order_name: activeOrder.upd.supply_order_name,
-                    updated_at: activeOrder.upd.updated_at,
-                    order_date: activeOrder.upd.order_date,
-                    order_form: activeOrder.upd.order_form,
-                    site_id: activeOrder.upd.site_id,
-                    site_name: activeOrder.upd.site_name,
-                    site_address: activeOrder.upd.site_address,
-                    special_instructions: activeOrder.upd.special_instructions,
-                    remaining_budget: activeOrder.upd.remaining_budget
+                    id: self.activeOrder.upd.supply_order_id,
+                    supply_order_id: self.activeOrder.upd.supply_order_id,
+                    supply_order_name: self.activeOrder.upd.supply_order_name,
+                    updated_at: self.activeOrder.upd.updated_at,
+                    order_date: self.activeOrder.upd.order_date,
+                    order_form: self.activeOrder.upd.order_form,
+                    site_id: self.activeOrder.upd.site_id,
+                    site_name: self.activeOrder.upd.site_name,
+                    site_address: self.activeOrder.upd.site_address,
+                    special_instructions: self.activeOrder.upd.special_instructions,
+                    remaining_budget: self.activeOrder.upd.remaining_budget
                   },{
-                    locally_saved: activeOrder.upd
+                    locally_saved: self.activeOrder.upd
                   }, {
                     order_status:"log"
                   }));
@@ -449,22 +482,22 @@ var OrderView = function(order_id){
 
                 app.mySupplyOrdersDrafts((function(){
                   $.each(mySupplyOrdersDrafts, function(i,v){
-                    if(String(activeOrder.upd.supply_order_id) == String(v.supply_order_id)){
+                    if(String(self.activeOrder.upd.supply_order_id) == String(v.supply_order_id)){
 
                       mySupplyOrdersDrafts[i] = $.extend({
-                        id: activeOrder.upd.supply_order_id,
-                        supply_order_id: activeOrder.upd.supply_order_id,
-                        supply_order_name: activeOrder.upd.supply_order_name,
-                        updated_at: activeOrder.upd.updated_at,
-                        order_date: activeOrder.upd.order_date,
-                        order_form: activeOrder.upd.order_form,
-                        site_id: activeOrder.upd.site_id,
-                        site_name: activeOrder.upd.site_name,
-                        site_address: activeOrder.upd.site_address,
-                        special_instructions: activeOrder.upd.special_instructions,
-                        remaining_budget: activeOrder.upd.remaining_budget
+                        id: self.activeOrder.upd.supply_order_id,
+                        supply_order_id: self.activeOrder.upd.supply_order_id,
+                        supply_order_name: self.activeOrder.upd.supply_order_name,
+                        updated_at: self.activeOrder.upd.updated_at,
+                        order_date: self.activeOrder.upd.order_date,
+                        order_form: self.activeOrder.upd.order_form,
+                        site_id: self.activeOrder.upd.site_id,
+                        site_name: self.activeOrder.upd.site_name,
+                        site_address: self.activeOrder.upd.site_address,
+                        special_instructions: self.activeOrder.upd.special_instructions,
+                        remaining_budget: self.activeOrder.upd.remaining_budget
                       },{
-                        locally_saved: activeOrder.upd
+                        locally_saved: self.activeOrder.upd
                       }, {
                         submit_status: "submitting"
                       },{
@@ -472,7 +505,7 @@ var OrderView = function(order_id){
                       });
                       submitted_item = mySupplyOrdersDrafts[i];
                     }
-                    if (activeOrder.upd.order_form == v.order_form && activeOrder.upd.site_id == v.site_id){
+                    if (self.activeOrder.upd.order_form == v.order_form && self.activeOrder.upd.site_id == v.site_id){
                       mySupplyOrdersDrafts[i]['remaining_budget'] = (parseFloat(v.remaining_budget) -
                           parseFloat($(".over_budget span.price").text().substring(1))).toFixed(2) ;
                     }
@@ -491,6 +524,7 @@ var OrderView = function(order_id){
 
                 app.sync_supply();
                 setTimeout(function(){
+                  self.activeOrder = {};
                   app.activeOrder(false);
                   app.route({
                     toPage: window.location.href + "#orders"
@@ -516,10 +550,62 @@ var OrderView = function(order_id){
     });
 
     this.el.on('input propertychange', 'textarea#special_instructions', function(e){
-      var activeOrder = app.activeOrder();
-      activeOrder.upd.special_instructions = $(e.currentTarget).val();
-      app.activeOrder(activeOrder);
+      self.activeOrder.upd.special_instructions = $(e.currentTarget).val();
+//      app.activeOrder(self.activeOrder);
     });
+
+    this.el.on('click', 'ul[data-role=listview] li a', function(e){
+      e.preventDefault();
+
+      var $popup = $(".pop_up");
+      var $overlay = $("<div />", {
+        class: "popup-overlay"
+      }).on("click", function(ev){
+        ev.preventDefault();
+        self.close_popup();
+      });
+
+      try {
+        $overlay.appendTo("body").trigger("create");
+        $("input[type=hidden][id=item_id]", $popup).val($(e.currentTarget).attr("id"));
+        $popup.css( "left",  Math.round( ($(window).width() - $popup.width())/2 ) );
+
+        if ($popup.height() > ($(window).height() - 30)){
+          $popup.css("top", $(document).scrollTop() + parseInt(25) + "px");
+        } else {
+          $popup.css("top", $(document).scrollTop() + Math.round(($(window).height() - $popup.height())/2) + "px");
+        }
+        $popup.css("visibility","visible");
+      } catch (er){}
+    });
+
+    this.el.on('click', '.pop_up .close', function(e){
+      e.preventDefault();
+      self.close_popup();
+    });
+
+    this.el.on('click', '.pop_up .popup_content a, .pop_up a.clear', function(event){
+      event.preventDefault();
+      if (!$(event.currentTarget).hasClass('disabled')){
+        var $clicked_elm = $("a[id='"+$(".pop_up>input[type=hidden][id=item_id]").val()+"']");
+        try {
+          var clicked_category = $("li[data-role=list-divider]", $clicked_elm.closest("ul")).text();
+          var elm_id = $clicked_elm.attr("id").match(/^iid_(.*)$/i)[1];
+          var details_arr = $(".detals", $clicked_elm);
+
+          self.activeOrder['upd']['supply_order_categories'][clicked_category][elm_id]['amount'] =
+              $(event.currentTarget).attr("data-value");
+
+          $(details_arr[1]).text("Amount: " + $(event.currentTarget).attr("data-value"));
+          $(details_arr[2]).text("Total: $" + (parseFloat($(event.currentTarget).attr("data-value"))*
+              parseFloat(self.activeOrder['upd']['supply_order_categories'][clicked_category][elm_id]["price"])).toFixed(2) );
+        } catch(er){}
+      }
+      setTimeout(function(){
+        self.recalculate_total().close_popup();
+      }, 0);
+    });
+
   };
 
   this.initialize();
@@ -590,7 +676,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
   var out = "";
   if (!$.isEmptyObject(order_obj) && "undefined" != order_obj.id){
     var order = order_obj.upd,
-        not_empty_items = false,
+/*        not_empty_items = false,*/
         total = 0;
 
     out = out + "<div data-role=\"content\""+ (("log" != order.order_status)? ' class=\"categories\"' : '') +">";
@@ -605,11 +691,11 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out + "</p>";
     out = out + "</div>";
 
-    if ("log" != order.order_status){
+/*    if ("log" != order.order_status){
       out = out + "<div class=\"all_input stnd_btn\">";
       out = out + "<button id=\"add_new_item\" data-value=\""+ order_obj.id +"\" type=\"button\" class=\"ui-btn-hidden\" aria-disabled=\"false\">Add New Item</button>";
       out = out + "</div>";
-    }
+    }*/
 
     $.each(Object.keys(order.supply_order_categories), function(i,v){
       var category_out = "",
@@ -621,15 +707,18 @@ Handlebars.registerHelper("orderContent", function(order_obj){
             price = parseFloat(item.price),
             amount = parseFloat(item.amount),
             _total = price * amount;
-        if (amount > 0){
+
+//        if (amount > 0 ){
+        if ("log" != order.order_status || amount > 0){
+
           category_out = category_out + "<li>";
           if ("log" != order.order_status){
-            category_out = category_out + "<a href=\"#editOrderItem:"+item.item_id+"\">";
+            category_out = category_out + "<a id=\"iid_"+item.item_id+"\" href=\"#editOrderItem:"+item.item_id+"\">";
             category_out = category_out + "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />";
           }
           category_out = category_out +
               "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
-              "<div class=\"detals\">Price: $"+ price.toFixed(2)  + "</div>" +
+              "<div class=\"detals\">Price: $"+ price.toFixed(2) + "</div>" +
               "<div class=\"detals\">Amount: "+ amount + "</div>" +
               "<div class=\"detals\">Total: $"+ _total.toFixed(2) + "</div>" +
             "</span>";
@@ -639,15 +728,18 @@ Handlebars.registerHelper("orderContent", function(order_obj){
           }
           category_out = category_out + "</li>";
           empty_flag = false;
-          not_empty_items = true;
+/*          not_empty_items = true;*/
           total = total + _total;
+
         }
+//        }
+
       });
       if (!empty_flag)
         out = out + "<ul data-role=\"listview\" data-inset=\"true\"><li data-role=\"list-divider\" role=\"heading\">"+ v +"</li>" + category_out + "</ul>";
     });
 
-    if (!not_empty_items){
+    /*if (!not_empty_items){
       out = out + "<ul data-role=\"listview\" data-inset=\"true\"><li>No Supply Items</li></ul>";
     } else {
       if ("log" != order.order_status){
@@ -655,7 +747,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
         out = out + "<button id=\"add_new_item\" data-value=\""+ order_obj.id +"\" type=\"button\" class=\"ui-btn-hidden\" aria-disabled=\"false\">Add New Item</button>";
         out = out + "</div>";
       }
-    }
+    }*/
 
     //over budget
     out = out + "<div class=\"over_budget\">";
