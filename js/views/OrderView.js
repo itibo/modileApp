@@ -1,7 +1,8 @@
 var OrderView = function(order_id){
   this.order_id = order_id || "new";
-  this.reordered_sites = {};
+//  this.reordered_sites = {};
   this.activeOrder = {};
+  this.scroll_event_obj = false;
 
   this.render = function(){
     var context = {},
@@ -176,8 +177,8 @@ var OrderView = function(order_id){
               id: self.order_id,
               status: obj.order_status
             }, {
-              proto: (obj.order_status == "new") ? {} : obj,
-              upd: obj
+              proto: (obj.order_status == "new") ? {} : $.extend(true, {}, obj),
+              upd: $.extend(true, {}, obj)
             }));
           }
         } else {
@@ -194,12 +195,11 @@ var OrderView = function(order_id){
               return obj;
             };
             return $.extend({id: self.order_id}, {
-              proto: muted(self.activeOrder.proto),
-              upd: muted(self.activeOrder.upd)
+              proto: $.extend(true, {}, muted(self.activeOrder.proto)),
+              upd: $.extend(true, {}, muted(self.activeOrder.upd))
             })
           })());
         }
-//          alert("activeOrder on the end of content rendering: " + JSON.stringify(activeOrder));
         return self.activeOrder;
       })();
 
@@ -237,9 +237,9 @@ var OrderView = function(order_id){
     });
 
     if (parseFloat(self.activeOrder.upd.remaining_budget) > parseFloat(total)){
-      $(".over_budget > span").css("visibility", "hidden");
+      $(".over_budget > span").html("&nbsp;");
     } else {
-      $(".over_budget > span").css("visibility", "visible");
+      $(".over_budget > span").html("Over Budget!!!");
     }
     $("div.over_budget span.price").text("$" + total.toFixed(2));
     return this;
@@ -274,16 +274,34 @@ var OrderView = function(order_id){
           }
           return true;
         };
-    this.el = $('<div/>');
+    this.el = $('<div />');
 
     this.el.on("orderevent", function(e){
       e.preventDefault();
-      if ("new" == self.order_id){
-        $("#new_order", e.currentTarget).show();
-      } else {
-        $("#edit_order", e.currentTarget).show();
-        $(".main").addClass("log inspect draft");
-      }
+      $("#budget_clone").remove();
+      try {
+        var budget_position_y = $("div.over_budget").offset().top + $("div.over_budget").outerHeight(),
+            win_height = $(window).height(),
+            budget_position_width = $("div.over_budget").width();
+
+        budget_elm = $("div.over_budget").clone().attr("id", "budget_clone").css({
+          "bottom": 0,
+          "margin-bottom": 0,
+          "margin-left": 0,
+          "position": "fixed",
+          "width": Math.floor(budget_position_width) + "px",
+          "visibility": "hidden",
+          "z-index": 1
+        }).appendTo("div.categories[role=main]").trigger('create');
+
+        self.scroll_event_obj = $.extend(self.scroll_event_obj, {
+          budget_position_y: budget_position_y,
+          win_height: win_height,
+          budget_elm: $(budget_elm).attr("id")
+        });
+
+        $(window).trigger("scroll");
+      } catch (er){self.scroll_event_obj = {};}
     });
 
     this.el.on("change", "select[name=client_site]", function(e){
@@ -348,13 +366,13 @@ var OrderView = function(order_id){
       }
     });
 
-    this.el.on('click', "button#add_new_item", function(e){
+/*    this.el.on('click', "button#add_new_item", function(e){
       setTimeout(function(){
         app.route({
           toPage: window.location.href + "#addOrderItem:" + $(e.currentTarget).attr("data-value")
         });
       },0);
-    });
+    });*/
 
     this.el.on('click', "button#save_draft", function(e){
 
@@ -551,7 +569,7 @@ var OrderView = function(order_id){
 
     this.el.on('input propertychange', 'textarea#special_instructions', function(e){
       self.activeOrder.upd.special_instructions = $(e.currentTarget).val();
-//      app.activeOrder(self.activeOrder);
+      app.activeOrder(self.activeOrder);
     });
 
     this.el.on('click', 'ul[data-role=listview] li a', function(e){
@@ -593,8 +611,9 @@ var OrderView = function(order_id){
           var elm_id = $clicked_elm.attr("id").match(/^iid_(.*)$/i)[1];
           var details_arr = $(".detals", $clicked_elm);
 
-          self.activeOrder['upd']['supply_order_categories'][clicked_category][elm_id]['amount'] =
+          self.activeOrder.upd.supply_order_categories[String(clicked_category)][String(elm_id)]['amount'] =
               $(event.currentTarget).attr("data-value");
+          app.activeOrder(self.activeOrder);
 
           $(details_arr[1]).text("Amount: " + $(event.currentTarget).attr("data-value"));
           $(details_arr[2]).text("Total: $" + (parseFloat($(event.currentTarget).attr("data-value"))*
@@ -604,6 +623,27 @@ var OrderView = function(order_id){
       setTimeout(function(){
         self.recalculate_total().close_popup();
       }, 0);
+    });
+
+    $( window ).on( "resize", function(e) {
+      try {
+        setTimeout(function(){
+          self.el.trigger("orderevent");
+        },1);
+      } catch(er){}
+    });
+
+    $( window ).on("scroll", function(e){
+      try {
+        if (!$.isEmptyObject(self.scroll_event_obj)){
+          var $budget_elm = $("#"+self.scroll_event_obj.budget_elm);
+
+          $budget_elm.css("visibility", "hidden");
+          if (self.scroll_event_obj.budget_position_y > $(document).scrollTop() + self.scroll_event_obj.win_height) {
+            $budget_elm.css("visibility", "visible");
+          }
+        }
+      } catch(er){}
     });
 
   };
@@ -687,7 +727,10 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     if ("log" != order.order_status){
       out = out + "<br /><strong>Remaining Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span></strong>";
     }
-    out = out + "<br />"+(("log" != order.order_status)?'Draft saved':'Submitted' )+": <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
+    if ("log" == order.order_status){
+      out = out + "<br />Submitted: <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
+    }
+//    out = out + "<br />"+(("log" != order.order_status)?'Draft saved':'Submitted' )+": <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
     out = out + "</p>";
     out = out + "</div>";
 
@@ -751,7 +794,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
     //over budget
     out = out + "<div class=\"over_budget\">";
-    out = out + "<span style=\"visibility:" + ((total>order.remaining_budget && "log" != order.order_status)?'visible':'hidden') + ";\">Over Budget!!!</span>";
+    out = out + "<span>"+ ((total>order.remaining_budget && "log" != order.order_status)?'Over Budget!!!':'&nbsp;') +"</span>";
     out = out + "<div class=\"total\">";
     out = out + "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>";
     out = out + "</div>";

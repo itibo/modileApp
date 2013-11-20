@@ -1460,8 +1460,8 @@ var app = {
       case /^#order:(\w+)$/.test(urlObj.hash):
         var order_id = urlObj.hash.match(/^#order:(\w+)$/)[1] || "new";
         app.getSitesOrdersList(function(){
-          $container.html(new OrderView(order_id).render().el.trigger('orderevent')).trigger('pagecreate');
-        });
+          $container.html(new OrderView(order_id).render().el).trigger('pagecreate');
+          (function(){$("div", $container).first().trigger('orderevent');})();});
         break;
       case /^#editOrderItem:(.+)$/.test(urlObj.hash):
         var item_id = urlObj.hash.match(/^#editOrderItem:(.+)$/)[1];

@@ -86,7 +86,8 @@ Handlebars.registerHelper("editItemContent", function(item){
             "<dl><dt>Total:</dt><dd id=\"total\">$"+ parseFloat(item.amount*item.price).toFixed(2) +"</dd></dl></dl>" +
             "<div data-role=\"fieldcontain\">" +
               "<label for=\"item_amount\">Amount:</label>" +
-              "<input id=\"item_amount\" name=\"item_amount\" type=\"number\" value=\""+(("Each" == item.measurement)? parseInt(item.amount):parseFloat(item.amount))+"\" pattern=\""+(("Each" == item.measurement)? "[0-9]+":"[0-9\.]+[0-9]$")+"\" />" +
+//              "<input id=\"item_amount\" name=\"item_amount\" type=\"number\" value=\""+(("Each" == item.measurement)? parseInt(item.amount):parseFloat(item.amount))+"\" pattern=\""+(("Each" == item.measurement)? "[0-9]+":"[0-9\.]+[0-9]$")+"\" />" +
+              "<input id=\"item_amount\" name=\"item_amount\" type=\"number\" value=\""+parseInt(item.amount)+"\" pattern=\"[0-9]+\" />" +
             "</div>" +
           "</div>" +
         "</div>" +
