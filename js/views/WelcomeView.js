@@ -53,7 +53,8 @@ Handlebars.registerHelper('SupplierMenuItem', function() {
   var return_html='';
   try{
     if (/^Area Supervisor/i.test(this.userInfo.role)){
-      return_html = '<li><a href="#orders"><img src="css/images/icons_4.png"/>Supply</a></li>';
+      return_html = '<li><a href="#order:new"><img src="css/images/icons_4.png"/>New Supply Order</a></li>' +
+        '<li><a href="#orders"><img src="css/images/icons_4.png"/>Supply Orders History</a></li>';
     }
   } catch(e) {
     return_html='';

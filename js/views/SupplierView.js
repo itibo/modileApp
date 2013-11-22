@@ -107,27 +107,8 @@ var SupplierView = function(){
 
       $overlay.appendTo("body").trigger("create");
       $("input", $popup).val( draft_id );
-      $popup.css( "left", ( ( (holdCords.holdX + $popup.width())< $(window).width() ) ? holdCords.holdX : ( $(window).width() - $popup.width()) ) + "px" );
-      $popup.css("top", ( ( ($(document).scrollTop() + $(window).height() - holdCords.holdY)< $popup.height()) ? (holdCords.holdY - $popup.height()) : (holdCords.holdY - $popup.height()/2) ) + "px");
-      $popup.css("visibility","visible");
-    });
-
-    this.el.on('taphold', 'li.editable', function(event){
-      event.preventDefault();
-      var draft_id = $("a", $(event.currentTarget)).attr("href").match(/^#order:(.+)$/)[1],
-          $popup = $("#context_menu"),
-          $overlay = $("<div />", {
-            class: "popup-overlay"
-          }).on("click", function(e){
-                e.preventDefault();
-                $overlay.remove();
-                $("input", $popup).val( "" );
-                $popup.css("visibility","hidden");
-              });
-
-      $overlay.appendTo("body").trigger("create");
-      $("input", $popup).val( draft_id );
-      $popup.css( "left", ( ( (holdCords.holdX + $popup.width())< $(window).width() ) ? holdCords.holdX : ( $(window).width() - $popup.width()) ) + "px" );
+//      $popup.css( "left", ( ( (holdCords.holdX + $popup.width())< $(window).width() ) ? holdCords.holdX : ( $(window).width() - $popup.width()) ) + "px" );
+      $popup.css("left", ($(window).width() - $popup.width())/2  + "px");
       $popup.css("top", ( ( ($(document).scrollTop() + $(window).height() - holdCords.holdY)< $popup.height()) ? (holdCords.holdY - $popup.height()) : (holdCords.holdY - $popup.height()/2) ) + "px");
       $popup.css("visibility","visible");
     });

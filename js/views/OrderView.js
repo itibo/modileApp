@@ -239,7 +239,7 @@ var OrderView = function(order_id){
     $(".over_budget>.budget span.remain").html( "$" + parseFloat(self.activeOrder.upd.remaining_budget - total).toFixed(2) );
 
     if (parseFloat(self.activeOrder.upd.remaining_budget) > parseFloat(total)){
-      $(".over_budget .over").html("&nbsp;");
+      $(".over_budget .over").html("");
     } else {
       $(".over_budget .over").html("Over Budget!!!");
     }
@@ -338,7 +338,7 @@ var OrderView = function(order_id){
             $(elm).text("$" + res);
         });
       } else {
-        $(".order_form_selection>.site_dependent dd").html("&nbsp;");
+        $(".order_form_selection>.site_dependent dd").html("");
       }
     });
 
@@ -498,7 +498,7 @@ var OrderView = function(order_id){
         try {
           var clicked_category = $("li[data-role=list-divider]", $clicked_elm.closest("ul")).text();
           var elm_id = $clicked_elm.attr("id").match(/^iid_(.*)$/i)[1];
-          var details_arr = $(".detals span", $clicked_elm);
+          var details_arr = $(".detals", $clicked_elm);
 
           self.activeOrder.upd.supply_order_categories[String(clicked_category)][String(elm_id)]['amount'] =
               $(event.currentTarget).attr("data-value");
@@ -506,15 +506,15 @@ var OrderView = function(order_id){
 
           if ($(event.currentTarget).attr("data-value") > 0){
             $(".infodetails", $clicked_elm).removeClass("one");
-            $(details_arr[1]).html("Total: $" + (parseFloat($(event.currentTarget).attr("data-value")) *
-                parseFloat(self.activeOrder['upd']['supply_order_categories'][clicked_category][elm_id]["price"])).toFixed(2) );
+            $(details_arr[2]).html("Total: <span>$" + (parseFloat($(event.currentTarget).attr("data-value")) *
+                parseFloat(self.activeOrder['upd']['supply_order_categories'][clicked_category][elm_id]["price"])).toFixed(2) + "</span>");
 
             $("<div />", {
               class: "number"
             }).html("<font>Amount:</font><br /><span>"+ $(event.currentTarget).attr("data-value") +"</span>").appendTo($(".infodetails", $clicked_elm));
           } else {
             $(".infodetails", $clicked_elm).addClass("one");
-            $(details_arr[1]).html("&nbsp;");
+            $(details_arr[2]).html("<span></span>");
             $(".infodetails>div.number", $clicked_elm).remove();
           }
           $clicked_elm.trigger("create");
@@ -596,9 +596,9 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
           "<div role=\"heading\" class=\"boxheader\">"+ v +"</div>" +
           "<div class=\"boxpoints\">" +
             "<div class=\"boxcnt\">" +
-              "<dl class=\"budget\"><dt>Budget:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.budget_discretionary)) +"</dd></dl>" +
-              "<dl class=\"used\"><dt>Used:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.used_discretionary)) +"</dd></dl>" +
-              "<dl class=\"remain\"><dt>Remaining:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.remain_discretionary)) +"</dd></dl>" +
+              "<dl class=\"budget\"><dt>Budget:</dt><dd>"+ (("discretionary" != current_order_type)?'':('$'+discretionary_budget_info.budget_discretionary)) +"</dd></dl>" +
+              "<dl class=\"used\"><dt>Used:</dt><dd>"+ (("discretionary" != current_order_type)?'':('$'+discretionary_budget_info.used_discretionary)) +"</dd></dl>" +
+              "<dl class=\"remain\"><dt>Remaining:</dt><dd>"+ (("discretionary" != current_order_type)?'':('$'+discretionary_budget_info.remain_discretionary)) +"</dd></dl>" +
             "</div>" +
             "<div class=\"box_rightcnt\">" +
               "<button class=\"start_new_order\">Start</button>" +
@@ -652,8 +652,8 @@ Handlebars.registerHelper("orderContent", function(order_obj){
             "<div>"+ item.description +"<br/>" +
               "<div class=\"details-all\">" +
                 "<div class=\"detals\">" + item.serial_number +"</div>" +
-                "<div class=\"detals mea\">"+ item.measurement +" <span>Price: $"+ price.toFixed(2) + "</span></div>" +
-                "<div class=\"detals tot\"><span>" + ((amount > 0)?('Total: $'+ _total.toFixed(2)):'&nbsp;') + "</span></div>" +
+                "<div class=\"detals mea\">"+ item.measurement +" <span>$"+ price.toFixed(2) + "</span></div>" +
+                "<div class=\"detals tot\">"+ ((amount > 0)?('Total: <span>$'+ _total.toFixed(2) + '</span>'):'<span></span>') +"</div>" +
               "</div>" +
             "</div>";
 
@@ -682,7 +682,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out + "<div class=\"over_budget\">" +
       "<div class=\"budget\">" +
         "Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"<span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>" +
-        "<div class=\"over\">"+ ((total>order.remaining_budget && "log" != order.order_status)?'Over Budget!!!':'&nbsp;') +"</div>" +
+        "<div class=\"over\">"+ ((total>order.remaining_budget && "log" != order.order_status)?'Over Budget!!!':'') +"</div>" +
         "<div class=\"total\">" +
           "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>" +
         "</div>" +

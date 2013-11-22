@@ -355,9 +355,9 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
 
           category_out = category_out + "<li>" +
               "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
-                "<div class=\"detals\">Price: $"+ price.toFixed(2) + "</div>" +
-                "<div class=\"detals\">Amount: "+ amount + "</div>" +
-                "<div class=\"detals\">Total: $"+ _total.toFixed(2) + "</div>" +
+                "<div class=\"detals\">Price: <span>$"+ price.toFixed(2) + "</span></div>" +
+                "<div class=\"detals\">Amount: <span>"+ amount + "</span></div>" +
+                "<div class=\"detals\">Total: <span>$"+ _total.toFixed(2) + "</span></div>" +
               "</span>" +
             "</li>";
           empty_flag = false;

@@ -1032,9 +1032,10 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 .location_details font{
 	font-size: 130%;
 }
+.draftlog .ui-li span{ font-style:normal; }
 .detals{
 	float: left;
-	font-weight: 700;
+	font-weight: normal;
 	width: 30%;
 	padding-right:3%;
 }
@@ -1045,8 +1046,9 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 .draft a.ui-link-inherit .ui-li-desc {
     font-size: 100%;
 }
-.draft.inspect .ui-li span {
+.draft.inspect .ui-li .detals span {
     font-style: normal;
+    font-weight: bold;
 }
 .draft.inspect #list_items .bld {
 	float: left;
@@ -1068,6 +1070,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	padding: 1%;
 	overflow: hidden;
 	margin-bottom: 1em;
+	min-height: 2.5em;
 }
 .over_budget .budget{
 	color: #333;
@@ -1081,20 +1084,16 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
     width: 50%;
 }
 .over_budget .total{
-    text-align: right;
-}
-.newbtn .over_budget .total{
     position: absolute;
     right: -3em;
     top: 0;
+	text-align: right;
 	width: 6em;
 }
 .over_budget .total p{
 	font-weight:normal;
 	margin:0;
 	color:black;
-}
-.newbtn .over_budget .total p{
 	text-align:right;
 }
 .over_budget span.price{
@@ -1218,11 +1217,13 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	display: table;
 	width: 100%;
 }
-.main .newbtn .ui-listview a.btn-ordet .detals.mea{
+.main .newbtn .ui-listview a.btn-ordet .detals{
 	font-weight: normal;
 }
-.main .newbtn .ui-listview a.btn-ordet .detals.mea span{
+.main .newbtn .ui-listview a.btn-ordet .detals span{
 	font-weight: bold;
+}
+.main .newbtn .ui-listview a.btn-ordet .detals.mea span{
 	white-space: inherit;
 }
 .main .newbtn .ui-listview a.btn-ordet .detals.tot{
@@ -1237,7 +1238,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
     height: 100%;
 	font-size: 70%;
     position: absolute;
-    right: -7em;
+    right: -6.9em;
     top: 0;
     text-align: center;
 	text-shadow: none;
@@ -1253,6 +1254,9 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
     line-height: 50px;
 }
 .newbtn .block-textarea{ margin-bottom:1em; }
+
+.draftlog .categories ul li.ui-li { overflow:hidden; padding:0.6em 20px; }
+.draftlog .categories ul li.ui-li.ui-first-child { padding:0.8% 15px; }
 /* end detail draft new */
 
 
@@ -1318,7 +1322,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 @media screen and (max-width:854px) {
 }
 @media screen and (max-width:480px) {
-	body{ font-size:90%; }
+	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:90%; }
 	.logo_img{ background: url(../img/logo_280x108.png) no-repeat; width:300px; height:108px; text-align:center; margin:0 auto; position:relative; }
 	.log .right_points span.big_points{ font-size:1.2em; }
 	.all_input{ width:280px; }
@@ -1333,11 +1337,8 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	.main .newbtn .ui-listview a.btn-ordet .detals.tot { display:block; text-align:left; width:100%; }
 	.main .newbtn .ui-listview .ui-btn div.number font{ line-height:2em; }	
 }
-@media screen and (max-width:400px) {
-	.main .newbtn .ui-listview a.btn-ordet .detals { width: 100%; }
-}
 @media screen and (max-width:320px) {
-	body{ font-size:85%; }
+	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:85%; }
 	div.block.active .number{ line-height:50px; }
 	.ui-page .ui-header  span.btn_QA a{ top:4px; }
 	.log .points_time{ width:50%; }
@@ -1356,12 +1357,14 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	.detals{ float:none; padding:2% 0; width:100%; }
 	.ui-content .block-submit .ui-submit, .ui-content h3, .block-textarea{ float:none; width:100%; }
 	.inspect ul li .ui-btn-inner .ui-btn-text a{ padding:2% 2% 2% 25px; }
+	.main .newbtn .ui-listview a.btn-ordet .detals { width: 100%; }
 }
 @media screen and (max-width:240px) {
-	body{ font-size:80%; }
+	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:80%; }
 	h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_inspect{ width:33%; }
 	.over_budget .budget{ float:left; padding:0 5%; }
 	.over_budget .total{ position: static; width: 100%; }
+	.over_budget .total p{ text-align:left; }
 	div.block.active .number{ line-height:70px; }
 	.logo_img{ background:url(../img/logo_200x69.png) no-repeat; width:210px; height:69px; }
 	#login_form .ui-btn{ width:210px; }
@@ -1369,6 +1372,4 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	h1.ui-title span.address{ float:left; padding:0.4em 0 0.3em 1em; width:43%; white-space:normal; }
 	.ui-page .ui-header  span.logout a{ left:-10px; }
 	h1.ui-title span.btn-back_inspect span.ui-btn-inner{ font-size:10px; }
-	.newbtn .over_budget .total{ position:static; width:auto; }
-	.newbtn .over_budget .total p{ text-align:left; }
 }
