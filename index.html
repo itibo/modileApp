@@ -34,7 +34,6 @@
     <div id="menu">
       <div data-role="footer" class="footer">
         <a class="logout" data-role="button" href="#logout"><img src="css/images/icons_logout.png" /> <span class="foot-txt">Logout</span></a>
-<!--        <a class="delete" data-role="button" href="#"><img src="css/images/icons_delete.png" /> <span class="foot-txt">Delete</span></a>-->
       </div>
     </div>
     <script id="welcome-tpl" type="text/x-handlebars-template">
@@ -44,9 +43,6 @@
           <span class="btn-back">
             <a href="#close" class="ui-btn-right" data-role="button">Close</a>
           </span>
-<!--          <span class="logout">
-            <a class="ui-btn-right" href="#logout" data-role="button">Logout</a>
-          </span>-->
         </h1>
       </div><!-- /header -->
       <div data-role="content" class="welcome_content">
@@ -167,18 +163,9 @@
       <div id="context_menu" class="pop_up">
         <input type="hidden" value="" />
         <div class="header">Action</div>
-        <!--<ul>
-          <li>-->
-            <div class="all_input stnd_btn">
-              <button id="remove_draft" type="button">Remove</button>
-            </div>
-        <!--</li>-->
-<!--          <li>
           <div class="all_input stnd_btn">
-            <button id="submit_to_vendor" type="button">Submit to vendor</button>
+            <button id="remove_draft" type="button">Remove</button>
           </div>
-        </li>-->
-        <!--</ul>-->
       </div>
       <div data-role="header">
         <h1>
@@ -200,10 +187,25 @@
         </div>
       </div><!-- /content -->
     </script>
+    <script id="order-overall-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>
+          <span class="address">Order Preview</span>
+          <span class="btn-back log_back">
+            <a href="/#orders" class="ui-btn-right" data-role="button">Back</a>
+          </span>
+        </h1>
+      </div><!-- /header -->
+      <div class="main">
+        <div class="log inspect draft">
+          {{#OrderOverallContent order}}{{/OrderOverallContent}}
+        </div>
+      </div><!-- /content -->
+    </script>
     <script id="order-tpl" type="text/x-handlebars-template">
-      <div class="pop_up">
+      <div class="pop_up number_list">
         <input type="hidden" id="item_id" value="" />
-        <a href="#" data-value="0" class="clear"><span>Clear Score</span></a>
+        <a href="#" data-value="0" class="clear"><span>Clear</span></a>
         <a href="#" class="close"><span>Close</span><span>&nbsp;</span></a>
         <div class="popup_content">
           <h2></h2>
@@ -231,36 +233,10 @@
         <div id="new_order" class="neworder">
           {{#newOrderStartContent order}}{{/newOrderStartContent}}
         </div>
-        <div id="edit_order" class="log inspect draft">
+        <!--<div id="edit_order" class="newbtn">-->
+        <div id="edit_order" class="newbtn">
           {{#orderContent order}}{{/orderContent}}
         </div>
-      </div><!-- /content -->
-    </script>
-    <script id="order-item-tpl" type="text/x-handlebars-template">
-      <div data-role="header">
-        <h1>
-          <span class="address">Order Item</span>
-          <span class="btn-back log_back">
-            <!--<a href="/#orders" class="ui-btn-right" data-role="button" >Back</a>-->
-            {{#backButtonItemView order_id}}{{/backButtonItemView}}
-          </span>
-        </h1>
-      </div><!-- /header -->
-      <div class="main">
-        {{#editItemContent item}}{{/editItemContent}}
-      </div><!-- /content -->
-    </script>
-    <script id="add-order-item-tpl" type="text/x-handlebars-template">
-      <div data-role="header">
-        <h1>
-          <span class="address">Order Item Adding</span>
-          <span class="btn-back log_back">
-            {{#backButtonItemView order_id}}{{/backButtonItemView}}
-          </span>
-        </h1>
-      </div><!-- /header -->
-      <div class="main">
-        {{addItemContent}}
       </div><!-- /content -->
     </script>
     <script type="text/javascript" src="cordova.js"></script>
@@ -275,7 +251,7 @@
     <script type="text/javascript" src="js/views/InspectionsLogView.js"></script>
     <script type="text/javascript" src="js/views/SupplierView.js"></script>
     <script type="text/javascript" src="js/views/OrderView.js"></script>
-    <script type="text/javascript" src="js/views/SupplyOrderItemView.js"></script>
+    <script type="text/javascript" src="js/views/OrderOverallView.js"></script>
     <script type="text/javascript">
       app.initialize();
     </script>

@@ -1463,14 +1463,9 @@ var app = {
           $container.html(new OrderView(order_id).render().el).trigger('pagecreate');
           (function(){$("div", $container).first().trigger('orderevent');})();});
         break;
-      case /^#editOrderItem:(.+)$/.test(urlObj.hash):
-        var item_id = urlObj.hash.match(/^#editOrderItem:(.+)$/)[1];
-        $container.html(new SupplyOrderEditItemView(item_id).render().el).trigger('pagecreate');
-        (function(){$("#item_amount", $container).focus();})();
-        break;
-      case /^#addOrderItem:(.+)$/.test(urlObj.hash):
-        var order_id = urlObj.hash.match(/^#addOrderItem:(.+)$/)[1];
-        $container.html(new SupplyOrderAddItemView(order_id).render().el).trigger('pagecreate');
+      case /^#order-overall:(\w+)$/.test(urlObj.hash):
+        var order = urlObj.hash.match(/^#order-overall:(\w+)$/)[1] || "active_order";
+        $container.html(new OrderOverallView(order).render().el).trigger('pagecreate');
         break;
       case '#inspectionslog' == urlObj.hash:
         app.getInspectionsLog(function(list){
@@ -1871,6 +1866,24 @@ var app = {
                 "Are you sure?",
                 'No,Yes'
             );
+          }
+          break;
+
+        case /^#order-overall:(.+)$/.test(app.current_page):
+          var activeOrder = app.activeOrder(),
+              route_to = function(url){
+                app.route({
+                  toPage: window.location.href + url
+                });
+              };
+          try {
+            if (!$.isEmptyObject(activeOrder)){
+              route_to("#order:" + activeOrder.upd.supply_order_id);
+            } else {
+              route_to("#orders");
+            }
+          } catch(er){
+            route_to("#orders");
           }
           break;
         case /^#editOrderItem:(.+)$/.test(app.current_page):
