@@ -1066,7 +1066,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	background:#e2d3c8;
 	border-radius:5px;
 	border:1px solid #666;
-	font: bold 120% Arial, sans-serif;
+	font: normal 120% Arial, sans-serif;
 	padding: 1%;
 	overflow: hidden;
 	margin-bottom: 1em;
@@ -1078,8 +1078,10 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	margin: 0 3em 0 0;
 	position: relative;
 }
+.over_budget .budget span{ font-weight:bold; }
 .over_budget .budget .over{
 	color:#ff2400;
+	font-weight:bold;
 	float: right;
     width: 50%;
 }
