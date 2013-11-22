@@ -681,7 +681,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     //over budget
     out = out + "<div class=\"over_budget\">" +
       "<div class=\"budget\">" +
-        "Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"<span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>" +
+        "Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>" +
         "<div class=\"over\">"+ ((total>order.remaining_budget && "log" != order.order_status)?'Over Budget!!!':'') +"</div>" +
         "<div class=\"total\">" +
           "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>" +
