@@ -596,9 +596,9 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
           "<div role=\"heading\" class=\"boxheader\">"+ v +"</div>" +
           "<div class=\"boxpoints\">" +
             "<div class=\"boxcnt\">" +
-              "<dl class=\"budget\"><dt>Budget:</dt><dd>"+ (("discretionary" != current_order_type)?'':('$'+discretionary_budget_info.budget_discretionary)) +"</dd></dl>" +
-              "<dl class=\"used\"><dt>Used:</dt><dd>"+ (("discretionary" != current_order_type)?'':('$'+discretionary_budget_info.used_discretionary)) +"</dd></dl>" +
-              "<dl class=\"remain\"><dt>Remaining:</dt><dd>"+ (("discretionary" != current_order_type)?'':('$'+discretionary_budget_info.remain_discretionary)) +"</dd></dl>" +
+              "<dl class=\"budget\"><dt>Budget:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.budget_discretionary)) +"</dd></dl>" +
+              "<dl class=\"used\"><dt>Used:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.used_discretionary)) +"</dd></dl>" +
+              "<dl class=\"remain\"><dt>Remaining:</dt><dd>"+ (("discretionary" != current_order_type)?'&nbsp;':('$'+discretionary_budget_info.remain_discretionary)) +"</dd></dl>" +
             "</div>" +
             "<div class=\"box_rightcnt\">" +
               "<button class=\"start_new_order\">Start</button>" +
