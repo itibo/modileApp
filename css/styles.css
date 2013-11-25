@@ -837,6 +837,9 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	top: 80%;
 	left: 40%;
 }
+.points span{
+	font-weight:normal;
+}
 .box_points{
 	display: inline-table;
     height: 100%;
@@ -874,7 +877,7 @@ span.address {
 .location_details p.add_info span{
 	font-weight: bold;
 }
-/* end mediascreen */
+/* end all content */
 
 
 /* supplier */
@@ -1048,7 +1051,7 @@ span.address {
 
 /* detail draft */
 .draftlog .ui-li span{ font-style:normal; }
-.detals{
+.details{
 	float: left;
 	font-style: normal;
 	font-weight: normal;
@@ -1062,7 +1065,7 @@ span.address {
 .draft a.ui-link-inherit .ui-li-desc {
     font-size: 100%;
 }
-.draft.inspect .ui-li .detals span {
+.draft.inspect .ui-li .details span {
     font-style: normal;
     font-weight: bold;
 }
@@ -1237,16 +1240,16 @@ span.address {
 	display: table;
 	width: 100%;
 }
-.main .newbtn .ui-listview a.btn-ordet .detals{
+.main .newbtn .ui-listview a.btn-ordet .details{
 	font-weight: normal;
 }
-.main .newbtn .ui-listview a.btn-ordet .detals span{
+.main .newbtn .ui-listview a.btn-ordet .details span{
 	font-weight: bold;
 }
-.main .newbtn .ui-listview a.btn-ordet .detals.mea span{
+.main .newbtn .ui-listview a.btn-ordet .details.mea span{
 	white-space: inherit;
 }
-.main .newbtn .ui-listview a.btn-ordet .detals.tot{
+.main .newbtn .ui-listview a.btn-ordet .details.tot{
 	padding-right: 0;
 	text-align: right;
 }
@@ -1353,9 +1356,9 @@ span.address {
 	.boxcntone dd{ margin: 0 0 3%; }
 	.boxcntone dt{ float:none; width:100%; text-align:left; }
 	.over_budget .budget .over { float: none; width: 100%; }
-	.main .newbtn .ui-listview a.btn-ordet .detals { display:block; width:47%; }
-	.main .newbtn .ui-listview a.btn-ordet .detals.tot { display:block; text-align:left; width:100%; }
-	.main .newbtn .ui-listview a.btn-ordet .infodetails.one .detals { display:table-cell; width:47%; }
+	.main .newbtn .ui-listview a.btn-ordet .details { display:block; width:47%; }
+	.main .newbtn .ui-listview a.btn-ordet .details.tot { display:block; text-align:left; width:100%; }
+	.main .newbtn .ui-listview a.btn-ordet .infodetails.one .details { display:table-cell; width:47%; }
 	.main .newbtn .ui-listview .ui-btn div.number font{ line-height:2em; }	
 }
 @media screen and (max-width:320px) {
@@ -1375,10 +1378,10 @@ span.address {
 	.neworder .boxcnt dt{ width:60%; }
 	.box_rightcnt .ui-btn{ font-size:90%; padding:0; margin-bottom: 3%; }
 	.box_rightcnt{ width: 94%; }
-	.detals{ float:none; padding:2% 0; width:100%; }
+	.details{ float:none; padding:2% 0; width:100%; }
 	.ui-content .block-submit .ui-submit, .ui-content h3, .block-textarea{ float:none; width:100%; }
 	.inspect ul li .ui-btn-inner .ui-btn-text a{ padding:2% 2% 2% 25px; }
-	.main .newbtn .ui-listview a.btn-ordet .detals { width: 100%; }
+	.main .newbtn .ui-listview a.btn-ordet .details { width: 100%; }
 }
 @media screen and (max-width:240px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:80%; }
@@ -1393,5 +1396,5 @@ span.address {
 	h1.ui-title span.address{ float:left; padding:0.4em 0 0.3em 1em; width:43%; white-space:normal; }
 	.ui-page .ui-header  span.logout a{ left:-10px; }
 	h1.ui-title span.btn-back_inspect span.ui-btn-inner{ font-size:10px; }
-		.main .newbtn .ui-listview a.btn-ordet .infodetails.one .detals { display:block; width:100%; }
+		.main .newbtn .ui-listview a.btn-ordet .infodetails.one .details { display:block; width:100%; }
 }

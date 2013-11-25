@@ -330,7 +330,7 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
 
     out = out + "<div data-role=\"content\">";
     out = out + "<div class=\"location_details\">";
-    out = out + "<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>sync required</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>'));
+    out = out + "<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>-</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>'));
     out = out + "<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p class=\"add_info\">Order type: <span>"+order.order_form+"</span>";
 
@@ -366,9 +366,9 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
 
           category_out = category_out + "<li>" +
               "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
-                "<div class=\"detals\">Price: <span>$"+ price.toFixed(2) + "</span></div>" +
-                "<div class=\"detals\">Amount: <span>"+ amount + "</span></div>" +
-                "<div class=\"detals\">Total: <span>$"+ _total.toFixed(2) + "</span></div>" +
+                "<div class=\"details\">Price: <span>$"+ price.toFixed(2) + "</span></div>" +
+                "<div class=\"details\">Amount: <span>"+ amount + "</span></div>" +
+                "<div class=\"details\">Total: <span>$"+ _total.toFixed(2) + "</span></div>" +
               "</span>" +
             "</li>";
           empty_flag = false;

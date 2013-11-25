@@ -664,9 +664,9 @@ Handlebars.registerHelper("orderContent", function(order_obj){
           category_out = category_out + "<div class=\"infodetails"+ (amount > 0?'':' one') +"\">" +
             "<div>"+ item.description +"<br/>" +
               "<div class=\"details-all\">" +
-                "<div class=\"detals\">" + item.serial_number +"</div>" +
-                "<div class=\"detals mea\">"+ item.measurement +" <span>$"+ price.toFixed(2) + "</span></div>" +
-                "<div class=\"detals tot\">"+ ((amount > 0)?('Total: <span>$'+ _total.toFixed(2) + '</span>'):'<span></span>') +"</div>" +
+                "<div class=\"details\">" + item.serial_number +"</div>" +
+                "<div class=\"details mea\">"+ item.measurement +" <span>$"+ price.toFixed(2) + "</span></div>" +
+                "<div class=\"details tot\">"+ ((amount > 0)?('Total: <span>$'+ _total.toFixed(2) + '</span>'):'<span></span>') +"</div>" +
               "</div>" +
             "</div>";
 
