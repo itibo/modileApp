@@ -520,7 +520,7 @@ var app = {
             app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
             //do nothing
           },
-          { maximumAge: 0, timeout: 60000 }
+          { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
       );
     } else {
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
@@ -790,7 +790,7 @@ var app = {
       });
     }, function(error){
       sync_process();
-    }, {timeout:30000, maximumAge: 0});
+    }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
   },
 
   //TODO: refactor, refactor and refactor again
@@ -965,7 +965,7 @@ var app = {
                 function(error){
                   // do nothing
                 },
-                {timeout:30000, maximumAge: 0}
+                {timeout:30000, maximumAge: 0, enableHighAccuracy: true}
             );
           }
         }
@@ -1009,7 +1009,7 @@ var app = {
                 error: error
               });
             },
-            { maximumAge: 0, timeout: 60000 }
+            { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
         );
       } else {
         $deferred.reject({

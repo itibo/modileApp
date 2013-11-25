@@ -89,7 +89,7 @@ var InspectionView = function(data) {
             };
 
             setTimeout(function(){
-              navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0});
+              navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
               app.route({
                 toPage: window.location.href + "#welcome"
               });
