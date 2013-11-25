@@ -332,7 +332,7 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
     out = out + "<div class=\"location_details\">";
     out = out + "<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>sync required</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>'));
     out = out + "<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
-    out = out + "<p>Order type: <span>"+order.order_form+"</span>";
+    out = out + "<p class=\"add_info\">Order type: <span>"+order.order_form+"</span>";
 
 //    out = out + "<br />"+(("log" != order.order_status)?'Draft saved':'Submitted' )+": <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
     out = out + "</p>";
@@ -345,9 +345,20 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
           empty_flag = true,
           category = order['supply_order_categories'][v];
 
-      $.each(Object.keys(category), function(ik,vk){
-        var item = category[vk],
-            price = parseFloat(item.price),
+      /* begin: reorganization and sorting */
+      var sorted_items = [];
+      for( var _key in category){
+        if (category.hasOwnProperty(_key)) {
+          sorted_items.push(category[_key]);
+        }
+      }
+      sorted_items = sorted_items.sort(function (a, b) {
+        return a.description.localeCompare( b.description );
+      });
+      /* end: sorting */
+
+      $.each(sorted_items, function(ik,item){
+        var price = parseFloat(item.price),
             amount = parseFloat(item.amount),
             _total = price * amount;
 

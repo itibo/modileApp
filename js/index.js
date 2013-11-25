@@ -1477,6 +1477,7 @@ var app = {
         $container.html(new WelcomeView().render().el).trigger('pagecreate');
         break;
     }
+    window.scrollTo(0,0);
     $container.page();
     options.dataUrl = urlObj.href;
     $.mobile.changePage( $container, options );
@@ -1824,6 +1825,7 @@ var app = {
                 app.route({
                   toPage: window.location.href + "#orders"
                 });
+                window.scrollTo(0,0);
               },
               isObjectsEqual = function(o1,o2,cfg,reverse){
                 cfg = cfg || {};

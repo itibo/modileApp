@@ -293,7 +293,7 @@ var OrderView = function(order_id){
           "position": "fixed",
           "width": Math.floor(budget_position_width) + "px",
           "visibility": "hidden",
-          "z-index": 1
+          "z-index": 102
         }).appendTo("div.categories[role=main]").trigger('create');
 
         self.scroll_event_obj = $.extend(self.scroll_event_obj, {
@@ -338,7 +338,7 @@ var OrderView = function(order_id){
             $(elm).text("$" + res);
         });
       } else {
-        $(".order_form_selection>.site_dependent dd").html("");
+        $(".order_form_selection>.site_dependent dd").html("&nbsp;");
       }
     });
 
@@ -482,7 +482,7 @@ var OrderView = function(order_id){
         } else {
           $popup.css("top", $(document).scrollTop() + Math.round(($(window).height() - $popup.height())/2) + "px");
         }
-        $popup.css("visibility","visible");
+        $popup.css({"visibility": "visible", "z-index": 101});
       } catch (er){}
     });
 
@@ -620,9 +620,9 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
     out = out + "<div data-role=\"content\""+ (("log" != order.order_status)? ' class=\"categories\"' : '') +">";
     out = out + "<div class=\"location_details\">";
-    out = out + "<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>sync required</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>'));
+    out = out + "<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>-</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>'));
     out = out + "<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
-    out = out + "<p>Order type: <span>"+order.order_form+"</span>";
+    out = out + "<p class=\"add_info\">Order type: <span>"+order.order_form+"</span>";
 
     if ("log" == order.order_status){
       out = out + "<br />Submitted: <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
@@ -636,9 +636,22 @@ Handlebars.registerHelper("orderContent", function(order_obj){
           empty_flag = true,
           category = order['supply_order_categories'][v];
 
-      $.each(Object.keys(category), function(ik,vk){
-        var item = category[vk],
-            price = parseFloat(item.price),
+      /* begin: reorganization and sorting */
+      var sorted_items = [];
+      for( var _key in category){
+        if (category.hasOwnProperty(_key)) {
+          sorted_items.push(category[_key]);
+        }
+      }
+      sorted_items = sorted_items.sort(function (a, b) {
+        return a.description.localeCompare( b.description );
+      });
+      /* end: sorting */
+
+
+//      $.each(Object.keys(category), function(ik,vk){
+      $.each(sorted_items, function(ik,item){
+        var price = parseFloat(item.price),
             amount = parseFloat(item.amount),
             _total = price * amount;
 

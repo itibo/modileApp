@@ -1,72 +1,6 @@
 var InspectionsLogView = function(data) {
   this.data = data || [];
 
-/*  this.data1 = (function(data1){
-    var return_arr = [];
-    $.each(data1, function(i,log_obj){
-      var return_data = {};
-      var transformed_dates = (function(){
-
-        $.extend(return_data,
-            $.Deferred(function(defer) {
-                  navigator.globalization.dateToString(
-                      new Date(log_obj.arrival_time),
-                      function(res) {
-                        defer.resolve({arrival_time: res.value});
-                      },
-                      function() {
-                        defer.resolve({arrival_time: log_obj.arrival_time});
-                      },
-                      {formatLength:'short', selector:"date and time"}
-                  )
-                }
-            )
-        );
-        $.extend(return_data,
-            $.Deferred(function(defer) {
-                  navigator.globalization.dateToString(
-                      new Date(log_obj.departure_time),
-                      function(res) {
-                        defer.resolve({departure_time: res.value});
-                      },
-                      function() {
-                        defer.resolve({departure_time: log_obj.departure_time});
-                      },
-                      {formatLength:'short', selector:"date and time"}
-                  )
-                }
-            )
-        );
-        $.extend(return_data,
-            $.Deferred(function(defer) {
-                  navigator.globalization.dateToString(
-                      new Date(log_obj.last_inspection_time),
-                      function(res) {
-                        defer.resolve({last_inspection_time: res.value});
-                      },
-                      function() {
-                        defer.resolve({last_inspection_time: log_obj.last_inspection_time});
-                      },
-                      {formatLength:'short', selector:"date and time"}
-                  )
-                }
-            )
-        );
-        return return_data;
-      })();
-
-      $.when.apply(null, transformed_dates).then(function(result){
-        var args = arguments;
-        alert("in then result: " + JSON.stringify(result));
-        alert("in then args: " + JSON.stringify(args));
-      }, function(err){
-        alert("in then err: " + JSON.stringify(err));
-      });
-      return false;
-    });
-    return return_arr;
-  })(data || []);*/
-
   this.render = function() {
     var self = this;
     var unsubmitted = (function(){
@@ -108,12 +42,12 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
   if (items.length>0 || inspectionsLog.unsubmitted){
     out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
     if (inspectionsLog.unsubmitted){
-      out = out + "<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + " - <span class=\"adress\">" + inspectionsLog.unsubmitted.address + "(UNSUBMITTED)</span></div></li>";
+      out = out + "<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + "<br/><span class=\"address\">" + inspectionsLog.unsubmitted.address + "(UNSUBMITTED)</span></div></li>";
     }
 
     for(var i=0, l=items.length; i<l; i++) {
       out = out + "<li>" +
-          "<div class=\"points\">" + items[i].site  + " - <span class=\"adress\">" + items[i].address + "</span></div>" +
+          "<div class=\"points\">" + items[i].site  + "<br/><span></span><span class=\"address\">" + items[i].address + "</span></div>" +
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
               "<span class=\"time\">Initiated: <font >" + items[i].arrival_time + "</font></span><br />" +
