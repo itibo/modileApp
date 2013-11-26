@@ -365,7 +365,7 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
         if (amount > 0 ){
 
           category_out = category_out + "<li>" +
-              "<span>" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
+              "<span class=\"item_name\">" + item.serial_number +" - "+ item.description +"<br/>Measurement: "+ item.measurement +"<br/>" +
                 "<div class=\"details\">Price: <span>$"+ price.toFixed(2) + "</span></div>" +
                 "<div class=\"details\">Amount: <span>"+ amount + "</span></div>" +
                 "<div class=\"details\">Total: <span>$"+ _total.toFixed(2) + "</span></div>" +

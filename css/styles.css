@@ -66,8 +66,9 @@ span.btn-back a span , span.logout a span ,span.btn-back_inspect a span { font: 
 
 #main .ui-header { border-bottom:1px solid #666; }
 #main .ui-content { padding:2% 1% 1%; }
+
+#main .ui-content .ui-content  { padding:0; }
 .ui-content h2 { margin:0px; padding:0px; }
-.ui-content h5 font{color:#000;}
 a.btn-main { text-decoration:none; }
 a.btn-main div {
     border-radius:0.5em;
@@ -816,11 +817,14 @@ body .popup-overlay {
 
 /* all content */
 h5 {
-    padding-top: 0px;
-    margin-top: 0px;
-    width: 100%;
+    padding:2% 1% 0 0;
+	/*padding-top: 0px;*/
+    margin: 0px;
+    /*width: 100%;*/
     text-align: right;
+	/*border:1px solid red;*/
 }
+.ui-content h5 font{color:#000;}
 h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_inspect{
 		padding: 0 2%;
 		height: 100%;
@@ -853,6 +857,9 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	background-repeat: repeat-y;
 }
 
+.item_name{
+	font-weight: normal;
+}
 span.address {
 	font-style: italic;
 	font-weight: normal;
@@ -860,6 +867,7 @@ span.address {
 }
 .location_details{
 	background-color: #dae6e5;
+	margin-bottom: 1em;
 	padding: 0 2%;
 	border: 1px solid #666;
 	border-radius: 5px;
@@ -876,6 +884,16 @@ span.address {
 }
 .location_details p.add_info span{
 	font-weight: bold;
+}
+.ui-select .ui-btn{
+    border-radius: 0.5em;
+	box-shadow: none;
+	background-color: #f0f0f0;
+	margin: 1em 0;
+	text-align: left;
+}
+.log .ui-content ul.ui-listview-inset, .ui-content ul.withbrd{
+	margin-top:0;
 }
 /* end all content */
 
@@ -920,12 +938,6 @@ span.address {
 
 
 /* new order */
-.ui-select .ui-btn{
-    border-radius: 0.5em;
-	box-shadow: none;
-	background-color: #f0f0f0;
-	text-align: left;
-}
 .ui-select .ui-btn span{
 	border: none;
 	color: #666;
@@ -952,7 +964,7 @@ span.address {
 	background-color: #fff;
 	border: 1px solid #666;
 	border-radius: 5px;
-	margin: 1em 0;
+	margin: 0 0 1em;
 	position: relative;
 }
 .box.post p font{
@@ -979,8 +991,8 @@ span.address {
 	width: 55%;
 	float:left;
 }
-.boxcntone{
-	padding: 2% 3%;
+.ui-li-static.ui-li.boxcntone, .boxcntone{
+	padding: 2%;
 }
 .boxcntone p{
 	font-style: italic;
@@ -1052,6 +1064,7 @@ span.address {
 /* detail draft */
 .draftlog .ui-li span{ font-style:normal; }
 .details{
+	color: #666;
 	float: left;
 	font-style: normal;
 	font-weight: normal;
@@ -1096,7 +1109,7 @@ span.address {
 	min-height: 1.2em;
 }
 .over_budget .budget{
-	color: #333;
+	color: #000;
 	/*padding-right: 3%;*/
 	margin: 0 3em 0 0;
 	position: relative;
@@ -1224,6 +1237,7 @@ span.address {
 	border-top: 0 none;
 	background: #fff;
 	color: #333;
+	font-weight: normal;
 	margin: 0 4.8em 0 0;
 	padding: 2%;
 	position: relative;

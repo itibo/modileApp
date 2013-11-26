@@ -45,8 +45,8 @@
           </span>
         </h1>
       </div><!-- /header -->
+      <h5><font color="black">{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
       <div data-role="content" class="welcome_content">
-        <h5><font color="black">{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
         <div class="logo_img">
           <span class="beta">{{{version}}}</span>
         </div>
@@ -67,9 +67,9 @@
           </span>
         </h1>
       </div><!-- /header -->
+      <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
       <div class="inspect">
         <div data-role="content">
-          <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
           {{ListOfAvailiableJobsContent}}
           <div class="all_input stnd_btn">
             <input type="button" id="recheck" value="Re-check"/>
@@ -86,9 +86,9 @@
           </span>
         </h1>
       </div><!-- /header -->
+      <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
       <div class="site_list">
         <div data-role="content">
-          <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
           {{#ListOfAvailiableSitesContent sites}}{{/ListOfAvailiableSitesContent}}
         </div>
       </div><!-- /content -->
@@ -152,9 +152,9 @@
           </span>
         </h1>
       </div><!-- /header -->
+      <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
       <div class="log">
         <div data-role="content">
-          <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
           {{#ListInspectionsLog inspectionsLog}}{{/ListInspectionsLog}}
         </div>
       </div><!-- /content -->
@@ -175,11 +175,10 @@
           </span>
         </h1>
       </div><!-- /header -->
+      <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}<br />Supply Period: <font>{{supplyPeriod}}</font></h5>
       <div class="main">
         <div data-role="content" class="log inspect">
-          <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
-          <h5>Supply Period: <font>{{supplyPeriod}}</font></h5>
-          <div class="all_input  stnd_btn">
+          <div class="all_input stnd_btn">
             <button id="start_new" type="button" class="ui-btn-hidden" aria-disabled="false">Start a new Order</button>
           </div>
           {{#DraftsOrderContent drafts}}{{/DraftsOrderContent}}
@@ -230,11 +229,11 @@
         </h1>
       </div><!-- /header -->
       <div class="main">
+        {{{subheader}}}
         <div id="new_order" class="neworder">
           {{#newOrderStartContent order}}{{/newOrderStartContent}}
         </div>
-        <!--<div id="edit_order" class="newbtn">-->
-        <div id="edit_order" class="newbtn">
+        <div id="edit_order" class="newbtn categories" data-role="content">
           {{#orderContent order}}{{/orderContent}}
         </div>
       </div><!-- /content -->

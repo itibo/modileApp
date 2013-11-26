@@ -107,7 +107,6 @@ var SupplierView = function(){
 
       $overlay.appendTo("body").trigger("create");
       $("input", $popup).val( draft_id );
-//      $popup.css( "left", ( ( (holdCords.holdX + $popup.width())< $(window).width() ) ? holdCords.holdX : ( $(window).width() - $popup.width()) ) + "px" );
       $popup.css("left", ($(window).width() - $popup.width())/2  + "px");
       $popup.css("top", ( ( ($(document).scrollTop() + $(window).height() - holdCords.holdY)< $popup.height()) ? (holdCords.holdY - $popup.height()) : (holdCords.holdY - $popup.height()/2) ) + "px");
       $popup.css("visibility","visible");
@@ -166,33 +165,6 @@ var SupplierView = function(){
       );
     });
 
-    this.el.on('click', 'button#submit_to_vendor', function(e){
-      e.preventDefault();
-      $("#context_menu").css("visibility","hidden");
-      $(".popup-overlay").remove();
-      // do nothing
-/*      navigator.notification.confirm(
-          "Are you sure you want to remove this draft?",
-          function(buttonIndex){
-            $("#context_menu").css("visibility","hidden");
-            $(".popup-overlay").remove();
-            if(2 == buttonIndex){
-
-              alert($("input", $(e.currentTarget).parents("div#context_menu").eq(0)).val());
-
-              setTimeout(function(){
-                app.route({
-                  toPage: window.location.href + "#orders"
-                });
-              },0);
-            }
-          },
-          "Drafts",
-          'Cancel,Remove'
-      );
- */
-    });
-
   };
 
   this.initialize();
@@ -235,7 +207,7 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
 
 Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
   var out = "<ul data-role=\"listview\" data-inset=\"true\">";
-  out = out + "<li data-role=\"list-divider\" role=\"heading\">Last 5 Submitted Orders</li>";
+  out = out + "<li data-role=\"list-divider\" role=\"heading\">Last 10 Submitted Orders</li>";
   if (submitted_orders.length>0){
     $.each(submitted_orders, function(i,v){
       out = out + "<li class=\"inspectable\"><a href=\"#order-overall:"+ v.supply_order_id +"\">"+
