@@ -551,7 +551,7 @@ var OrderView = function(order_id){
         try {
           var clicked_category = $("li[data-role=list-divider]", $clicked_elm.closest("ul")).text();
           var elm_id = $clicked_elm.attr("id").match(/^iid_(.*)$/i)[1];
-          var details_arr = $(".detals", $clicked_elm);
+          var details_arr = $(".details", $clicked_elm);
 
           self.activeOrder.upd.supply_order_categories[String(clicked_category)][String(elm_id)]['amount'] =
               $(event.currentTarget).attr("data-value");
