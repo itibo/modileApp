@@ -119,11 +119,30 @@ var OrderOverallView = function(order_id){
     });
 
     this.el.on('click', "button#submit_to_vendor", function(e){
-      var _total = parseFloat($(".over_budget span.price").text().substring(1));
+      var active_order_info = (function(){
+        var _total = 0,
+            _count = 0;
 
-      if ( _total > 0) {
+        $.each(Object.keys(self.activeOrder.upd.supply_order_categories), function(i,v){
+          var _category = self.activeOrder.upd.supply_order_categories[v];
+          $.each(Object.keys(_category), function(ik,vk){
+            var _am = parseFloat(_category[vk]["amount"]);
+            if ( _am > 0 ) {
+              _count = _count + _am;
+              _total = _total + ( _am * parseFloat(_category[vk]["price"]) );
+            }
+          });
+        });
 
-        if (_total > parseFloat(self.activeOrder.upd.remaining_budget)){
+        return {
+          total: _total,
+          count: _count
+        }
+      })();
+
+      if ( active_order_info.count > 0) {
+
+        if (active_order_info.total > parseFloat(self.activeOrder.upd.remaining_budget)){
           navigator.notification.alert(
               "Order can't be submitted to vendor since budget is exceeded. Please correct the order details to be in the limits of available budget.", // message
               function(){},    // callback
@@ -166,6 +185,7 @@ var OrderOverallView = function(order_id){
                   app.mySupplyOrdersDrafts((function(){
                     $.each(mySupplyOrdersDrafts, function(i,v){
                       if(String(self.activeOrder.upd.supply_order_id) == String(v.supply_order_id)){
+                        var order_form_short = v.order_form.match(/^(.+?)\b/)[0].toLowerCase();
 
                         mySupplyOrdersDrafts[i] = $.extend({
                           id: self.activeOrder.upd.supply_order_id,
@@ -188,9 +208,9 @@ var OrderOverallView = function(order_id){
                         });
                         submitted_item = mySupplyOrdersDrafts[i];
                       }
-                      if (self.activeOrder.upd.order_form == v.order_form && self.activeOrder.upd.site_id == v.site_id){
-                        mySupplyOrdersDrafts[i]['remaining_budget'] = (parseFloat(v.remaining_budget) -
-                            parseFloat($(".over_budget span.price").text().substring(1))).toFixed(2) ;
+                      if (self.activeOrder.upd.order_form == v.order_form &&
+                          ( (self.activeOrder.upd.site_id == v.site_id && "paper" == order_form_short) || "paper" != order_form_short ) ){
+                        mySupplyOrdersDrafts[i]['remaining_budget'] = (parseFloat(v.remaining_budget) - active_order_info.total).toFixed(2);
                       }
                     });
                     return mySupplyOrdersDrafts;
@@ -200,7 +220,9 @@ var OrderOverallView = function(order_id){
                     submitted_item = submitted_item.locally_saved;
                     if (!$.isEmptyObject(submitted_item)){
                       myLastSubmittedOrders.unshift(submitted_item);
-                      myLastSubmittedOrders.pop();
+/*                      if (myLastSubmittedOrders.length > 10){
+                        myLastSubmittedOrders.pop();
+                      }*/
                     }
                     return myLastSubmittedOrders;
                   })(submitted_item));

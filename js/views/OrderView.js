@@ -60,6 +60,7 @@ var OrderView = function(order_id){
             delete mutations_obj[key];
           }
         }
+        app.ids_mutation(mutations_obj);
       }
 
       context.order = (function(){
@@ -92,8 +93,8 @@ var OrderView = function(order_id){
                       site_address: "2249 N. Hollywood Way, Burbank CA 91505",
                       remaining_budget: (function(form_prefix){
                         var val = 0;
-                        if ("discretionary" == form_prefix) {
-                          val = parseFloat(my_sites[0]["budget_discretionary"]) - parseFloat(my_sites[0]["used_discretionary"]);
+                        if ("paper" != form_prefix) {
+                          val = parseFloat(my_sites[0]["budget_"+form_prefix]) - parseFloat(my_sites[0]["used_"+form_prefix]);
                         }
                         return val.toFixed(2);
                       })(id_arr[1])
@@ -195,7 +196,7 @@ var OrderView = function(order_id){
             }));
           }
         } else {
-          // возвращаемся со страницы добавления/редактирования айтема
+          // возвращаемся со страницы добавления/редактирования айтема или входим после некорректного выхода из редактирования
 
           self.activeOrder = app.activeOrder((function(){
             // mutations in action
@@ -526,6 +527,13 @@ var OrderView = function(order_id){
       });
 
       try {
+
+        if ( isNaN(parseInt($(".number span", $(e.currentTarget)).text())) ||
+            0 == parseInt($(".number span", $(e.currentTarget)).text()) ){
+          $(".clear", $popup).addClass("disabled");
+        } else {
+          $(".clear", $popup).removeClass("disabled");
+        }
         $overlay.appendTo("body").trigger("create");
         $("input[type=hidden][id=item_id]", $popup).val($(e.currentTarget).attr("id"));
         $popup.css( "left",  Math.round( ($(window).width() - $popup.width())/2 ) );

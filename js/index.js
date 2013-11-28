@@ -1146,9 +1146,6 @@ var app = {
               tmp.push(formatSupplyOrders(v));
             });
             app.mySupplyOrdersDrafts(tmp);
-/*            if (typeof success_callback == "function"){
-              success_callback();
-            }*/
           } else {
             app.setToken(false);
             app.route();
@@ -1233,11 +1230,20 @@ var app = {
       });
     };
 
-    if (app.mySupplyOrdersDrafts().length > 0 || app.myLastSubmittedOrders().length > 0){
+    if (app.last_supply_sync_date()){
       success_callback();
     } else {
-      $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
-        ajax_call.call(self, obj1.position);
+      $.when( app.check_online() ).done(function(obj1){
+        navigator.geolocation.getCurrentPosition(function(position){
+          ajax_call.call(self, [{
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            acc: position.coords.accuracy,
+            time: (new Date()).toUTCString()
+          }]);
+        }, function(error){
+          ajax_call.call(self, null);
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1266,9 +1272,6 @@ var app = {
         success: function(data) {
           if (data.token == token){
             app.mySites(data.sites);
-/*            if (typeof success_callback == "function"){
-              success_callback(data.sites);
-            }*/
           } else {
             app.setToken(false);
             app.route();
@@ -1351,8 +1354,17 @@ var app = {
     if (app.mySites().length > 0 && !$.isEmptyObject(app.supplyOrdersTemplate())){
       success_callback();
     } else {
-      $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
-        ajax_call.call(self, obj1.position);
+      $.when( app.check_online() ).done(function(obj1){
+        navigator.geolocation.getCurrentPosition(function(position){
+          ajax_call.call(self, [{
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            acc: position.coords.accuracy,
+            time: (new Date()).toUTCString()
+          }]);
+        }, function(error){
+          ajax_call.call(self, null);
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1360,7 +1372,6 @@ var app = {
         }
       });
     }
-
   },
 
   getSitesList: function(success_callback){
