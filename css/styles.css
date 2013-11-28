@@ -838,6 +838,9 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 	top: 80%;
 	left: 40%;
 }
+.points{
+	white-space: normal;
+}
 .points span{
 	font-weight:normal;
 }
