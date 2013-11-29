@@ -31,7 +31,7 @@ var SupplierView = function(){
           drafts = app.mySupplyOrdersDrafts();
 
       $.each(drafts, function(i,v){
-        if ( (undefined != v.submit_status && "submitting" == v.submit_status) || ( undefined != v.removing )){
+        if ( (undefined != v.submit_status && "submitting" == v.submit_status) || ( undefined != v.to_remove )){
           // skip
         } else {
           return_arr.push({
@@ -141,7 +141,7 @@ var SupplierView = function(){
                   }
 
                   if ($.inArray(removing, check_array) > -1 ){
-                    drafts[i]['removing'] = true;
+                    drafts[i]['to_remove'] = true;
                     if (undefined != mutation[v.supply_order_id]){
                       drafts[i]["supply_order_id"] = mutation[v.supply_order_id];
                       drafts[i]["id"] = mutation[v.supply_order_id];

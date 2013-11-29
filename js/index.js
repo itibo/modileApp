@@ -586,7 +586,7 @@ var app = {
             _tmp = $.grep(app.mySupplyOrdersDrafts(), function(n,i){
               return ( (undefined != n.submit_status && "submitting" == n.submit_status) ||
                   (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved)) ||
-                  (undefined != n.removing) );
+                  (undefined != n.to_remove && undefined == n.removing) );
             });
             return (_tmp.length>0);
           };
@@ -609,7 +609,7 @@ var app = {
               var to_update = (function(){
                 var updated = [],
                     submitted = [],
-                    delete_drafts = [];
+                    delete_drafts = [],
                     mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
 
                 app.mySupplyOrdersDrafts( (function(){
@@ -622,8 +622,9 @@ var app = {
                       submitted.push({supply_order_id: draft.supply_order_id});
                       mySupplyOrdersDrafts[i]["submitting"] = true;
                     }
-                    if(undefined != draft.removing) {
+                    if(undefined != draft.to_remove && undefined == draft.removing) {
                       delete_drafts.push({supply_order_id: draft.supply_order_id})
+                      mySupplyOrdersDrafts[i]["removing"] = true;
                     }
                   });
                   return mySupplyOrdersDrafts;
@@ -659,6 +660,7 @@ var app = {
               $.each(mySupplyOrdersDrafts, function(i,v){
                 mySupplyOrdersDrafts[i]["sending"] = void 0;
                 mySupplyOrdersDrafts[i]["submitting"] = void 0;
+                mySupplyOrdersDrafts[i]["removing"] = void 0;
               });
               return mySupplyOrdersDrafts;
             })());
@@ -1351,7 +1353,7 @@ var app = {
       });
     };
 
-    if (app.mySites().length > 0 && !$.isEmptyObject(app.supplyOrdersTemplate())){
+    if ( app.last_supply_sync_date() ){
       success_callback();
     } else {
       $.when( app.check_online() ).done(function(obj1){

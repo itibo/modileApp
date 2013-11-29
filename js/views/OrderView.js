@@ -627,20 +627,36 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
           return arr;
         })(),
         budget_info = (function(){
-          return {
-            discretionary: {
-              budget: parseFloat(my_sites[0]["budget_discretionary"]).toFixed(2),
-              used: parseFloat(my_sites[0]["used_discretionary"]).toFixed(2),
-              remain: (parseFloat(my_sites[0]["budget_discretionary"]) - parseFloat(my_sites[0]["used_discretionary"])).toFixed(2)
-            },
-            equipment: {
-              budget: parseFloat(my_sites[0]["budget_equipment"]).toFixed(2),
-              used: parseFloat(my_sites[0]["used_equipment"]).toFixed(2),
-              remain: (parseFloat(my_sites[0]["budget_equipment"]) - parseFloat(my_sites[0]["used_equipment"])).toFixed(2)
+          var ret = {};
+          try {
+            ret = {
+              discretionary: {
+                budget: parseFloat(my_sites[0]["budget_discretionary"]).toFixed(2),
+                used: parseFloat(my_sites[0]["used_discretionary"]).toFixed(2),
+                remain: (parseFloat(my_sites[0]["budget_discretionary"]) - parseFloat(my_sites[0]["used_discretionary"])).toFixed(2)
+              },
+              equipment: {
+                budget: parseFloat(my_sites[0]["budget_equipment"]).toFixed(2),
+                used: parseFloat(my_sites[0]["used_equipment"]).toFixed(2),
+                remain: (parseFloat(my_sites[0]["budget_equipment"]) - parseFloat(my_sites[0]["used_equipment"])).toFixed(2)
+              }
+            }
+          } catch (er) {
+            ret = {
+              discretionary: {
+                budget: 0,
+                used: 0,
+                remain: 0
+              },
+              equipment: {
+                budget: 0,
+                used: 0,
+                remain: 0
+              }
             }
           }
+          return ret;
         })();
-
     out = out + "<select name=\"client_site\" id=\"site\"><option value=\"\">- Select Site Location -</option>";
     $.each(my_sites, function( index, value ) {
       out = out + "<option value=\"" + value.site_id + "\">" + value.site + "</option>";
