@@ -3,8 +3,8 @@ var app = {
   // Application Constructor
   initialize: function() {
     // config
-//    this.site = 'http://209.123.209.168:3000';  // ALPHA
-    this.site = 'http://209.123.209.154/';      // BETA
+    this.site = 'http://209.123.209.168:3000';  // ALPHA
+//    this.site = 'http://209.123.209.154/';      // BETA
     this.watchID = null;
     this.coordinates = [];
 
@@ -15,7 +15,7 @@ var app = {
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
     this.application_version = "0.3.4";
-    this.application_build = "BETA";
+    this.application_build = "ALPHA";
 
     // allow to submit inspection
     this.allowToSubmit = true;
@@ -615,16 +615,22 @@ var app = {
                 app.mySupplyOrdersDrafts( (function(){
                   $.each(mySupplyOrdersDrafts, function(i,draft){
                     if (undefined != draft.locally_saved && !$.isEmptyObject(draft.locally_saved) && undefined == draft.sending){
-                      updated.push(draft.locally_saved);
-                      mySupplyOrdersDrafts[i]["sending"] = true;
+                      if (($.grep(updated, function(n,i){return n.supply_order_id == String(draft.locally_saved.supply_order_id)})).length < 1){
+                        updated.push(draft.locally_saved);
+                        mySupplyOrdersDrafts[i]["sending"] = true;
+                      }
                     }
                     if (undefined != draft.submit_status && "submitting" == draft.submit_status && undefined == draft.submitting){
-                      submitted.push({supply_order_id: draft.supply_order_id});
-                      mySupplyOrdersDrafts[i]["submitting"] = true;
+                      if (($.grep(submitted, function(n,i){return n.supply_order_id == String(draft.supply_order_id)})).length < 1){
+                        submitted.push({supply_order_id: draft.supply_order_id});
+                        mySupplyOrdersDrafts[i]["submitting"] = true;
+                      }
                     }
                     if(undefined != draft.to_remove && undefined == draft.removing) {
-                      delete_drafts.push({supply_order_id: draft.supply_order_id})
-                      mySupplyOrdersDrafts[i]["removing"] = true;
+                      if (($.grep(delete_drafts, function(n,i){return n.supply_order_id == String(draft.supply_order_id)})).length < 1){
+                        delete_drafts.push({supply_order_id: draft.supply_order_id})
+                        mySupplyOrdersDrafts[i]["removing"] = true;
+                      }
                     }
                   });
                   return mySupplyOrdersDrafts;

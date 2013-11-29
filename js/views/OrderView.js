@@ -432,9 +432,8 @@ var OrderView = function(order_id){
                 var drafts = app.mySupplyOrdersDrafts(),
                     mutation = app.ids_mutation();
                 if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                    (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.id == String(self.activeOrder.id)});return !(_tmp.length>0);})() ){
+                    (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.supply_order_id == String(self.activeOrder.id)});return !(_tmp.length>0);})() ){
                   // новый черновик, не присутствующий в ЛС, добавляем его туда
-
 
                   drafts.unshift($.extend({
                     id: self.activeOrder.upd.supply_order_id,

@@ -220,9 +220,6 @@ var OrderOverallView = function(order_id){
                     submitted_item = submitted_item.locally_saved;
                     if (!$.isEmptyObject(submitted_item)){
                       myLastSubmittedOrders.unshift(submitted_item);
-/*                      if (myLastSubmittedOrders.length > 10){
-                        myLastSubmittedOrders.pop();
-                      }*/
                     }
                     return myLastSubmittedOrders;
                   })(submitted_item));
