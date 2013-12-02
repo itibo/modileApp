@@ -694,7 +694,7 @@ var app = {
             switch (self.func) {
               case "sync_check":
                 if (data.sync_list.length > 0){
-                  methods_to_chain_result = [];
+                  var methods_to_chain_result = [];
                   $.each(data.sync_list, function(i,f){
                     methods_to_chain_result.push(methods_to_chain_mapping[f]);
                   });
@@ -716,7 +716,7 @@ var app = {
                 })(app.ids_mutation()));
 
                 app.mySupplyOrdersDrafts((function(){
-                  mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
+                  var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
                   $.each(mySupplyOrdersDrafts, function(i,draft){
                     if ($.inArray(draft.supply_order_id, Object.keys(app.ids_mutation()) )> 0){
                       mySupplyOrdersDrafts[i] = draft.locally_saved;
@@ -730,9 +730,45 @@ var app = {
                 app.mySites(data.sites);
                 break;
               case "my_supply_orders":
-                  var tmp = [];
-                  $.each(data.supply_orders_list, function(i,v){
-                    tmp.push(formatSupplyOrders(v));
+                  var tmp = [],
+                      local_drafts = app.mySupplyOrdersDrafts(),
+                      mutations = app.ids_mutation();
+
+                  $.each(data.supply_orders_list, function(ind,remote){
+                    var _tmp = {};
+                    try {
+                      if ( ( $.grep(local_drafts, function(loc,i){
+                        return ( ($.inArray(String(remote.supply_order_id),
+                            $.merge(
+                                [String(loc.supply_order_id)],
+                                (function(){
+                                  if (undefined != mutations[loc.supply_order_id] && String(remote.supply_order_id) == String(mutations[loc.supply_order_id])){
+                                    return [String(mutations[loc.supply_order_id])];
+                                  } else {
+                                    return [];
+                                  }
+                                })()
+                            )
+                        ) > -1) && ( (new Date(remote.updated_at_utc)) < (new Date(loc.updated_at_utc)) ) &&
+                            ( _tmp = $.extend(true, {}, loc) ) );
+                      } ) ).length > 0 ){
+
+                        if (_tmp["sending"]){
+                          _tmp["sending"] = void 0;
+                        }
+                        if (_tmp["submitting"]){
+                          _tmp["submitting"] = void 0;
+                        }
+                        if (_tmp["removing"]){
+                          _tmp["removing"] = void 0;
+                        }
+                      } else {
+                        _tmp = $.extend(true, {}, formatSupplyOrders(remote));
+                      }
+                    } catch(err){
+                      _tmp = $.extend(true, {}, formatSupplyOrders(remote));
+                    }
+                    tmp.push(_tmp);
                   });
                 app.mySupplyOrdersDrafts(tmp);
                 break;

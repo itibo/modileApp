@@ -141,6 +141,7 @@ var SupplierView = function(){
                   }
 
                   if ($.inArray(removing, check_array) > -1 ){
+                    drafts[i]["updated_at_utc"] = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
                     drafts[i]['to_remove'] = true;
                     if (undefined != mutation[v.supply_order_id]){
                       drafts[i]["supply_order_id"] = mutation[v.supply_order_id];

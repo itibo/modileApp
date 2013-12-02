@@ -431,6 +431,9 @@ var OrderView = function(order_id){
               if(String(self.order_id) == String(self.activeOrder.id) && !isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
                 var drafts = app.mySupplyOrdersDrafts(),
                     mutation = app.ids_mutation();
+
+                self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+
                 if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
                     (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.supply_order_id == String(self.activeOrder.id)});return !(_tmp.length>0);})() ){
                   // новый черновик, не присутствующий в ЛС, добавляем его туда
@@ -440,6 +443,7 @@ var OrderView = function(order_id){
                     supply_order_id: self.activeOrder.upd.supply_order_id,
                     supply_order_name: self.activeOrder.upd.supply_order_name,
                     updated_at: self.activeOrder.upd.updated_at,
+                    updated_at_utc: self.activeOrder.upd.updated_at_utc,
                     order_date: self.activeOrder.upd.order_date,
                     order_form: self.activeOrder.upd.order_form,
                     site_id: self.activeOrder.upd.site_id,
@@ -465,6 +469,7 @@ var OrderView = function(order_id){
                         supply_order_id: self.activeOrder.upd.supply_order_id,
                         supply_order_name: self.activeOrder.upd.supply_order_name,
                         updated_at: self.activeOrder.upd.updated_at,
+                        updated_at_utc: self.activeOrder.upd.updated_at_utc,
                         order_date: self.activeOrder.upd.order_date,
                         order_form: self.activeOrder.upd.order_form,
                         site_id: self.activeOrder.upd.site_id,
