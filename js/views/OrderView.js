@@ -11,18 +11,15 @@ var OrderView = function(order_id){
 
     context.subheader = (function(){
       var userInfo = app.getUserInfo();
-      var out = "";
-      out = out + "<h5><font>" + userInfo.display_name +"</font>, " + userInfo.role + "<br />" +
-          "Supply Period: <font>" +
-          (function(){
-            var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
-            var formattedDate = new Date();
-            return monthNames[formattedDate.getMonth()] + " " + formattedDate.getFullYear();
-          })() +
-          "</font></h5>";
-      return out;
+      return "<h5><font>" + userInfo.display_name +"</font>, " + userInfo.role + "<br />" +
+        "Supply Period: <font>" +
+        (function(){
+          var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+          var formattedDate = new Date();
+          return monthNames[formattedDate.getMonth()] + " " + formattedDate.getFullYear();
+        })() +
+        "</font></h5>";
     })();
-
 
     if ("new" == self.order_id){
       context.title = "New Order";
@@ -35,10 +32,8 @@ var OrderView = function(order_id){
           drafts = app.mySupplyOrdersDrafts(),
           logs = app.myLastSubmittedOrders(),
           ids_in_ls = (function(){
-            var return_arr = [];
-            return_arr = $.merge($.merge(return_arr, $.map(drafts, function(d){return d.supply_order_id;})),
+            return $.merge($.merge([], $.map(drafts, function(d){return d.supply_order_id;})),
                 $.map(logs, function(l){return l.supply_order_id;}));
-            return return_arr;
           })(),
           mutations_obj = app.ids_mutation();
 
@@ -151,7 +146,7 @@ var OrderView = function(order_id){
             });
 
           } else {
-            // открывает драфт/сабмитед ордер из ЛС
+            // открывает драфт из ЛС
 
             $.each(drafts, function(i,v){
               if (String(self.order_id) == String(v.supply_order_id) &&
@@ -160,15 +155,6 @@ var OrderView = function(order_id){
                 return false;
               }
             });
-
-            if ($.isEmptyObject(obj)){
-              $.each(logs, function(i,v){
-                if (String(self.order_id) == String(v.supply_order_id)){
-                  obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "log"});
-                  return false;
-                }
-              });
-            }
           }
 
           if ($.isEmptyObject(obj)){
@@ -196,7 +182,23 @@ var OrderView = function(order_id){
             }));
           }
         } else {
-          // возвращаемся со страницы добавления/редактирования айтема или входим после некорректного выхода из редактирования
+          // входим после некорректного выхода из редактирования
+
+/*          navigator.notification.confirm(
+              "You have unsaved draft. Do you want to continue edit order draft or discard changes?",
+              function(buttonIndex){
+                if(2 == buttonIndex){
+                  // continue
+
+                } else {
+                  // discard
+
+                }
+              },
+              "Supply Order",
+              'Discard,Continue'
+          );
+*/
 
           self.activeOrder = app.activeOrder((function(){
             // mutations in action

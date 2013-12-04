@@ -24,6 +24,23 @@ var app = {
     // last location object
     this.lastLocation = {};
 
+    /* begin: process execution flag */
+    this.process_execution_flag = function(){
+      var flag = false;
+      return {
+        checkBusy: function(){
+          return flag;
+        },
+        setFlag: function(state){
+          flag = (state)? true : false;;
+        }
+      }
+    };
+
+    this.sync_supply_process_execution_flag = this.process_execution_flag();
+
+    /* end: process execution flag */
+
     /* ------------------------- */
     // my_sites
     this.mySites = function(data){
@@ -323,6 +340,8 @@ var app = {
 //      self.startCheckInterval();
     }
 
+    app.sync_supply_process_execution_flag.setFlag(false);
+
     self.route();
 
     $(document).bind( "pagebeforechange", function( e, data ) {
@@ -546,6 +565,12 @@ var app = {
   },
 
   sync_supply: function(){
+
+    // return if sync process is already
+    if (app.sync_supply_process_execution_flag.checkBusy()){
+      return ;
+    }
+
     var _time_to_remember='';
     var formatSupplyOrders = function(object){
       var tmp_obj = {};
@@ -565,6 +590,8 @@ var app = {
       return tmp_obj;
     };
     var sync_process = function(position_obj, methods_to_chain, method_when_update_sync_time){
+      app.sync_supply_process_execution_flag.setFlag(true);
+
       position_obj = position_obj || false;
       methods_to_chain = methods_to_chain || [];
       method_when_update_sync_time = method_when_update_sync_time || '';
@@ -582,17 +609,16 @@ var app = {
         save_orders: "save_orders"
       },
           drafts_ready_to_sync = function(){
-            var _tmp = [];
-            _tmp = $.grep(app.mySupplyOrdersDrafts(), function(n,i){
-              return ( (undefined != n.submit_status && "submitting" == n.submit_status) ||
-                  (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved)) ||
+            return ($.grep(app.mySupplyOrdersDrafts(), function(n,i){
+              return ( (undefined != n.submit_status && "submitting" == n.submit_status && undefined == n.submitting) ||
+                  (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved) && undefined == n.sending) ||
                   (undefined != n.to_remove && undefined == n.removing) );
-            });
-            return (_tmp.length>0);
+            }).length>0);
           };
       var allow_to_chain_methods = true;
       var startdeferrpoint = $.Deferred();
           startdeferrpoint.resolve();
+
       var DeferredAjax = function(func){
         this.deferred = $.Deferred();
         this.url = app.site+'/mobile/'+func+'.json';
@@ -628,7 +654,7 @@ var app = {
                     }
                     if(undefined != draft.to_remove && undefined == draft.removing) {
                       if (($.grep(delete_drafts, function(n,i){return n.supply_order_id == String(draft.supply_order_id)})).length < 1){
-                        delete_drafts.push({supply_order_id: draft.supply_order_id})
+                        delete_drafts.push({supply_order_id: draft.supply_order_id});
                         mySupplyOrdersDrafts[i]["removing"] = true;
                       }
                     }
@@ -702,6 +728,8 @@ var app = {
                   setTimeout(function(){
                     sync_process(position_obj, methods_to_chain_result, methods_to_chain_result[methods_to_chain_result.length-1]);
                   }, 0);
+                } else {
+                  app.sync_supply_process_execution_flag.setFlag(false);
                 }
                 break;
               case "save_orders":
@@ -715,16 +743,6 @@ var app = {
                   return $.extend(old_obj, tmp);
                 })(app.ids_mutation()));
 
-                app.mySupplyOrdersDrafts((function(){
-                  var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
-                  $.each(mySupplyOrdersDrafts, function(i,draft){
-                    if ($.inArray(draft.supply_order_id, Object.keys(app.ids_mutation()) )> 0){
-                      mySupplyOrdersDrafts[i] = draft.locally_saved;
-                      return false;
-                    }
-                  });
-                  return mySupplyOrdersDrafts;
-                })());
                 break;
               case "my_sites":
                 app.mySites(data.sites);
@@ -788,12 +806,18 @@ var app = {
 
             if (method_when_update_sync_time == self.func && "" != _time_to_remember){
               app.last_supply_sync_date(_time_to_remember);
+              app.sync_supply_process_execution_flag.setFlag(false);
             }
 
             self.deferred.resolve();
           },
           error: function(err){
+            app.sync_supply_process_execution_flag.setFlag(false);
             self.deferred.reject();
+
+            if (err.status == 401){
+              app.logout();
+            }
           }
         });
 
@@ -810,13 +834,16 @@ var app = {
       $.each(methods_to_chain, function(ix, def_func) {
         var da = new DeferredAjax(def_func);
         $.when( startdeferrpoint, app.check_online(true) ).then(
-        function(){
-          da.invoke();
-        },
-        function(){
-          da.decline();
-          allow_to_chain_methods = false;
-        });
+          function(){
+            da.invoke();
+          },
+          function(){
+            da.decline();
+            app.sync_supply_process_execution_flag.setFlag(false);
+            allow_to_chain_methods = false;
+          }
+        );
+
         if (allow_to_chain_methods){
           startdeferrpoint = da;
         } else {
@@ -1533,10 +1560,10 @@ var app = {
         break;
     }
     window.scrollTo(0,0);
-    $container.page();
+/*  $container.trigger( "pagecreate" );
     options.dataUrl = urlObj.href;
-    $.mobile.changePage( $container, options );
-    return $container;
+    $.mobile.changePage( $container, options );*/
+    return this;
   },
 
   // routing
