@@ -118,6 +118,11 @@ var OrderOverallView = function(order_id){
       app.backButton();
     });
 
+    this.el.on("change", "input[name=priority]:radio", function(e){
+      e.preventDefault();
+      self.activeOrder.upd.priority = $(e.currentTarget).val();
+    });
+
     this.el.on('click', "button#submit_to_vendor", function(e){
       var active_order_info = (function(){
         var _total = 0,
@@ -173,6 +178,7 @@ var OrderOverallView = function(order_id){
                       updated_at_utc: self.activeOrder.upd.updated_at_utc,
                       order_date: self.activeOrder.upd.order_date,
                       order_form: self.activeOrder.upd.order_form,
+                      priority: self.activeOrder.upd.priority,
                       site_id: self.activeOrder.upd.site_id,
                       site_name: self.activeOrder.upd.site_name,
                       site_address: self.activeOrder.upd.site_address,
@@ -198,6 +204,7 @@ var OrderOverallView = function(order_id){
                           updated_at_utc: self.activeOrder.upd.updated_at_utc,
                           order_date: self.activeOrder.upd.order_date,
                           order_form: self.activeOrder.upd.order_form,
+                          priority: self.activeOrder.upd.priority,
                           site_id: self.activeOrder.upd.site_id,
                           site_name: self.activeOrder.upd.site_name,
                           site_address: self.activeOrder.upd.site_address,
@@ -279,6 +286,7 @@ var OrderOverallView = function(order_id){
                     updated_at_utc: self.activeOrder.upd.updated_at_utc,
                     order_date: self.activeOrder.upd.order_date,
                     order_form: self.activeOrder.upd.order_form,
+                    priority: self.activeOrder.upd.priority,
                     site_id: self.activeOrder.upd.site_id,
                     site_name: self.activeOrder.upd.site_name,
                     site_address: self.activeOrder.upd.site_address,
@@ -309,6 +317,7 @@ var OrderOverallView = function(order_id){
                         updated_at_utc: self.activeOrder.upd.updated_at_utc,
                         order_date: self.activeOrder.upd.order_date,
                         order_form: self.activeOrder.upd.order_form,
+                        priority: self.activeOrder.upd.priority,
                         site_id: self.activeOrder.upd.site_id,
                         site_name: self.activeOrder.upd.site_name,
                         site_address: self.activeOrder.upd.site_address,
@@ -364,6 +373,42 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
 //    out = out + "<br />"+(("log" != order.order_status)?'Draft saved':'Submitted' )+": <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
     out = out + "</p>";
     out = out + "</div>";
+
+    // priority section
+    if ("log" != order.order_status) {
+/*      out = out + "<div class=\"location_details\">" +
+        "<p><font>Priority: </font></p>" +
+        "<select name=\"priority\" id=\"priority\">" +
+          "<option value=\"urgent\">Urgent - ASAP</option>" +
+          "<option value=\"high\">High - 2 business days</option>" +
+          "<option selected=\"selected\" value=\"normal\">Normal - 3 business days</option>" +
+        "</select>" +
+      "</div>";*/
+
+      out = out + "<div class=\"location_details\">" +
+        "<fieldset data-role=\"controlgroup\" data-type=\"horizontal\" data-role=\"fieldcontain\">" +
+          "<legend>Priority:</legend>";
+
+      var priorities = [{
+        shortcode: "normal",
+        label: "Normal<br />3 business days",
+        selected: ( undefined == order.priority || "normal" == order.priority.toLowerCase() )? true: false
+      }, {
+        shortcode: "high",
+        label: "High<br />2 business days",
+        selected: ( undefined != order.priority && "high" == order.priority.toLowerCase() )? true: false
+      }, {
+        shortcode: "urgent",
+        label: "Urgent<br />ASAP",
+        selected: ( undefined != order.priority && "urgent" == order.priority.toLowerCase() )? true: false
+      }];
+
+      $.each(priorities, function(i,ob){
+        out = out + "<input type=\"radio\" name=\"priority\" id=\""+ ob.shortcode +"\" value=\""+ ob.shortcode +"\" "+ ((ob.selected)? 'checked="checked"':'') +" />";
+        out = out + "<label for=\""+ ob.shortcode +"\">"+ ob.label +"</label>";
+      });
+      out = out + "</fieldset></div>";
+    }
 
     out = out + "<div class=\"categories\">";
 

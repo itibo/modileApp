@@ -32,7 +32,7 @@ var app = {
           return flag;
         },
         setFlag: function(state){
-          flag = (state)? true : false;;
+          flag = (state)? true : false;
         }
       }
     };
@@ -1074,6 +1074,7 @@ var app = {
               });
             },
             function(error){
+              alert(JSON.stringify(error));
               $deferred.reject({
                 status: 'error',
                 type: 'gps',

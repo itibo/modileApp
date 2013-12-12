@@ -18,6 +18,18 @@ var SupplierView = function(){
           });
 
           return tmp.toFixed(2);
+        },
+        getPriority = function(item){
+          var priorities = [{
+            shortcode: "high",
+            label: "High - 2 business days"
+          }, {
+            shortcode: "urgent",
+            label: "Urgent - ASAP"
+          }];
+
+          var tmp_arr = $.grep(priorities, function(n,ind){ return (undefined != item.priority && n.shortcode == String(item.priority).toLowerCase())} );
+          return (tmp_arr.length>0) ? tmp_arr[0]["label"] : "";
         };
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
@@ -40,6 +52,7 @@ var SupplierView = function(){
             site_name: v.site_name,
             site_address: v.site_address,
             order_form: v.order_form,
+            priority: getPriority(v),
             order_date: v.order_date,
             updated_at: v.updated_at,
             remaining_budget: v.remaining_budget,
@@ -60,6 +73,7 @@ var SupplierView = function(){
           site_name: v.site_name,
           site_address: v.site_address,
           order_form: v.order_form,
+          priority: getPriority(v),
           order_date: v.order_date,
           updated_at: v.updated_at,
           total: calculate_total(v)
@@ -185,6 +199,7 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
               "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
                 "<td class=\"points_time\">" +
                   "<span class=\"time\">" + v.order_form + "</span><br />" +
+                  (("" != v.priority ) ? ('<span>Priority: '+ v.priority +'</span><br />') :'' ) +
                   "<span class=\"time\">Draft saved: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
                 "</td>" +
                 "<td class=\"right_points\">" +
@@ -217,6 +232,7 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
               "<span class=\"time\">" + v.order_form + "</span><br />" +
+              (("" != v.priority ) ? ('<span>Priority: '+ v.priority +'</span><br />') :'' ) +
               "<span class=\"time\">Submitted: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
             "</td>" +
             "<td class=\"right_points\">" +
