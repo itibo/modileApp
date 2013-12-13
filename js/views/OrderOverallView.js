@@ -383,15 +383,15 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
     if ("log" != order.order_status) {
       var priorities = [{
         shortcode: "normal",
-        label: "Normal <span>- 3 business days</span>",
+        label: "Normal<br /><span>3 business days</span>",
         selected: ( undefined == order.priority || "normal" == order.priority.toLowerCase() )? true: false
       }, {
         shortcode: "high",
-        label: "High <span>- 2 business days</span>",
+        label: "High<br /><span>2 business days</span>",
         selected: ( undefined != order.priority && "high" == order.priority.toLowerCase() )? true: false
       }, {
         shortcode: "urgent",
-        label: "Urgent <span>- ASAP</span>",
+        label: "Urgent<br /><span>ASAP</span>",
         selected: ( undefined != order.priority && "urgent" == order.priority.toLowerCase() )? true: false
       }];
 
