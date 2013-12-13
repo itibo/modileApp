@@ -120,6 +120,11 @@ var OrderOverallView = function(order_id){
 
     this.el.on("change", "input[name=priority]:radio", function(e){
       e.preventDefault();
+
+
+      $("table.priority-box td").removeClass("active");
+      $(e.currentTarget).closest("td").addClass("active");
+
       self.activeOrder.upd.priority = $(e.currentTarget).val();
     });
 
@@ -376,38 +381,31 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
 
     // priority section
     if ("log" != order.order_status) {
-/*      out = out + "<div class=\"location_details\">" +
-        "<p><font>Priority: </font></p>" +
-        "<select name=\"priority\" id=\"priority\">" +
-          "<option value=\"urgent\">Urgent - ASAP</option>" +
-          "<option value=\"high\">High - 2 business days</option>" +
-          "<option selected=\"selected\" value=\"normal\">Normal - 3 business days</option>" +
-        "</select>" +
-      "</div>";*/
-
-      out = out + "<div class=\"location_details\">" +
-        "<fieldset data-role=\"controlgroup\" data-type=\"horizontal\" data-role=\"fieldcontain\">" +
-          "<legend>Priority:</legend>";
-
       var priorities = [{
         shortcode: "normal",
-        label: "Normal<br />3 business days",
+        label: "Normal <span>- 3 business days</span>",
         selected: ( undefined == order.priority || "normal" == order.priority.toLowerCase() )? true: false
       }, {
         shortcode: "high",
-        label: "High<br />2 business days",
+        label: "High <span>- 2 business days</span>",
         selected: ( undefined != order.priority && "high" == order.priority.toLowerCase() )? true: false
       }, {
         shortcode: "urgent",
-        label: "Urgent<br />ASAP",
+        label: "Urgent <span>- ASAP</span>",
         selected: ( undefined != order.priority && "urgent" == order.priority.toLowerCase() )? true: false
       }];
 
+      out = out + "<div class=\"location_details priority_choice\"><div data-role=\"fieldcontain\">" +
+        "<fieldset data-role=\"controlgroup\" data-type=\"horizontal\" data-role=\"fieldcontain\">" +
+          "<legend>Priority:</legend>" +
+          "<table class=\"priority-box\"><tr>";
+
+
       $.each(priorities, function(i,ob){
-        out = out + "<input type=\"radio\" name=\"priority\" id=\""+ ob.shortcode +"\" value=\""+ ob.shortcode +"\" "+ ((ob.selected)? 'checked="checked"':'') +" />";
-        out = out + "<label for=\""+ ob.shortcode +"\">"+ ob.label +"</label>";
+        out = out + "<td"+((ob.selected)? ' class="active"':'')+"><input type=\"radio\" name=\"priority\" id=\""+ ob.shortcode +"\" value=\""+ ob.shortcode +"\" "+ ((ob.selected)? 'checked="checked"':'') +" />";
+        out = out + "<label for=\""+ ob.shortcode +"\">"+ ob.label +"</label></td>";
       });
-      out = out + "</fieldset></div>";
+      out = out + "</tr></table></fieldset></div></div>";
     }
 
     out = out + "<div class=\"categories\">";
