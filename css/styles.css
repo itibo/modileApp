@@ -447,8 +447,6 @@ border-bottom-right-radius:4px;
 }
 
 
-
-
 .location_details.priority_choice, 
 .location_details.priority_choice .ui-field-contain{
 	margin:0px; padding:0px;
@@ -469,68 +467,44 @@ border-bottom-right-radius:4px;
 	width: 100%;
 }
 .priority_choice .priority-box {
-	background-color: #b4cdcb;
-	background-color: #fff;
-	border:1px solid #b4cdcb;
-	border-collapse: separate;
-	border-spacing: 0;
+	border: 1px solid #b4cdcb;
 	-moz-border-radius:10px;
     -webkit-border-radius:10px;
     border-radius:10px;
     margin: 2%;
-    overflow: hidden;
-	table-layout: fixed;
-	width: 97%;
+	overflow: hidden;
+	width: 96%;
+	display: table;
 }
-.priority-box .ui-btn-up-c{
-	background: #FFFFFF;
-}
-.priority-box  td.active:hover{
-	background: #FFFFFF;
-}
-.priority-box  td.active .ui-btn-up-c{
-	background: #92b0af;
-}
-.inspect .priority-box  td.active{
-	background: #92b0af;
-}
-.priority-box .ui-btn-active span{
-	height: 100%;
-}
-.priority-box td{
-    padding: 0;
+.priority-box > div{
+    display: table-cell;
 	border-left: 1px solid #B4CDCB;
+	vertical-align: middle;
 }
-
-.priority-box td:first-child{
-	border-left: none;
-}
-.location_details.priority_choice .ui-radio {
-	border-radius: 0;
-	width: 100%; 
-}
-
-.priority_choice .ui-radio:first-child {
-	/* width: 100%; 
-	border-left: solid 1px #b4cdcb;*/
-}
-.location_details.priority_choice  .ui-radio label {
-	border-left: 1px solid #b4cdcb;
-}
-.priority_choice .ui-radio:first-child label {
+.priority-box > div:first-child{
 	border-left: 0 none;
 }
-.priority_choice .ui-radio .ui-btn-hover-c {
-	background-color: #fff;
+.priority-box .ui-radio {
+	width: 100%;
+} 
+.priority-box > div:first-child{
+	border-radius:10px 0 0 10px;
 }
-.location_details.priority_choice .ui-controlgroup-controls .ui-radio .ui-btn-text {
-	color:#000;
+.priority-box > div:last-child{
+	border-radius:0 10px 10px 0;
 }
-.location_details.priority_choice .ui-controlgroup-controls .ui-radio .ui-btn-text span {
+.priority-box .active, .priority-box .active .ui-radio label{
+	background: #92b0af;	
+}
+.priority-box .ui-radio span {
+	text-shadow: none;
+}
+.priority-box .ui-radio .ui-btn-text span  {
 	color:#666;
 	font-size:75%;
+	display: block;
 }
-.location_details.priority_choice .ui-controlgroup-controls .ui-radio .ui-btn-hover-c .ui-btn-text span {
+.priority-box .ui-radio:hover .ui-btn-text span {
 	color:#000;
 }
 /* end logs */
@@ -1489,13 +1463,12 @@ span.address {
 	.ui-content .block-submit .ui-submit, .ui-content h3, .block-textarea{ float:none; width:100%; }
 	.inspect ul li .ui-btn-inner .ui-btn-text a{ padding:2% 2% 2% 25px; }
 	.main .newbtn .ui-listview a.btn-ordet .details { width: 100%; }
-	.priority_choice .priority-box .ui-radio { float:left; width:100%; }
-.location_details.priority_choice  .ui-radio label {
-	border-top: 1px solid #b4cdcb;
-}
-.priority_choice .ui-radio:first-child label {
-	border-top: 0 none;
-}
+	.priority-box > div:first-child{ border-radius:10px 10px 0 0; }
+	.priority-box > div:last-child{ border-radius:0 0 10px 10px; }
+	.priority-box > div{ border-left: 0 none; display: block; }
+	.priority-box .ui-radio label{ border-top:1px solid #b4cdcb; }
+	.priority-box > div:first-child label{ border-top: 0 none; }
+	.priority-box .ui-radio .ui-btn-text span{ display:inline; }
 }
 @media screen and (max-width:240px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:80%; }
@@ -1510,5 +1483,5 @@ span.address {
 	h1.ui-title span.address{ float:left; padding:0.4em 0 0.3em 1em; width:43%; white-space:normal; }
 	.ui-page .ui-header  span.logout a{ left:-10px; }
 	h1.ui-title span.btn-back_inspect span.ui-btn-inner{ font-size:10px; }
-		.main .newbtn .ui-listview a.btn-ordet .infodetails.one .details { display:block; width:100%; }
+	.main .newbtn .ui-listview a.btn-ordet .infodetails.one .details { display:block; width:100%; }
 }

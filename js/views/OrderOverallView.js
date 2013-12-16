@@ -122,8 +122,8 @@ var OrderOverallView = function(order_id){
       e.preventDefault();
 
 
-      $("table.priority-box td").removeClass("active");
-      $(e.currentTarget).closest("td").addClass("active");
+      $("div.priority-box>div").removeClass("active");
+      $(e.currentTarget).closest("div").parent().addClass("active");
 
       self.activeOrder.upd.priority = $(e.currentTarget).val();
     });
@@ -398,14 +398,14 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
       out = out + "<div class=\"location_details priority_choice\"><div data-role=\"fieldcontain\">" +
         "<fieldset data-role=\"controlgroup\" data-type=\"horizontal\" data-role=\"fieldcontain\">" +
           "<legend>Priority:</legend>" +
-          "<table class=\"priority-box\"><tr>";
+          "<div class=\"priority-box\">";
 
 
       $.each(priorities, function(i,ob){
-        out = out + "<td"+((ob.selected)? ' class="active"':'')+"><input type=\"radio\" name=\"priority\" id=\""+ ob.shortcode +"\" value=\""+ ob.shortcode +"\" "+ ((ob.selected)? 'checked="checked"':'') +" />";
-        out = out + "<label for=\""+ ob.shortcode +"\">"+ ob.label +"</label></td>";
+        out = out + "<div"+((ob.selected)? ' class="active"':'')+"><input type=\"radio\" name=\"priority\" id=\""+ ob.shortcode +"\" value=\""+ ob.shortcode +"\" "+ ((ob.selected)? 'checked="checked"':'') +" />";
+        out = out + "<label for=\""+ ob.shortcode +"\">"+ ob.label +"</label></div>";
       });
-      out = out + "</tr></table></fieldset></div></div>";
+      out = out + "</div></fieldset></div></div>";
     }
 
     out = out + "<div class=\"categories\">";
