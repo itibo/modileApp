@@ -180,16 +180,24 @@ var SupplierView = function(){
       );
     });
 
+
+    this.el.on("click", 'div[data-role="navbar"] div a', function(e){
+      e.preventDefault();
+      $('div[data-role="navbar"] > div').removeClass("active");
+      $(e.currentTarget).closest("div").addClass("active");
+      $('ul[data-role=\"listview\"]').hide();
+      $($(e.currentTarget).attr("href")).show().trigger( "pagecreate" );
+    });
+
   };
 
   this.initialize();
 }
 
 Handlebars.registerHelper('DraftsOrderContent', function(drafts){
-  var out = "";
+  var out = "<ul id=\"drafts\" data-role=\"listview\" data-inset=\"true\" class=\"draft\">";
+  out = out + "<li data-role=\"list-divider\" role=\"heading\">Draft Orders</li>";
   if (drafts.length > 0){
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"draft\">";
-    out = out + "<li data-role=\"list-divider\" role=\"heading\">Draft Orders</li>";
     $.each(drafts, function(i,v){
       if (!(undefined != v.submit_status && "submitting" == v.submit_status)){
         out = out +
@@ -216,13 +224,15 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
       }
     });
     out = out + "</ul>";
+  } else {
+    out = out + "<li>Empty</li></ul>";
   }
 
   return new Handlebars.SafeString(out);
 });
 
 Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
-  var out = "<ul data-role=\"listview\" data-inset=\"true\">";
+  var out = "<ul id=\"submitted\" data-role=\"listview\" data-inset=\"true\" style=\'display:none;\'>";
   out = out + "<li data-role=\"list-divider\" role=\"heading\">Orders submitted this month ("+ submitted_orders.length+")</li>";
   if (submitted_orders.length>0){
     $.each(submitted_orders, function(i,v){
