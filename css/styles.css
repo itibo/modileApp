@@ -1001,8 +1001,7 @@ span.address {
 }
 
 .ui-navbar {
-	border-bottom: 3px solid #666;
-	width: 99.8%;
+	width: 100%;
 	display: table;
 }
 .ui-navbar div {
@@ -1015,8 +1014,8 @@ span.address {
     background-image: linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
 	box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 	border: 1px solid #a0a0a2;
-	border-bottom: 0 none;
-	border-left: 0 none;
+	border-bottom: 1px solid #d8d8d8;
+	/*border-left: 0 none;*/
 	border-radius:10px 10px 0 0;
     display: table-cell;
 	vertical-align: middle;
@@ -1024,32 +1023,83 @@ span.address {
 }
 .ui-navbar .active{
 	background-color: #bdcdcd;
-	background-image: -ms-linear-gradient(top, #e5e5e5 0%, #bdcdcd 100%);
-    background-image: -moz-linear-gradient(top, #e5e5e5 0%, #bdcdcd 100%);
-    background-image: -o-linear-gradient(top, #e5e5e5 0%, #bdcdcd 100%);
-    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #e5e5e5), color-stop(1, #bdcdcd));
-    background-image: -webkit-linear-gradient(top, #e5e5e5 0%, #bdcdcd 100%);
-    background-image: linear-gradient(to bottom, #e5e5e5 0%, #bdcdcd 100%);
+	border: 1px solid #666;
+	border-bottom: 0 none;
+/* 	border-left: 0 none; */
 	color: #fff;
 }
-.ui-navbar div:first-child{
+.ui-navbar .draft{
+	background-image: -ms-linear-gradient(top, #edded2 0%, #9f714b 100%);
+    background-image: -moz-linear-gradient(top, #edded2 0%, #9f714b 100%);
+    background-image: -o-linear-gradient(top, #edded2 0%, #9f714b 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #edded2), color-stop(1, #9f714b));
+    background-image: -webkit-linear-gradient(top, #edded2 0%, #9f714b 100%);
+    background-image: linear-gradient(to bottom, #edded2 0%, #9f714b 100%);
+}
+.ui-navbar .submitted{
+	background-image: -ms-linear-gradient(top, #dae4e3 0%, #7a8581 100%);
+    background-image: -moz-linear-gradient(top, #dae4e3 0%, #7a8581 100%);
+    background-image: -o-linear-gradient(top, #dae4e3 0%, #7a8581 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #dae4e3), color-stop(1, #7a8581));
+    background-image: -webkit-linear-gradient(top, #dae4e3 0%, #7a8581 100%);
+    background-image: linear-gradient(to bottom, #dae4e3 0%, #7a8581 100%);
+}
+.ui-navbar .next_month{
+	background-image: -ms-linear-gradient(top, #cfebdc 0%, #6cb692 100%);
+    background-image: -moz-linear-gradient(top, #cfebdc 0%, #6cb692 100%);
+    background-image: -o-linear-gradient(top, #cfebdc 0%, #6cb692 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #cfebdc), color-stop(1, #6cb692));
+    background-image: -webkit-linear-gradient(top, #cfebdc 0%, #6cb692 100%);
+    background-image: linear-gradient(to bottom, #cfebdc 0%, #6cb692 100%);
+}
+/* .ui-navbar div:first-child{
 	border-left: 1px solid #a0a0a2;
 }
+.ui-navbar div.active:first-child, 
+.ui-navbar div.active{
+	border-left: 1px solid #666;
+}*/
 .ui-navbar a.ui-btn-up-c, .ui-navbar a:hover{
 	background: transparent;
 	display: block;
 	margin: 0 auto;
-	padding: 10px 0;
+	padding: 1% 0;
+	text-shadow: none;
+}
+.ui-navbar a.ui-btn-up-c:focus, .ui-navbar a:focus{
+	box-shadow: none;
 }
 .ui-navbar a.ui-btn-active{
 	color: #000;
 }
-
-
-
 .ui-navbar a span{
-	/*background-color: transparent !important;*/
+	font-size: 150%;
 	white-space: normal;
+}
+.ui-content .ui-navbar + .ui-listview-inset,
+.ui-content .ui-listview-inset + .ui-listview-inset{
+	margin: 0;
+	border-radius: 0 0 5px 5px;
+}
+ul#drafts{
+	border-top: 5px solid #9f724c;
+}
+ul#submitted{
+	border-top: 5px solid #7a8681;
+}
+ul#next_month{
+	border-top: 5px solid #6cb692;
+}
+.ui-content .ui-navbar + .ui-listview-inset li:first-child,
+.ui-content .ui-listview-inset + .ui-listview-inset li:first-child{
+	border-top: 1px solid #666;
+	border-radius: 0;
+}
+.main .log .next_month_orders .ui-li-has-arrow{
+	background-image: url(./images/arrow_green_bg.gif);
+}
+.log .next_month_orders .right_points{
+	background-color: #b9dcc4;
 }
 /* end all content */
 
@@ -1065,13 +1115,12 @@ span.address {
 .main .log .draft .ui-bar-b{
 	background-color:#dec1aa;
 }
-.main .log .draft .ui-li-has-arrow{
-	background-image: url(./images/arrow_bg.png);
+.main .log .ui-li-has-arrow{
+	background-image: url(./images/arrow_gray_bg.gif);
 	background-repeat: repeat-y;
 }
-.main .log .ui-li-has-arrow{
-	background-image: url(./images/arrow_green_bg.png);
-	background-repeat: repeat-y;
+.main .log .draft .ui-li-has-arrow{
+	background-image: url(./images/arrow_bg.gif);
 }
 .main .log .left_points{
 	color:#000;

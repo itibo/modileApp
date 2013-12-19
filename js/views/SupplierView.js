@@ -196,7 +196,7 @@ var SupplierView = function(){
 
 Handlebars.registerHelper('DraftsOrderContent', function(drafts){
   var out = "<ul id=\"drafts\" data-role=\"listview\" data-inset=\"true\" class=\"draft\">";
-  out = out + "<li data-role=\"list-divider\" role=\"heading\">Draft Orders</li>";
+//  out = out + "<li data-role=\"list-divider\" role=\"heading\">Draft Orders</li>";
   if (drafts.length > 0){
     $.each(drafts, function(i,v){
       if (!(undefined != v.submit_status && "submitting" == v.submit_status)){
@@ -233,7 +233,7 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
 
 Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
   var out = "<ul id=\"submitted\" data-role=\"listview\" data-inset=\"true\" style=\'display:none;\'>";
-  out = out + "<li data-role=\"list-divider\" role=\"heading\">Orders submitted this month ("+ submitted_orders.length+")</li>";
+//  out = out + "<li data-role=\"list-divider\" role=\"heading\">Orders submitted this month ("+ submitted_orders.length+")</li>";
   if (submitted_orders.length>0){
     $.each(submitted_orders, function(i,v){
       out = out + "<li class=\"inspectable\"><a href=\"#order-overall:"+ v.supply_order_id +"\">"+
