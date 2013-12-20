@@ -2,6 +2,7 @@ var SupplierView = function(){
 
   this.render = function(){
     var context = {},
+        filter_site_id = app.siteFilter(),
         calculate_total = function(order){
           var tmp = 0,
               order = ((undefined != order.locally_saved && !$.isEmptyObject(order.locally_saved)) ?
@@ -33,6 +34,18 @@ var SupplierView = function(){
         };
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
+    context.sites = (function(){
+      return $.map(app.mySites(), function(st){
+        return $.extend({}, {
+          site_id: st.site_id,
+          site: st.site,
+          address: st.address,
+          client: st.client,
+          client_group: st.client_group,
+          selected: ((undefined != filter_site_id && String(filter_site_id) == String(st.site_id) )? true : false)
+        });
+      });
+    })();
     context.supplyPeriod = (function(){
       var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
       var formattedDate = new Date();
@@ -46,18 +59,20 @@ var SupplierView = function(){
         if ( (undefined != v.submit_status && "submitting" == v.submit_status) || ( undefined != v.to_remove )){
           // skip
         } else {
-          return_arr.push({
-            supply_order_id: v.supply_order_id,
-            supply_order_name: v.supply_order_name,
-            site_name: v.site_name,
-            site_address: v.site_address,
-            order_form: v.order_form,
-            priority: getPriority(v),
-            order_date: v.order_date,
-            updated_at: v.updated_at,
-            remaining_budget: v.remaining_budget,
-            total: String(calculate_total(v))
-          });
+          if ( (undefined == filter_site_id) || ( undefined != filter_site_id && String(filter_site_id) == String(v.site_id) ) ) {
+            return_arr.push({
+              supply_order_id: v.supply_order_id,
+              supply_order_name: v.supply_order_name,
+              site_name: v.site_name,
+              site_address: v.site_address,
+              order_form: v.order_form,
+              priority: getPriority(v),
+              order_date: v.order_date,
+              updated_at: v.updated_at,
+              remaining_budget: v.remaining_budget,
+              total: String(calculate_total(v))
+            });
+          }
         }
       });
       return return_arr;
@@ -67,17 +82,19 @@ var SupplierView = function(){
       var return_arr = [],
           submitted_orders = app.myLastSubmittedOrders();
       $.each(submitted_orders, function(i,v){
-        return_arr.push({
-          supply_order_id: v.supply_order_id,
-          supply_order_name: v.supply_order_name,
-          site_name: v.site_name,
-          site_address: v.site_address,
-          order_form: v.order_form,
-          priority: getPriority(v),
-          order_date: v.order_date,
-          updated_at: v.updated_at,
-          total: calculate_total(v)
-        });
+        if ( (undefined == filter_site_id) || ( undefined != filter_site_id && String(filter_site_id) == String(v.site_id) ) ) {
+          return_arr.push({
+            supply_order_id: v.supply_order_id,
+            supply_order_name: v.supply_order_name,
+            site_name: v.site_name,
+            site_address: v.site_address,
+            order_form: v.order_form,
+            priority: getPriority(v),
+            order_date: v.order_date,
+            updated_at: v.updated_at,
+            total: calculate_total(v)
+          });
+        }
       });
       return return_arr;
     })();
@@ -189,10 +206,32 @@ var SupplierView = function(){
       $($(e.currentTarget).attr("href")).show().trigger( "pagecreate" );
     });
 
+    this.el.on("change", "select#sites_filter", function(e){
+      e.preventDefault();
+      var selected_site = $(e.currentTarget).val();
+      selected_site = ("" != selected_site) ? selected_site : false;
+      app.siteFilter( selected_site ) ;
+      setTimeout(function(){
+        app.route({
+          toPage: window.location.href + "#orders"
+        });
+      },0);
+    });
+
   };
 
   this.initialize();
 }
+
+Handlebars.registerHelper('SitesFilter', function(sites){
+  var out = "<select id=\"sites_filter\">"+
+    "<option value=\"\">-- All Sites --</option>";
+  $.each(sites, function(i,st){
+    out = out + "<option value=\""+ st.site_id +"\""+ ((st.selected)?' selected="selected"':'') +">"+ st.site +"</option>";
+  });
+  out = out + "</select>";
+  return new Handlebars.SafeString(out);
+});
 
 Handlebars.registerHelper('DraftsOrderContent', function(drafts){
   var out = "<ul id=\"drafts\" data-role=\"listview\" data-inset=\"true\" class=\"draft\">";

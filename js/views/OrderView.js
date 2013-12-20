@@ -493,6 +493,7 @@ var OrderView = function(order_id){
               }
 
               setTimeout(function(){
+                app.siteFilter( self.activeOrder.upd.site_id ) ;
                 self.activeOrder = {};
                 app.activeOrder(false);
                 app.route({

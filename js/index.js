@@ -42,6 +42,24 @@ var app = {
     /* end: process execution flag */
 
     /* ------------------------- */
+    // sites filter
+    this.siteFilter = function(data){
+      var out = void 0;
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("siteFilter", data);
+          out = data;
+        } else {
+          window.localStorage.removeItem("siteFilter");
+          out = void 0;
+        }
+      } else {
+        out = window.localStorage.getItem("siteFilter") ? window.localStorage.getItem("siteFilter") : void 0;
+      }
+      return out;
+    };
+
     // my_sites
     this.mySites = function(data){
       var out = [];
@@ -1841,6 +1859,7 @@ var app = {
       app.activeOrder(false);
       app.last_supply_sync_date(false);
       app.ids_mutation(false);
+      app.siteFilter(false);
 
       $("#overlay").hide();
 

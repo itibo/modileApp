@@ -29,7 +29,7 @@ h1.ui-title span.btn-back_inspect{background-color:#f0f0f0;  color:#7d7d7d; floa
 	position: relative;
 	top: 0;
 }
-span.btn-back a,span.logout a,span.btn-back_inspect a{
+span.btn-back a, span.logout a, span.btn-back_inspect a{
     border-radius: 2em;
     border: 1px solid #d3d3d3;
     background-image: -ms-linear-gradient(top, #ffffff 0%, #e5e5e5 100%);
@@ -1077,7 +1077,7 @@ span.address {
 	white-space: normal;
 }
 .ui-content .ui-navbar + .ui-listview-inset,
-.ui-content .ui-listview-inset + .ui-listview-inset{
+.ui-content .ui-navbar + .ui-listview-inset + .ui-listview-inset{
 	margin: 0;
 	border-radius: 0 0 5px 5px;
 }
@@ -1091,7 +1091,7 @@ ul#next_month{
 	border-top: 5px solid #6cb692;
 }
 .ui-content .ui-navbar + .ui-listview-inset li:first-child,
-.ui-content .ui-listview-inset + .ui-listview-inset li:first-child{
+.ui-content .ui-navbar + .ui-listview-inset + .ui-listview-inset li:first-child{
 	border-top: 1px solid #666;
 	border-radius: 0;
 }
@@ -1599,7 +1599,7 @@ ul#next_month{
 	.main .newbtn .ui-listview a.btn-ordet .details { width: 100%; }
 	.priority-box > div:first-child{ border-radius:10px 10px 0 0; }
 	.priority-box > div:last-child{ border-radius:0 0 10px 10px; }
-	.priority-box > div{ border-left: 0 none; display: block; overflow: hidden; width: 100%; }
+	.priority-box > div{ border-left: 0 none; display: block; float: left; overflow: hidden; width: 100%; }
 	.priority-box .ui-radio label{ border-top:1px solid #b4cdcb; }
 	.priority-box > div:first-child label{ border-top: 0 none; }
 	.priority-box .ui-radio .ui-btn-text span{ display:inline; }

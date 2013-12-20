@@ -242,6 +242,7 @@ var OrderOverallView = function(order_id){
 
                   app.sync_supply();
                   setTimeout(function(){
+                    app.siteFilter( self.activeOrder.upd.site_id ) ;
                     self.activeOrder = {};
                     app.activeOrder(false);
                     app.route({
@@ -342,6 +343,7 @@ var OrderOverallView = function(order_id){
               }
 
               setTimeout(function(){
+                app.siteFilter( self.activeOrder.upd.site_id ) ;
                 self.activeOrder = {};
                 app.activeOrder(false);
                 app.route({
