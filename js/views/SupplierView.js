@@ -34,8 +34,16 @@ var SupplierView = function(){
         };
     context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
+
     context.sites = (function(){
-      return $.map(app.mySites(), function(st){
+      return $.merge([{
+        site_id: "diamond_office",
+        site: "Diamond Corporate Office",
+        address: "2249 N. Hollywood Way, Burbank CA 91505",
+        client: "",
+        client_group: "",
+        selected: ((undefined != filter_site_id && "diamond_office" == String(filter_site_id))? true : false)
+      }], $.map(app.mySites(), function(st){
         return $.extend({}, {
           site_id: st.site_id,
           site: st.site,
@@ -44,8 +52,9 @@ var SupplierView = function(){
           client_group: st.client_group,
           selected: ((undefined != filter_site_id && String(filter_site_id) == String(st.site_id) )? true : false)
         });
-      });
+      }));
     })();
+
     context.supplyPeriod = (function(){
       var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
       var formattedDate = new Date();
@@ -59,7 +68,8 @@ var SupplierView = function(){
         if ( (undefined != v.submit_status && "submitting" == v.submit_status) || ( undefined != v.to_remove )){
           // skip
         } else {
-          if ( (undefined == filter_site_id) || ( undefined != filter_site_id && String(filter_site_id) == String(v.site_id) ) ) {
+          if ( (undefined == filter_site_id) || ( undefined != filter_site_id && String(filter_site_id) == String(v.site_id) )
+              || (undefined != filter_site_id && "diamond_office" == String(filter_site_id) && "" == String(v.site_id)) ) {
             return_arr.push({
               supply_order_id: v.supply_order_id,
               supply_order_name: v.supply_order_name,
@@ -77,12 +87,14 @@ var SupplierView = function(){
       });
       return return_arr;
     })();
+    context.draftsCount = context.drafts.length;
 
     context.submitted_orders = (function(){
       var return_arr = [],
           submitted_orders = app.myLastSubmittedOrders();
       $.each(submitted_orders, function(i,v){
-        if ( (undefined == filter_site_id) || ( undefined != filter_site_id && String(filter_site_id) == String(v.site_id) ) ) {
+        if ( (undefined == filter_site_id) || ( undefined != filter_site_id && String(filter_site_id) == String(v.site_id) )
+            || (undefined != filter_site_id && "diamond_office" == String(filter_site_id) && "" == String(v.site_id)) ) {
           return_arr.push({
             supply_order_id: v.supply_order_id,
             supply_order_name: v.supply_order_name,
@@ -98,6 +110,7 @@ var SupplierView = function(){
       });
       return return_arr;
     })();
+    context.submittedOrdersCount = context.submitted_orders.length;
 
     this.el.html(SupplierView.template(context));
     return this;
