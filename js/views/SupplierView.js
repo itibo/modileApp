@@ -277,7 +277,7 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
     });
     out = out + "</ul>";
   } else {
-    out = out + "<li>Empty</li></ul>";
+    out = out + "<li>No orders</li></ul>";
   }
 
   return new Handlebars.SafeString(out);
@@ -310,7 +310,7 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
     });
     out = out + "</ul>";
   } else {
-    out = out + "<li>Empty</li></ul>";
+    out = out + "<li>No orders</li></ul>";
   }
   return new Handlebars.SafeString(out);
 });
