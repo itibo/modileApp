@@ -1073,11 +1073,13 @@ span.address {
 	color: #000;
 }
 .ui-navbar a span{
-	font-size: 150%;
+	font-size: 130%;
 	white-space: normal;
 }
-.ui-content .ui-navbar + .ui-listview-inset,
-.ui-content .ui-navbar + .ui-listview-inset + .ui-listview-inset{
+.ui-navbar .active a span{
+	font-size: 110%;
+}
+.ui-content .ui-navbar + ul, .ui-content .ui-navbar + ul + ul, .ui-content .ui-navbar + ul + ul + ul{
 	margin: 0;
 	border-radius: 0 0 5px 5px;
 }
