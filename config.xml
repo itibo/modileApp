@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.azati.dcsmobile_alpha" version="0.3.5" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-<!--<widget id="com.azati.dcsmobilen" version="0.3.5" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">-->
-    <name>DCS - QA Inspections Alpha</name>
-    <!--<name>DCS - QA Inspections Beta</name>-->
+<!--<widget id="com.azati.dcsmobile_alpha" version="0.3.5" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">-->
+<widget id="com.azati.dcsmobilen" version="0.3.6" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <!--<name>DCS - QA Inspections Alpha</name>-->
+    <name>DCS - QA Inspections Beta</name>
     <description>
       DCS - QA Inspections
     </description>
@@ -11,16 +11,16 @@
     </author>
 
     <!-- alpha icons-->
-    <icon src="res/alpha_icon/android/icon-36-ldpi.png" width="36" height="36" />
-    <icon src="res/alpha_icon/android/icon-48-mdpi.png" width="48" height="48" />
-    <icon src="res/alpha_icon/android/icon-72-hdpi.png" width="72" height="72" />
-    <icon src="res/alpha_icon/android/icon-96-xhdpi.png" width="96" height="96" />
+    <!--<icon src="res/alpha_icon/android/icon-36-ldpi.png" width="36" height="36" />-->
+    <!--<icon src="res/alpha_icon/android/icon-48-mdpi.png" width="48" height="48" />-->
+    <!--<icon src="res/alpha_icon/android/icon-72-hdpi.png" width="72" height="72" />-->
+    <!--<icon src="res/alpha_icon/android/icon-96-xhdpi.png" width="96" height="96" />-->
 
     <!-- production icons-->
-    <!--<icon src="res/icon/android/icon-36-ldpi.png" width="36" height="36" />-->
-    <!--<icon src="res/icon/android/icon-48-mdpi.png" width="48" height="48" />-->
-    <!--<icon src="res/icon/android/icon-72-hdpi.png" width="72" height="72" />-->
-    <!--<icon src="res/icon/android/icon-96-xhdpi.png" width="96" height="96" />-->
+    <icon src="res/icon/android/icon-36-ldpi.png" width="36" height="36" />
+    <icon src="res/icon/android/icon-48-mdpi.png" width="48" height="48" />
+    <icon src="res/icon/android/icon-72-hdpi.png" width="72" height="72" />
+    <icon src="res/icon/android/icon-96-xhdpi.png" width="96" height="96" />
 
 	<cdv:plugin name="GenericPush" /> <!-- latest release -->
 
