@@ -112,6 +112,33 @@ var SupplierView = function(){
     })();
     context.submittedOrdersCount = context.submitted_orders.length;
 
+    context.future_orders = (function(){
+      var return_arr = [],
+          future_orders = app.myFutureOrders();
+      $.each(future_orders, function(i,v){
+        if ( undefined != v.to_remove ){
+          // skip
+        } else {
+          if ( (undefined == filter_site_id) || ( undefined != filter_site_id && String(filter_site_id) == String(v.site_id) )
+              || (undefined != filter_site_id && "diamond_office" == String(filter_site_id) && "" == String(v.site_id)) ) {
+            return_arr.push({
+              supply_order_id: v.supply_order_id,
+              supply_order_name: v.supply_order_name,
+              site_name: v.site_name,
+              site_address: v.site_address,
+              order_form: v.order_form,
+              priority: getPriority(v),
+              order_date: v.order_date,
+              updated_at: v.updated_at,
+              total: calculate_total(v)
+            });
+          }
+        }
+      });
+      return return_arr;
+    })();
+    context.futureOrdersCount = context.future_orders.length;
+
     this.el.html(SupplierView.template(context));
     return this;
   };
@@ -131,6 +158,13 @@ var SupplierView = function(){
       });
     });
 
+    this.el.on('click', 'button#start_future', function(event){
+      event.preventDefault();
+      app.route({
+        toPage: window.location.href + "#order:future"
+      });
+    });
+
     this.el.on('vmousedown', 'li.editable', function(event){
       holdCords.holdX = event.pageX;
       holdCords.holdY = event.pageY;
@@ -138,7 +172,8 @@ var SupplierView = function(){
 
     this.el.on('taphold', 'li.editable', function(event){
       event.preventDefault();
-      var draft_id = $("a", $(event.currentTarget)).attr("href").match(/^#order:(.+)$/)[1],
+      var order_id = $("a", $(event.currentTarget)).attr("href").match(/^#order:(.+)$/)[1],
+          order_type = "next_month" === $(event.currentTarget).closest("ul").attr("id") ? "future" : "draft";
           $popup = $("#context_menu"),
           $overlay = $("<div />", {
             class: "popup-overlay"
@@ -148,30 +183,32 @@ var SupplierView = function(){
             $("input", $popup).val( "" );
             $popup.css("visibility","hidden");
           });
-
       $overlay.appendTo("body").trigger("create");
-      $("input", $popup).val( draft_id );
+      $("input", $popup).val( order_type + ":" + order_id );
       $popup.css("left", ($(window).width() - $popup.width())/2  + "px");
       $popup.css("top", ( ( ($(document).scrollTop() + $(window).height() - holdCords.holdY)< $popup.height()) ? (holdCords.holdY - $popup.height()) : (holdCords.holdY - $popup.height()/2) ) + "px");
       $popup.css("visibility","visible");
     });
 
-    this.el.on('click', 'button#remove_draft', function(e){
+    this.el.on('click', 'button#remove_order', function(e){
       e.preventDefault();
 
+      var order_type = ($("input", $(e.currentTarget).closest("div#context_menu")).val()).match(/^(\w+):(\w+)$/)[1],
+          order_id = ($("input", $(e.currentTarget).closest("div#context_menu")).val()).match(/^(\w+):(\w+)$/)[2];
+
       navigator.notification.confirm(
-          "Are you sure you want to remove this draft?",
+          "Are you sure you want to remove " + (("future" === order_type) ? "this future order?" : "this draft?"),
           function(buttonIndex){
             $("#context_menu").css("visibility","hidden");
             $(".popup-overlay").remove();
             if(2 == buttonIndex){
-              var drafts = app.mySupplyOrdersDrafts(),
-                  mutation = app.ids_mutation(),
-                  check_array,
-                  removing = String($("input", $(e.currentTarget).parents("div#context_menu").eq(0)).val());
 
-              app.mySupplyOrdersDrafts((function(){
-                $.each(drafts, function(i,v){
+              var method = ("future" === order_type) ? "myFutureOrders" : "mySupplyOrdersDrafts",
+                  orders = app[method](),
+                  mutation = app.ids_mutation(),
+                  check_array;
+              app[method]((function(){
+                $.each(orders, function(i,v){
                   check_array = [];
                   try {
                     check_array = $.merge([String(v.supply_order_id)], (function(){
@@ -184,17 +221,17 @@ var SupplierView = function(){
                     check_array = [String(v.supply_order_id)];
                   }
 
-                  if ($.inArray(removing, check_array) > -1 ){
-                    drafts[i]["updated_at_utc"] = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
-                    drafts[i]['to_remove'] = true;
+                  if ($.inArray(order_id, check_array) > -1 ){
+                    orders[i]["updated_at_utc"] = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+                    orders[i]['to_remove'] = true;
                     if (undefined != mutation[v.supply_order_id]){
-                      drafts[i]["supply_order_id"] = mutation[v.supply_order_id];
-                      drafts[i]["id"] = mutation[v.supply_order_id];
+                      orders[i]["supply_order_id"] = mutation[v.supply_order_id];
+                      orders[i]["id"] = mutation[v.supply_order_id];
                     }
                     return false;
                   }
                 });
-                return drafts;
+                return orders;
               })());
 
               setTimeout(function(){
@@ -205,7 +242,7 @@ var SupplierView = function(){
               },0);
             }
           },
-          "Drafts",
+          (("future" === order_type) ? "Future Orders" : "Drafts"),
           'Cancel,Remove'
       );
     });
@@ -314,5 +351,37 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
   }
   return new Handlebars.SafeString(out);
 });
+
+Handlebars.registerHelper('FutureOrdersContent', function(future_orders){
+  var out = "<ul id=\"next_month\" data-role=\"listview\" data-inset=\"true\" style=\"display:none;\" class=\"next_month_orders\">";
+  if (future_orders.length>0){
+    $.each(future_orders, function(i,v){
+      out = out + "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
+          "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
+          "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>-</span>' : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) + "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
+          "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+            "<td class=\"points_time\">" +
+              "<span class=\"time\">" + v.order_form + "</span><br />" +
+              (("" != v.priority ) ? ('<span class=\"priority '+ (v.priority.match(/^(.+?)\b/)[0]).toLowerCase() +'\">Priority: <strong>'+ v.priority +'</strong></span><br />') :'' ) +
+              "<span class=\"time\">Saved: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
+            "</td>" +
+            "<td class=\"right_points\">" +
+              "<div class=\"box_points\">" +
+                "<div>" +
+                  "<span class=\"points_class\">Total:</span><br />" +
+                  "<span class=\"big_points\">$" + v.total + "</span><br />" +
+                "</div>" +
+              "</div>" +
+            "</td>" +
+          "</tr></table>" +
+        "</a></li>";
+    });
+    out = out + "</ul>";
+  } else {
+    out = out + "<li>No orders</li></ul>";
+  }
+  return new Handlebars.SafeString(out);
+});
+
 
 SupplierView.template = Handlebars.compile($("#supplier-main-tpl").html());

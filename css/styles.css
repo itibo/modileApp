@@ -1103,6 +1103,8 @@ ul#next_month{
 .log .next_month_orders .right_points{
 	background-color: #b9dcc4;
 }
+.btn2{ height:45px; margin:0 auto 1.5%; width:640px; }
+.btn2 div{ float:left; margin:0 10px; width:300px; }
 /* end all content */
 
 
@@ -1145,6 +1147,7 @@ ul#next_month{
 
 
 /* new order */
+.ui-select{ clear:both; }
 .ui-select .ui-btn span{
 	border: none;
 	color: #666;
@@ -1560,6 +1563,12 @@ ul#next_month{
 	.ui-header h1.ui-title{ min-height:46px; }
 }
 @media screen and (max-width:854px) {
+	.btn2{ width:540px; }
+	.btn2 div{ width:250px; }
+}
+@media screen and (max-width:570px) {
+	.btn2{ width:440px; }
+	.btn2 div{ width:200px; }
 }
 @media screen and (max-width:480px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:90%; }
@@ -1577,6 +1586,10 @@ ul#next_month{
 	.main .newbtn .ui-listview a.btn-ordet .details.tot { display:block; text-align:left; width:100%; }
 	.main .newbtn .ui-listview a.btn-ordet .infodetails.one .details { display:table-cell; width:47%; }
 	.main .newbtn .ui-listview .ui-btn div.number font{ line-height:2em; }
+	.btn2{ height:45px; margin:0 auto 1.5%; width:640px; }
+	.btn2 div{ float:left; margin:0 10px; width:300px; }
+	.btn2{ height:auto; margin:0 auto 1.5%; width:300px; }
+	.btn2 div{ float:none; margin:4% 0; width:auto; }
 }
 @media screen and (max-width:320px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:85%; }
@@ -1605,6 +1618,7 @@ ul#next_month{
 	.priority-box .ui-radio label{ border-top:1px solid #b4cdcb; }
 	.priority-box > div:first-child label{ border-top: 0 none; }
 	.priority-box .ui-radio .ui-btn-text span{ display:inline; }
+	.btn2{ margin:0 2% 1.5%; width:auto; }
 }
 @media screen and (max-width:240px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:80%; }

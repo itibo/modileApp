@@ -358,6 +358,96 @@ var OrderOverallView = function(order_id){
 
     });
 
+    this.el.on('click', "button#save_future", function(e){
+
+      navigator.notification.confirm(
+          "Do you want to save this future order?",
+          function(buttonIndex){
+            if(2 == buttonIndex){
+              if(!isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
+                var future_orders = app.myFutureOrders(),
+                    mutation = app.ids_mutation();
+
+                self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+
+                if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
+                    (function(){var _tmp = [];_tmp = $.grep(future_orders, function(n,i){return n.supply_order_id == String(self.activeOrder.upd.supply_order_id)});return !(_tmp.length>0);})() ){
+                  // новый фьючер, не присутствующий в ЛС, добавляем его туда
+
+                  future_orders.unshift($.extend({
+                    id: self.activeOrder.upd.supply_order_id,
+                    supply_order_id: self.activeOrder.upd.supply_order_id,
+                    supply_order_name: self.activeOrder.upd.supply_order_name,
+                    updated_at: self.activeOrder.upd.updated_at,
+                    updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                    order_date: self.activeOrder.upd.order_date,
+                    order_form: self.activeOrder.upd.order_form,
+                    priority: self.activeOrder.upd.priority,
+                    site_id: self.activeOrder.upd.site_id,
+                    site_name: self.activeOrder.upd.site_name,
+                    site_address: self.activeOrder.upd.site_address,
+                    special_instructions: self.activeOrder.upd.special_instructions,
+                    remaining_budget: self.activeOrder.upd.remaining_budget
+                  },{
+                    locally_saved: self.activeOrder.upd
+                  }));
+                } else {
+                  $.each(future_orders, function(i, dr){
+                    if ($.inArray(String(dr.supply_order_id),
+                        [String(self.activeOrder.upd.supply_order_id),
+                          (undefined == mutation[self.activeOrder.upd.supply_order_id])? null :
+                              String(mutation[self.activeOrder.upd.supply_order_id])] ) > -1 )
+                    {
+                      var order_to_update = {};
+
+                      if (undefined != mutation[self.activeOrder.upd.supply_order_id]){
+                        self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
+                        self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
+                      }
+
+                      order_to_update = $.extend({
+                        id: self.activeOrder.upd.supply_order_id,
+                        supply_order_id: self.activeOrder.upd.supply_order_id,
+                        supply_order_name: self.activeOrder.upd.supply_order_name,
+                        updated_at: self.activeOrder.upd.updated_at,
+                        updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                        order_date: self.activeOrder.upd.order_date,
+                        order_form: self.activeOrder.upd.order_form,
+                        priority: self.activeOrder.upd.priority,
+                        site_id: self.activeOrder.upd.site_id,
+                        site_name: self.activeOrder.upd.site_name,
+                        site_address: self.activeOrder.upd.site_address,
+                        special_instructions: self.activeOrder.upd.special_instructions,
+                        remaining_budget: self.activeOrder.upd.remaining_budget
+                      },{
+                        locally_saved: self.activeOrder.upd
+                      });
+
+                      future_orders[i] = order_to_update;
+                      return false;
+                    }
+                  });
+                }
+                app.myFutureOrders(future_orders);
+                app.sync_supply();
+              }
+
+              setTimeout(function(){
+                app.siteFilter( "" == String(self.activeOrder.upd.site_id) ? "diamond_office" : self.activeOrder.upd.site_id ) ;
+                self.activeOrder = {};
+                app.activeOrder(false);
+                app.route({
+                  toPage: window.location.href + "#orders"
+                });
+              },0);
+            }
+          },
+          "Future Order",
+          'Cancel,Save'
+      );
+
+    });
+
 
   };
 
@@ -478,11 +568,17 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
     out = out +"</div>";
 
     if ("log" != order.order_status){
-      out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>" +
-          "<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td>"+
-          "<td width=\"2%\">&nbsp;</td>"+
-        "<td class=\"green_btn\"><button id=\"submit_to_vendor\">Submit to Vendor</button></td>" +
-          "</tr></table>";
+      out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
+      if ($.inArray(order.order_status, ["future", "new_future"])<0){
+        out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td>"+
+            "<td width=\"2%\">&nbsp;</td>"+
+            "<td class=\"green_btn\"><button id=\"submit_to_vendor\">Submit to Vendor</button></td>";
+      } else {
+        out = out + "<td width=\"24%\">&nbsp;</td>"+
+            "<td class=\"green_btn\"><button id=\"save_future\">Save as Future Order</button></td>" +
+            "<td width=\"24%\">&nbsp;</td>";
+      }
+     out = out + "</tr></table>";
     }
 
     out = out + "</div>";

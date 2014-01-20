@@ -156,7 +156,7 @@
         <input type="hidden" value="" />
         <div class="header">Action</div>
           <div class="all_input stnd_btn">
-            <button id="remove_draft" type="button">Remove</button>
+            <button id="remove_order" type="button">Remove</button>
           </div>
       </div>
       <div data-role="header">
@@ -170,17 +170,23 @@
       <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}<br />Supply Period: <font>{{supplyPeriod}}</font></h5>
       <div class="main">
         <div data-role="content" class="log inspect">
-          <div class="all_input stnd_btn">
-            <button id="start_new" type="button" class="ui-btn-hidden" aria-disabled="false">Start a new Order</button>
+          <div class="btn2">
+            <div class="all_input stnd_btn">
+              <button id="start_new" type="button" class="ui-btn-hidden" aria-disabled="false">Start a new Order</button>
+            </div>
+            <div class="all_input stnd_btn">
+              <button id="start_future" type="button" class="ui-btn-hidden" aria-disabled="false">Create Future Order</button>
+            </div>
           </div>
           {{#SitesFilter sites}}{{/SitesFilter}}
           <div data-role="navbar">
-            <div class="draft active"><a href="#drafts" class="ui-btn-active ui-state-persist">Drafts ({{draftsCount}})</a></div>
-            <div class="submitted"><a href="#submitted">Submitted ({{submittedOrdersCount}})</a></div>
-            <!--<div ><a href="#next_month">Orders for next month</a></div >-->
+            <div class="draft active"><a href="#drafts" class="ui-btn-active ui-state-persist">Drafts ({{draftsCount}})</a></div>&nbsp;
+            <div class="submitted"><a href="#submitted">Submitted ({{submittedOrdersCount}})</a></div>&nbsp;
+            <div class="next_month"><a href="#next_month">Future ({{futureOrdersCount}})</a></div>
           </div><!-- /navbar -->
           {{#DraftsOrderContent drafts}}{{/DraftsOrderContent}}
           {{#SubmittedOrderContent submitted_orders}}{{/SubmittedOrderContent}}
+          {{#FutureOrdersContent future_orders}}{{/FutureOrdersContent}}
         </div>
       </div><!-- /content -->
     </script>

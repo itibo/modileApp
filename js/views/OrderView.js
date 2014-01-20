@@ -2,232 +2,281 @@ var OrderView = function(order_id){
   this.order_id = order_id || "new";
   this.activeOrder = {};
   this.scroll_event_obj = false;
+  this.order_type = "";
 
   this.render = function(){
     var context = {},
+        prefix = "",
         self = this;
 
     context.order = {};
 
+    switch (self.order_id) {
+      case "new":
+        context.title = "New Order";
+        context.backTitle = "Cancel";
+        context.order = $.extend(context.order, {type: "draft"});
+        break;
+
+      case "future":
+        context.title = "New Future Order";
+        context.backTitle = "Cancel";
+        context.order = $.extend(context.order, {type: "future"});
+        self.order_type = "future";
+        break;
+
+      default:
+        var _old_order_id = self.order_id,
+            drafts = app.mySupplyOrdersDrafts(),
+            logs = app.myLastSubmittedOrders(),
+            futures = app.myFutureOrders(),
+            ids_in_ls = (function(){
+              return $.merge(
+                $.merge(
+                    $.merge([], $.map(drafts, function(d){return d.supply_order_id;})),
+                    $.map(logs, function(l){return l.supply_order_id;})
+                ),
+                $.map(futures, function(f){return f.supply_order_id;})
+              );
+            })(),
+            mutations_obj = app.ids_mutation();
+
+        self.activeOrder = app.activeOrder();
+
+        if (!$.isEmptyObject(mutations_obj)){
+          if ($.inArray(self.order_id, Object.keys(mutations_obj))>-1){
+            self.order_id = mutations_obj[self.order_id];
+            mutations_obj[_old_order_id] = void 0;
+            delete mutations_obj[_old_order_id];
+          }
+        }
+
+        if (!$.isEmptyObject(mutations_obj)){
+          for(var cnt = 0; cnt<Object.keys(mutations_obj).length; cnt++){
+            var key = Object.keys(mutations_obj)[cnt];
+            if ( $.inArray(key, ids_in_ls) < 0 ){
+              mutations_obj[key] = void 0;
+              delete mutations_obj[key];
+            }
+          }
+          app.ids_mutation(mutations_obj);
+        }
+
+        context.order = (function(){
+          if ($.isEmptyObject(self.activeOrder) || undefined == self.activeOrder.id
+              || $.inArray( self.activeOrder.id, [self.order_id, _old_order_id] ) < 0 ){
+            // впервые открываем любой ордер, как вновь созданный, так и уже существкющий
+
+            var obj = {};
+            if (RegExp('^new_on_device_','i').test(self.order_id) &&
+                ($.grep($.merge(drafts, futures), function(n,i){
+                  return $.inArray(n.id, [_old_order_id, self.order_id ])>-1 })).length < 1){
+              // вновь созданный ордер, не сохраненный еще в ЛС
+
+              var site_info = (function(id_arr){
+                    var site_id = id_arr[2],
+                        my_sites = app.mySites(),
+                        tmp = {},
+                        form = (RegExp('^f-','i').test(id_arr[1])) ? id_arr[1].substring(2) : id_arr[1];
+                    prefix = (RegExp('^f-','i').test(id_arr[1])) ? "next_" : "";
+
+                    $.each(my_sites, function(i,s){
+                      if (site_id == s.site_id){
+                        tmp = s;
+                        return false;
+                      }
+                    });
+
+                    if ($.isEmptyObject(tmp)){
+                      return {
+                        site_id: "",
+                        site_name: "Diamond Corporate Office",
+                        site_address: "2249 N. Hollywood Way, Burbank CA 91505",
+                        remaining_budget: (function(form_prefix){
+                          var val = 0;
+                          if ("paper" != form_prefix) {
+                            val = (prefix.length > 0
+                                ? (parseFloat(my_sites[0][prefix + "budget_"+form_prefix])
+                                  - parseFloat(my_sites[0][prefix + "pending_"+form_prefix]))
+                                : (parseFloat(my_sites[0]["budget_"+form_prefix])
+                                  - parseFloat(my_sites[0]["used_"+form_prefix])));
+                          }
+                          return val.toFixed(2);
+                        })(form)
+                      }
+                    } else {
+                      return {
+                        site_id: tmp.site_id,
+                        site_name: tmp.site,
+                        site_address: tmp.address,
+                        remaining_budget: (function(form_prefix){
+                          var budget = $.grep(Object.keys(tmp), function(n,i){
+                            return RegExp('^' + prefix + 'budget_'+ form_prefix +'(\\b|_)','i').test(n);
+                          })[0];
+                          var used = $.grep(Object.keys(tmp), function(n,i){
+                            return RegExp( '^' + (prefix.length > 0
+                                ? (prefix + 'pending_')
+                                : ('used_')) + form_prefix + '(\\b|_)' ,'i').test(n);
+                          })[0];
+                          var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
+                          return parseFloat(remain).toFixed(2);
+                        })(form)
+                      }
+                    }
+                  })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/)),
+                  form_and_items_info = (function(form){
+                    var tmp = {},
+                        return_obj = {},
+                        form = (RegExp('^f-','i').test(form)) ? form.substring(2) : form;
+
+                    $.each(app.supplyOrdersTemplate(), function(i,tmpl){
+                      if ( RegExp('^'+ form +'\\b','i').test(tmpl.order_form) ){
+                        tmp = tmpl;
+                        return false;
+                      }
+                    });
+
+                    return_obj.order_form = tmp.order_form;
+                    return_obj.supply_order_categories = {};
+
+                    $.each(tmp.categories, function(i,cat){
+                      return_obj['supply_order_categories'][cat.category] = {};
+                      $.each(cat.items, function(ik,item){
+                        return_obj['supply_order_categories'][cat.category][item.item_id] = $.extend(item, {amount: 0});
+                      });
+                    });
+                    return return_obj;
+                  })(self.order_id.match(/^new_on_device_(.+)_(.+)_(.*)$/)[1]);
+
+              if (prefix.length > 0){
+                self.order_type = "future";
+              }
+
+              obj = $.extend(obj, {
+                supply_order_id: self.order_id,
+                supply_order_name: "",
+                updated_at: "",
+                order_date: prefix.length > 0 ? self.subheader_supply_period("future", true) : "",
+                special_instructions: ""
+              }, site_info, form_and_items_info, {
+                order_status: (prefix.length == 0) ? "new" : "new_future"
+              });
+
+            } else {
+              // открывает драфт или фьюче ордер из ЛС
+
+              $.each(drafts, function(i,v){
+                if (String(self.order_id) == String(v.supply_order_id) &&
+                    (undefined == typeof (v.submit_status) || "submitting" != v.submit_status)){
+                  obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "draft"});
+                  return false;
+                }
+              });
+
+              if ($.isEmptyObject(obj)){
+                $.each(futures, function(i,v){
+                  if (String(self.order_id) == String(v.supply_order_id)){
+                    obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "future"});
+                    self.order_type = "future";
+                    return false;
+                  }
+                });
+              }
+            }
+
+            if ($.isEmptyObject(obj)){
+              navigator.notification.alert(
+                  "Please re-choose order", // message
+                  function(){
+                    setTimeout(function(){
+                      self.activeOrder = {};
+                      app.activeOrder(false);
+                      app.route({
+                        toPage: window.location.href + "#orders"
+                      });
+                    },0);
+                  },   // callback
+                  "Error",    // title
+                  'Ok'            // buttonName
+              );
+            } else {
+              if ($.inArray(obj.order_status, ["future", "new_future"]) > -1){
+                self.order_type = "future";
+              }
+              self.activeOrder = app.activeOrder($.extend({
+                id: self.order_id,
+                status: obj.order_status
+              }, {
+                proto: ($.inArray(obj.order_status, ["new", "new_future"]) > -1) ? {} : $.extend(true, {}, obj),
+                upd: $.extend(true, {}, obj)
+              }));
+            }
+          } else {
+            // входим после некорректного выхода из редактирования
+
+            self.activeOrder = app.activeOrder((function(){
+              // mutations in action
+              var muted = function(obj){
+                if (_old_order_id != self.order_id){
+                  obj.id = self.order_id
+                  obj.supply_order_id = self.order_id
+                }
+                obj.order_status = obj.order_status || "draft";
+                return obj;
+              };
+
+              if ($.inArray(self.activeOrder.upd, ["future", "new_future"]) > -1){
+                self.order_type = "future";
+              }
+
+              return $.extend({id: self.order_id}, {
+                proto: $.extend(true, {}, muted(self.activeOrder.proto)),
+                upd: $.extend(true, {}, muted(self.activeOrder.upd))
+              })
+            })());
+          }
+          return self.activeOrder;
+        })();
+        try {
+          context.backTitle = ("log" == context.order.upd.order_status ) ? "Back" : "Cancel";
+        } catch(e) {
+          context.backTitle = "Cancel";
+        }
+
+        context.title = ("future" === self.order_type)? "Future Order Details" : "Order Details";
+        break;
+    }
+
     context.subheader = (function(){
       var userInfo = app.getUserInfo();
       return "<h5><font>" + userInfo.display_name +"</font>, " + userInfo.role + "<br />" +
-        "Supply Period: <font>" +
-        (function(){
-          var monthNames = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
-          var formattedDate = new Date();
-          return monthNames[formattedDate.getMonth()] + " " + formattedDate.getFullYear();
-        })() +
-        "</font></h5>";
+          "Supply Period: <font>" +
+          self.subheader_supply_period(self.order_type) +
+          "</font></h5>";
     })();
-
-    if ("new" == self.order_id){
-      context.title = "New Order";
-      context.new = "new";
-      context.backTitle = "Cancel";
-    } else {
-      context.title = "Order Details";
-
-      var _old_order_id = self.order_id,
-          drafts = app.mySupplyOrdersDrafts(),
-          logs = app.myLastSubmittedOrders(),
-          ids_in_ls = (function(){
-            return $.merge($.merge([], $.map(drafts, function(d){return d.supply_order_id;})),
-                $.map(logs, function(l){return l.supply_order_id;}));
-          })(),
-          mutations_obj = app.ids_mutation();
-
-      self.activeOrder = app.activeOrder();
-
-      if (!$.isEmptyObject(mutations_obj)){
-        if ($.inArray(self.order_id, Object.keys(mutations_obj))>-1){
-          self.order_id = mutations_obj[self.order_id];
-          mutations_obj[_old_order_id] = void 0;
-          delete mutations_obj[_old_order_id];
-        }
-      }
-
-      if (!$.isEmptyObject(mutations_obj)){
-        for(var cnt = 0; cnt<Object.keys(mutations_obj).length; cnt++){
-          var key = Object.keys(mutations_obj)[cnt];
-          if ( $.inArray(key, ids_in_ls) < 0 ){
-            mutations_obj[key] = void 0;
-            delete mutations_obj[key];
-          }
-        }
-        app.ids_mutation(mutations_obj);
-      }
-
-      context.order = (function(){
-
-        if ($.isEmptyObject(self.activeOrder) || undefined == self.activeOrder.id || $.inArray( self.activeOrder.id, [self.order_id, _old_order_id] ) < 0 ){
-          // впервые открываем любой драфт, как вновь созданный, так и уже существкющий
-
-          var obj = {};
-
-          if (RegExp('^new_on_device_','i').test(self.order_id) &&
-              ($.grep(drafts, function(n,i){return $.inArray(n.id, [_old_order_id,self.order_id ])>-1 })).length < 1){
-            // вновь созданный драфт, не сохраненный еще в ЛС
-
-            var site_info = (function(id_arr){
-                  var site_id = id_arr[2],
-                      my_sites = app.mySites(),
-                      tmp = {};
-
-                  $.each(my_sites, function(i,s){
-                    if (site_id == s.site_id){
-                      tmp = s;
-                      return false;
-                    }
-                  });
-
-                  if ($.isEmptyObject(tmp)){
-                    return {
-                      site_id: "",
-                      site_name: "Diamond Corporate Office",
-                      site_address: "2249 N. Hollywood Way, Burbank CA 91505",
-                      remaining_budget: (function(form_prefix){
-                        var val = 0;
-                        if ("paper" != form_prefix) {
-                          val = parseFloat(my_sites[0]["budget_"+form_prefix]) - parseFloat(my_sites[0]["used_"+form_prefix]);
-                        }
-                        return val.toFixed(2);
-                      })(id_arr[1])
-                    }
-                  } else {
-                    return {
-                      site_id: tmp.site_id,
-                      site_name: tmp.site,
-                      site_address: tmp.address,
-                      remaining_budget: (function(form_prefix){
-                        var budget = $.grep(Object.keys(tmp), function(n,i){
-                          return RegExp('^budget_'+ form_prefix +'(\\b|_)','i').test(n);
-                        })[0];
-                        var used = $.grep(Object.keys(tmp), function(n,i){
-                          return RegExp('^used_'+ form_prefix +'(\\b|_)','i').test(n);
-                        })[0];
-                        var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
-                        return parseFloat(remain).toFixed(2);
-                      })(id_arr[1])
-                    }
-                  }
-                })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/)),
-                form_and_items_info = (function(form){
-                  var tmp = {},
-                      return_obj = {};
-
-                  $.each(app.supplyOrdersTemplate(), function(i,tmpl){
-                    if ( RegExp('^'+ form +'\\b','i').test(tmpl.order_form) ){
-                      tmp = tmpl;
-                      return false;
-                    }
-                  });
-
-                  return_obj.order_form = tmp.order_form;
-                  return_obj.supply_order_categories = {};
-
-                  $.each(tmp.categories, function(i,cat){
-                    return_obj['supply_order_categories'][cat.category] = {};
-                    $.each(cat.items, function(ik,item){
-                      return_obj['supply_order_categories'][cat.category][item.item_id] = $.extend(item, {amount: 0});
-                    });
-                  });
-                  return return_obj;
-                })(self.order_id.match(/^new_on_device_(.+)_(.+)_(.*)$/)[1]);
-
-            obj = $.extend(obj, {
-              supply_order_id: self.order_id,
-              supply_order_name: "",
-              updated_at: "",
-              order_date: "",
-              special_instructions: ""
-            }, site_info, form_and_items_info, {
-              order_status: "new"
-            });
-
-          } else {
-            // открывает драфт из ЛС
-
-            $.each(drafts, function(i,v){
-              if (String(self.order_id) == String(v.supply_order_id) &&
-                  (undefined == typeof (v.submit_status) || "submitting" != v.submit_status)){
-                obj = $.extend(((undefined != v.locally_saved ) ? v.locally_saved : v), {order_status: "draft"});
-                return false;
-              }
-            });
-          }
-
-          if ($.isEmptyObject(obj)){
-            navigator.notification.alert(
-                "Please re-choose order", // message
-                function(){
-                  setTimeout(function(){
-                    self.activeOrder = {};
-                    app.activeOrder(false);
-                    app.route({
-                      toPage: window.location.href + "#orders"
-                    });
-                  },0);
-                },   // callback
-                "Error",    // title
-                'Ok'            // buttonName
-            );
-          } else {
-            self.activeOrder = app.activeOrder($.extend({
-              id: self.order_id,
-              status: obj.order_status
-            }, {
-              proto: (obj.order_status == "new") ? {} : $.extend(true, {}, obj),
-              upd: $.extend(true, {}, obj)
-            }));
-          }
-        } else {
-          // входим после некорректного выхода из редактирования
-
-/*          navigator.notification.confirm(
-              "You have unsaved draft. Do you want to continue edit order draft or discard changes?",
-              function(buttonIndex){
-                if(2 == buttonIndex){
-                  // continue
-
-                } else {
-                  // discard
-
-                }
-              },
-              "Supply Order",
-              'Discard,Continue'
-          );
-*/
-
-          self.activeOrder = app.activeOrder((function(){
-            // mutations in action
-            var muted = function(obj){
-              if (_old_order_id != self.order_id){
-                obj.id = self.order_id
-                obj.supply_order_id = self.order_id
-              }
-              obj.order_status = obj.order_status || "draft";
-              return obj;
-            };
-            return $.extend({id: self.order_id}, {
-              proto: $.extend(true, {}, muted(self.activeOrder.proto)),
-              upd: $.extend(true, {}, muted(self.activeOrder.upd))
-            })
-          })());
-        }
-        return self.activeOrder;
-      })();
-
-      try {
-        context.backTitle = ("log" == context.order.upd.order_status ) ? "Back" : "Cancel";
-      } catch(e) {
-        context.backTitle = "Cancel";
-      }
-    }
 
     this.el.html(OrderView.template(context));
     return this;
+  };
+
+  this.subheader_supply_period = function(order_type, short_mode){
+    var short_mode = short_mode || false,
+        order_type = order_type || "draft",
+        monthNames = short_mode
+        ? ["Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"]
+        : [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
+    var formattedDate = new Date();
+    if ("future" === order_type){
+      return $.inArray(monthNames[formattedDate.getMonth()], ["December", "Dec"]) > -1 ?
+          (short_mode
+              ? (monthNames[0] + " 1, " + (formattedDate.getFullYear() + 1))
+              : (monthNames[0] + " " + (formattedDate.getFullYear() + 1))) :
+          (short_mode
+              ? (monthNames[formattedDate.getMonth()+1] + " 1, " + formattedDate.getFullYear())
+              : (monthNames[formattedDate.getMonth()+1] + " " + formattedDate.getFullYear()));
+    } else {
+      return monthNames[formattedDate.getMonth()] + " " + formattedDate.getFullYear();
+    }
   };
 
   this.close_popup = function(){
@@ -253,7 +302,7 @@ var OrderView = function(order_id){
       });
     });
 
-    $(".over_budget>.budget span.remain").html( "$" + parseFloat(self.activeOrder.upd.remaining_budget - total).toFixed(2) );
+    $(".over_budget>.budget span.remain").html("$"+ parseFloat(self.activeOrder.upd.remaining_budget - total).toFixed(2));
 
     if (parseFloat(self.activeOrder.upd.remaining_budget) > parseFloat(total)){
       $(".over_budget .over").html("");
@@ -352,9 +401,12 @@ var OrderView = function(order_id){
           })($(elm).closest("div.start_order").attr('id'));
 
           if (not_null_flag) {
-            var obj_key_prefix = $(elm).parent().attr('class') + "_" + $(elm).closest("div.start_order").attr('id');
-            var val = "";
+            var obj_key_prefix = ("future" === self.order_id
+                ? ("next_" + ("used" == $(elm).parent().attr('class') ? "pending" : $(elm).parent().attr('class') ) )
+                : $(elm).parent().attr('class')
+                ) + "_" + $(elm).closest("div.start_order").attr('id');
 
+            var val = "";
             $.each(Object.keys(site_info), function(i,v){
               if (RegExp(obj_key_prefix,'i').test(v)){
                 val = parseFloat(site_info[v]).toFixed(2);
@@ -367,8 +419,6 @@ var OrderView = function(order_id){
           } else {
             $(elm).text("-");
           }
-
-
         });
 
         $(".order_form_selection>.site_dependent .remain>dd").each(function(i, elm){
@@ -395,12 +445,13 @@ var OrderView = function(order_id){
     });
 
     this.el.on('click', "button.start_new_order", function(e){
+      var future_order = $(e.currentTarget).hasClass("future");
       if ($("select#site").val() == "" && "paper" == $(e.currentTarget).closest("div.start_order").attr("id") ){
 
         navigator.notification.alert(
             "Please, select site to continue.", // message
             function(){},   // callback
-            "New Order",    // title
+            (future_order ? "New Future Order" : "New Order"),    // title
             'Ok'            // buttonName
         );
 
@@ -413,10 +464,11 @@ var OrderView = function(order_id){
               'Ok'            // buttonName
           );
         } else {
+
           setTimeout(function(){
             app.route({
               toPage: window.location.href + "#order:new_on_device_" +
-                  $(e.currentTarget).closest("div.start_order").attr("id") +
+                  (future_order ? "f-": "") + $(e.currentTarget).closest("div.start_order").attr("id") +
                   "_" + ((""!=$("select#site").val())? $("select#site").val() : '0000') + "_" + (new Date()).getTime()
             });
           },0);
@@ -593,7 +645,7 @@ var OrderView = function(order_id){
       }, 0);
     });
 
-    $( window ).on( "resize", function(e) {
+    $( window ).on("resize", function(e) {
       try {
         setTimeout(function(){
           self.el.trigger("orderevent");
@@ -620,10 +672,11 @@ var OrderView = function(order_id){
 
 Handlebars.registerHelper("newOrderStartContent", function(order){
   var out = "";
-  if ($.isEmptyObject(order)){
+  if (undefined !== order.type){
     out = out + "<div data-role=\"content\" class=\"select_location\">";
     var my_sites = app.mySites(),
         current_order_type,
+        prefix = "future" === order.type ? "next_" : "",
         order_forms = (function(){
           var arr = [];
           $.each(app.supplyOrdersTemplate(), function(i, value){
@@ -636,27 +689,43 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
         budget_info = (function(){
           var ret = {};
           try {
+            var d_budget = parseFloat(my_sites[0][prefix + "budget_discretionary"]).toFixed(2),
+                d_pending = parseFloat( undefined !== my_sites[0][prefix + "pending_discretionary"]
+                    ? (my_sites[0][prefix + "pending_discretionary"]) : 0).toFixed(2),
+                d_used = parseFloat( prefix.length > 0 ? (my_sites[0][prefix + "pending_discretionary"])
+                    : ( my_sites[0]["used_discretionary"] ) ).toFixed(2),
+                d_remain = ( d_budget - d_used ).toFixed(2),
+                u_budget = parseFloat(my_sites[0][prefix + "budget_equipment"]).toFixed(2),
+                u_pending = parseFloat( undefined !== my_sites[0][prefix + "pending_equipment"]
+                    ? (my_sites[0][prefix + "pending_equipment"]) : 0 ).toFixed(2),
+                u_used = parseFloat( prefix.length > 0 ? (my_sites[0][prefix + "pending_equipment"] )
+                    : ( my_sites[0]["used_equipment"] ) ).toFixed(2),
+                u_remain = ( u_budget - u_used ).toFixed(2);
             ret = {
               discretionary: {
-                budget: parseFloat(my_sites[0]["budget_discretionary"]).toFixed(2),
-                used: parseFloat(my_sites[0]["used_discretionary"]).toFixed(2),
-                remain: (parseFloat(my_sites[0]["budget_discretionary"]) - parseFloat(my_sites[0]["used_discretionary"])).toFixed(2)
+                budget: d_budget,
+                pending: d_pending,
+                used: d_used,
+                remain: d_remain
               },
               equipment: {
-                budget: parseFloat(my_sites[0]["budget_equipment"]).toFixed(2),
-                used: parseFloat(my_sites[0]["used_equipment"]).toFixed(2),
-                remain: (parseFloat(my_sites[0]["budget_equipment"]) - parseFloat(my_sites[0]["used_equipment"])).toFixed(2)
+                budget: u_budget,
+                pending: u_pending,
+                used: u_used,
+                remain: u_remain
               }
             }
           } catch (er) {
             ret = {
               discretionary: {
                 budget: 0,
+                pending: 0,
                 used: 0,
                 remain: 0
               },
               equipment: {
                 budget: 0,
+                pending: 0,
                 used: 0,
                 remain: 0
               }
@@ -664,6 +733,7 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
           }
           return ret;
         })();
+
     out = out + "<select name=\"client_site\" id=\"site\"><option value=\"\">- Select Site Location -</option>";
     $.each(my_sites, function( index, value ) {
       out = out + "<option value=\"" + value.site_id + "\">" + value.site + "</option>";
@@ -677,11 +747,11 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
           "<div class=\"boxpoints\">" +
             "<div class=\"boxcnt\">" +
               "<dl class=\"budget\"><dt>Budget:</dt><dd>"+ (("paper" == current_order_type || budget_info[current_order_type]['budget'] <= 0)?'-':('$'+budget_info[current_order_type]['budget'])) +"</dd></dl>" +
-              "<dl class=\"used\"><dt>Used:</dt><dd>"+ (("paper" == current_order_type || budget_info[current_order_type]['budget'] <= 0)?'-':('$'+budget_info[current_order_type]['used'])) +"</dd></dl>" +
+              "<dl class=\"used\"><dt>"+ (prefix.length > 0 ? "Pending:": "Used:") +"</dt><dd>"+ (("paper" == current_order_type || budget_info[current_order_type]['budget'] <= 0)?'-':('$'+budget_info[current_order_type]['used'])) +"</dd></dl>" +
               "<dl class=\"remain\"><dt>Remaining:</dt><dd>"+ (("paper" == current_order_type || budget_info[current_order_type]['budget'] <= 0)?'-':('$'+budget_info[current_order_type]['remain'])) +"</dd></dl>" +
             "</div>" +
             "<div class=\"box_rightcnt\">" +
-              "<button class=\"start_new_order\">Start</button>" +
+              "<button class=\"start_new_order"+ (prefix.length > 0 ? ' future' : '') +"\">Start</button>" +
             "</div>" +
           "</div>" +
         "</div>";
@@ -694,7 +764,7 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
 
 Handlebars.registerHelper("orderContent", function(order_obj){
   var out = "";
-  if (!$.isEmptyObject(order_obj) && "undefined" != order_obj.id){
+  if (undefined !== order_obj.id && undefined === order_obj.type){
     var order = order_obj.upd,
         total = 0;
 
@@ -796,12 +866,17 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out +"</div>";
 
     if ("log" != order.order_status){
-      out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>" +
-        "<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td>"+
-        "<td width=\"2%\">&nbsp;</td>"+
-//        "<td class=\"green_btn\"><button id=\"submit_to_vendor\">Submit to Vendor</button></td>" +
-        "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>" +
-      "</tr></table>";
+      out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
+      if ($.inArray(order.order_status, ["future", "new_future"])<0){
+        out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td>"+
+            "<td width=\"2%\">&nbsp;</td>" +
+            "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>";
+      } else {
+        out = out + "<td width=\"24%\">&nbsp</td>"+
+            "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>" +
+            "<td width=\"24%\">&nbsp;</td>";
+      }
+      out = out + "</tr></table>";
     }
   }
   return new Handlebars.SafeString(out);

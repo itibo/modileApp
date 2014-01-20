@@ -14,7 +14,7 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
-    this.application_version = "0.3.6";
+    this.application_version = "0.3.7";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -110,6 +110,24 @@ var app = {
         }
       } else {
         out = window.localStorage.getItem("mySupplyOrdersDrafts") ? JSON.parse(window.localStorage.getItem("mySupplyOrdersDrafts")) : [];
+      }
+      return out;
+    }
+
+    // future orders
+    this.myFutureOrders = function(data){
+      var out = [];
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("myFutureOrders", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("myFutureOrders");
+          out = [];
+        }
+      } else {
+        out = window.localStorage.getItem("myFutureOrders") ? JSON.parse(window.localStorage.getItem("myFutureOrders")) : [];
       }
       return out;
     }
@@ -618,7 +636,8 @@ var app = {
       // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts", "submit_to_vendor", "save_orders"]
       var methods_to_chain_mapping = {
         sites: "my_sites",
-        draft_order: "my_supply_orders",
+        draft_order: "my_draft_orders",
+        future_order: "my_future_orders",
         submitted_order: "my_last_submitted_orders",
         supply_order_details: "supply_order_details",
         sync_check: "sync_check",
@@ -626,8 +645,8 @@ var app = {
         submit_to_vendor: "save_orders",
         save_orders: "save_orders"
       },
-          drafts_ready_to_sync = function(){
-            return ($.grep(app.mySupplyOrdersDrafts(), function(n,i){
+          orders_ready_to_sync = function(){
+            return ($.grep($.merge(app.mySupplyOrdersDrafts(), app.myFutureOrders()), function(n,i){
               return ( (undefined != n.submit_status && "submitting" == n.submit_status && undefined == n.submitting) ||
                   (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved) && undefined == n.sending) ||
                   (undefined != n.to_remove && undefined == n.removing) );
@@ -654,7 +673,10 @@ var app = {
                 var updated = [],
                     submitted = [],
                     delete_drafts = [],
-                    mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
+                    updated_future = [],
+                    delete_future = [],
+                    mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
+                    myFutureOrders = app.myFutureOrders();
 
                 app.mySupplyOrdersDrafts( (function(){
                   $.each(mySupplyOrdersDrafts, function(i,draft){
@@ -680,10 +702,31 @@ var app = {
                   return mySupplyOrdersDrafts;
                 })() );
 
+                app.myFutureOrders((function(){
+                  $.each(myFutureOrders, function(i,future){
+                    if (undefined != future.locally_saved && !$.isEmptyObject(future.locally_saved) && undefined == future.sending){
+                      if (($.grep(updated_future, function(n,ind){return n.supply_order_id == String(future.locally_saved.supply_order_id)})).length < 1){
+                        updated_future.push(future.locally_saved);
+                        myFutureOrders[i]["sending"] = true;
+                      }
+                    }
+
+                    if(undefined != future.to_remove && undefined == future.removing) {
+                      if (($.grep(delete_future, function(n,ind){return n.supply_order_id == String(future.supply_order_id)})).length < 1){
+                        delete_future.push({supply_order_id: future.supply_order_id});
+                        myFutureOrders[i]["removing"] = true;
+                      }
+                    }
+
+                  });
+                })());
+
                 return {
                   updated_drafts: updated,
                   submit_drafts: submitted,
-                  delete_drafts: delete_drafts
+                  delete_drafts: delete_drafts,
+                  updated_future: updated_future,
+                  delete_future: delete_future
                 };
               })();
 
@@ -705,7 +748,8 @@ var app = {
 
         switch (self.func) {
           case "save_orders":
-            var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts();
+            var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
+                myFutureOrders = app.myFutureOrders();
             app.mySupplyOrdersDrafts((function(){
               $.each(mySupplyOrdersDrafts, function(i,v){
                 mySupplyOrdersDrafts[i]["sending"] = void 0;
@@ -713,6 +757,13 @@ var app = {
                 mySupplyOrdersDrafts[i]["removing"] = void 0;
               });
               return mySupplyOrdersDrafts;
+            })());
+            app.myFutureOrders((function(){
+              $.each(myFutureOrders, function(i,v){
+                myFutureOrders[i]["sending"] = void 0;
+                myFutureOrders[i]["removing"] = void 0;
+              });
+              return myFutureOrders;
             })());
             break;
           default:
@@ -765,15 +816,17 @@ var app = {
               case "my_sites":
                 app.mySites(data.sites);
                 break;
-              case "my_supply_orders":
+              case "my_draft_orders":
+              case "my_future_orders":
                   var tmp = [],
-                      local_drafts = app.mySupplyOrdersDrafts(),
-                      mutations = app.ids_mutation();
+                      mutations = app.ids_mutation(),
+                      local_storage_method = ("my_draft_orders" === self.func)? "mySupplyOrdersDrafts": "myFutureOrders",
+                      local_items = app[local_storage_method]();
 
                   $.each(data.supply_orders_list, function(ind,remote){
                     var _tmp = {};
                     try {
-                      if ( ( $.grep(local_drafts, function(loc,i){
+                      if ( ( $.grep(local_items, function(loc,i){
                         return ( ($.inArray(String(remote.supply_order_id),
                             $.merge(
                                 [String(loc.supply_order_id)],
@@ -806,7 +859,7 @@ var app = {
                     }
                     tmp.push(_tmp);
                   });
-                app.mySupplyOrdersDrafts(tmp);
+                app[local_storage_method](tmp);
                 break;
               case "my_last_submitted_orders":
                 var tmp = [];
@@ -842,7 +895,7 @@ var app = {
         return self.deferred.promise();
       };
 
-      if (drafts_ready_to_sync()){
+      if (orders_ready_to_sync()){
         methods_to_chain.push('save_orders');
       }
       if ("" == method_when_update_sync_time){
@@ -1219,7 +1272,7 @@ var app = {
 
       var my_supply_orders_request = $.ajax({
         type: "POST",
-        url: app.site+'/mobile/my_supply_orders.json',
+        url: app.site+'/mobile/my_draft_orders.json',
         data: {
           id: token,
           version: app.application_version,
@@ -1558,14 +1611,14 @@ var app = {
             $container.html(new SupplierView().render().el).trigger('pagecreate');
           });
         break;
-      case /^#order:(\w+)$/.test(urlObj.hash):
-        var order_id = urlObj.hash.match(/^#order:(\w+)$/)[1] || "new";
+      case /^#order:(.+)$/.test(urlObj.hash):
+        var order_id = urlObj.hash.match(/^#order:(.+)$/)[1] || "new";
         app.getSitesOrdersList(function(){
           $container.html(new OrderView(order_id).render().el).trigger('pagecreate');
           (function(){$("div", $container).first().trigger('orderevent');})();});
         break;
-      case /^#order-overall:(\w+)$/.test(urlObj.hash):
-        var order = urlObj.hash.match(/^#order-overall:(\w+)$/)[1] || "active_order";
+      case /^#order-overall:(.+)$/.test(urlObj.hash):
+        var order = urlObj.hash.match(/^#order-overall:(.+)$/)[1] || "active_order";
         $container.html(new OrderOverallView(order).render().el).trigger('pagecreate');
         break;
       case '#inspectionslog' == urlObj.hash:
@@ -1602,8 +1655,7 @@ var app = {
       if (job_insp_cont.site_id && job_insp_cont.status == "pending" ){
         u = $.mobile.path.parseUrl(u.hrefNoHash + "#inspection:" + job_insp_cont.site_id + "-" + job_insp_cont.job_id);
       }
-
-      if ( (/^#order[:]?(\w+)$/.test(u.hash) || /^(edit|add)OrderItem:(.*)$/i.test(u.hash) ) &&
+      if ( (/^#order[:]?(.+)$/.test(u.hash) || /^(edit|add)OrderItem:(.*)$/i.test(u.hash) ) &&
           !(/^Area Supervisor/i.test(app.getUserInfo().role)) ){
         u = $.mobile.path.parseUrl(u.hrefNoHash);
       }
