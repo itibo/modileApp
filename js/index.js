@@ -717,8 +717,8 @@ var app = {
                         myFutureOrders[i]["removing"] = true;
                       }
                     }
-
                   });
+                  return myFutureOrders;
                 })());
 
                 return {
