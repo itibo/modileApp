@@ -1913,6 +1913,9 @@ var app = {
       app.siteFilter(false);
 
       $("#overlay").hide();
+      if ($("#menu").is(":visible")){
+        $("#menu").toggle();
+      }
 
       app.route();
     };
