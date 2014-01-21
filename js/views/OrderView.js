@@ -69,8 +69,8 @@ var OrderView = function(order_id){
 
             var obj = {};
             if (RegExp('^new_on_device_','i').test(self.order_id) &&
-                ($.grep($.merge(drafts, futures), function(n,i){
-                  return $.inArray(n.id, [_old_order_id, self.order_id ])>-1 })).length < 1){
+                ($.grep($.merge($.merge([], drafts), futures), function(n,i){
+                  return $.inArray(n.supply_order_id, [_old_order_id, self.order_id ])>-1 })).length < 1){
               // вновь созданный ордер, не сохраненный еще в ЛС
 
               var site_info = (function(id_arr){

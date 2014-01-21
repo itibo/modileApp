@@ -104,6 +104,7 @@ var SupplierView = function(){
             priority: getPriority(v),
             order_date: v.order_date,
             updated_at: v.updated_at,
+            status: v.status,
             total: calculate_total(v)
           });
         }
@@ -193,8 +194,8 @@ var SupplierView = function(){
     this.el.on('click', 'button#remove_order', function(e){
       e.preventDefault();
 
-      var order_type = ($("input", $(e.currentTarget).closest("div#context_menu")).val()).match(/^(\w+):(\w+)$/)[1],
-          order_id = ($("input", $(e.currentTarget).closest("div#context_menu")).val()).match(/^(\w+):(\w+)$/)[2];
+      var order_type = ($("input", $(e.currentTarget).closest("div#context_menu")).val()).match(/^(\w+):(.+)$/)[1],
+          order_id = ($("input", $(e.currentTarget).closest("div#context_menu")).val()).match(/^(\w+):(.+)$/)[2];
 
       navigator.notification.confirm(
           "Are you sure you want to remove " + (("future" === order_type) ? "this future order?" : "this draft?"),
@@ -292,7 +293,10 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
         out = out +
             "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
             "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
-            "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>-</span>' : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) + "<br/ >"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/>"+"</div>" +
+            "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id)
+                ? '<span>-</span>'
+                : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
+              "<br/ >"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/>"+"</div>" +
               "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
                 "<td class=\"points_time\">" +
                   "<span class=\"time\">" + v.order_form + "</span><br />" +
@@ -327,7 +331,11 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
     $.each(submitted_orders, function(i,v){
       out = out + "<li class=\"inspectable\"><a href=\"#order-overall:"+ v.supply_order_id +"\">"+
           "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
-          "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>-</span>' : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) + "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
+          "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id)
+              ? '<span>-</span>'
+              : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
+            ((undefined !== v.status && "rejected" == v.status) ? (" <span style=\"color:red;\">(rejected)</span>") : "") +
+            "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
               "<span class=\"time\">" + v.order_form + "</span><br />" +
@@ -358,7 +366,10 @@ Handlebars.registerHelper('FutureOrdersContent', function(future_orders){
     $.each(future_orders, function(i,v){
       out = out + "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
           "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
-          "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id) ? '<span>-</span>' : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) + "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
+          "<div class=\"points\">Order: " + ( (/^new_on_device/ig).test(v.supply_order_id)
+                ? '<span>-</span>'
+                : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
+            "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
               "<span class=\"time\">" + v.order_form + "</span><br />" +

@@ -646,7 +646,7 @@ var app = {
         save_orders: "save_orders"
       },
           orders_ready_to_sync = function(){
-            return ($.grep($.merge(app.mySupplyOrdersDrafts(), app.myFutureOrders()), function(n,i){
+            return ($.grep($.merge($.merge([], app.mySupplyOrdersDrafts()), app.myFutureOrders()), function(n,i){
               return ( (undefined != n.submit_status && "submitting" == n.submit_status && undefined == n.submitting) ||
                   (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved) && undefined == n.sending) ||
                   (undefined != n.to_remove && undefined == n.removing) );
@@ -1145,7 +1145,6 @@ var app = {
               });
             },
             function(error){
-              alert(JSON.stringify(error));
               $deferred.reject({
                 status: 'error',
                 type: 'gps',
@@ -1971,7 +1970,7 @@ var app = {
               'No,Yes'
           );
           break;
-        case /^#order:(\w+)$/.test(app.current_page):
+        case /^#order:(.+)$/.test(app.current_page):
 
           var activeOrder = app.activeOrder(),
               cancelProcess = function (){

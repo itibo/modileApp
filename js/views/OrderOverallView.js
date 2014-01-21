@@ -374,7 +374,7 @@ var OrderOverallView = function(order_id){
                     (function(){var _tmp = [];_tmp = $.grep(future_orders, function(n,i){return n.supply_order_id == String(self.activeOrder.upd.supply_order_id)});return !(_tmp.length>0);})() ){
                   // новый фьючер, не присутствующий в ЛС, добавляем его туда
 
-                  future_orders.unshift($.extend({
+                  future_orders.unshift($.extend(true, {
                     id: self.activeOrder.upd.supply_order_id,
                     supply_order_id: self.activeOrder.upd.supply_order_id,
                     supply_order_name: self.activeOrder.upd.supply_order_name,
@@ -392,8 +392,8 @@ var OrderOverallView = function(order_id){
                     locally_saved: self.activeOrder.upd
                   }));
                 } else {
-                  $.each(future_orders, function(i, dr){
-                    if ($.inArray(String(dr.supply_order_id),
+                  $.each(future_orders, function(i, ft){
+                    if ($.inArray(String(ft.supply_order_id),
                         [String(self.activeOrder.upd.supply_order_id),
                           (undefined == mutation[self.activeOrder.upd.supply_order_id])? null :
                               String(mutation[self.activeOrder.upd.supply_order_id])] ) > -1 )
@@ -405,7 +405,7 @@ var OrderOverallView = function(order_id){
                         self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
                       }
 
-                      order_to_update = $.extend({
+                      order_to_update = $.extend(true, {
                         id: self.activeOrder.upd.supply_order_id,
                         supply_order_id: self.activeOrder.upd.supply_order_id,
                         supply_order_name: self.activeOrder.upd.supply_order_name,
@@ -464,6 +464,7 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
     out = out + "<div data-role=\"content\">";
     out = out + "<div class=\"location_details\">";
     out = out + "<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>-</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>'));
+    out = out + ((undefined !== order.status && "rejected" === order.status ) ? " <font style=\"font-size: 100%; color: red;\">(rejected)</font>" : "");
     out = out + "<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
     out = out + "<p class=\"add_info\">Order type: <span>"+order.order_form+"</span>";
 
