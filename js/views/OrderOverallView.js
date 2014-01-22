@@ -167,13 +167,26 @@ var OrderOverallView = function(order_id){
 
                   var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
                       myLastSubmittedOrders = app.myLastSubmittedOrders(),
-                      submitted_item = {};
+                      submitted_item = {},
+                      mutation = app.ids_mutation();
 
                   self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
                   // новый черновик, не присутствующий в ЛС, добавляем его туда
                   if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                      (function(){var _tmp = [];_tmp = $.grep(mySupplyOrdersDrafts, function(n,i){return n.id == String(self.activeOrder.supply_order_id)});return !(_tmp.length>0);})() ){
+                      (function(){
+                        var _tmp = [];
+                        _tmp = $.grep(mySupplyOrdersDrafts, function(n,i){
+                          return $.inArray(n.supply_order_id,
+                              [ String(self.activeOrder.upd.supply_order_id),
+                                (undefined == mutation[self.activeOrder.upd.supply_order_id])
+                                    ? null
+                                    : String(mutation[self.activeOrder.upd.supply_order_id])
+                              ]
+                          ) > -1
+                        });
+                        return _tmp.length<1;
+                      })() ){
 
                     mySupplyOrdersDrafts.unshift($.extend({
                       id: self.activeOrder.upd.supply_order_id,
@@ -198,10 +211,20 @@ var OrderOverallView = function(order_id){
 
                   app.mySupplyOrdersDrafts((function(){
                     $.each(mySupplyOrdersDrafts, function(i,v){
-                      if(String(self.activeOrder.upd.supply_order_id) == String(v.supply_order_id)){
+//                      if(String(self.activeOrder.upd.supply_order_id) == String(v.supply_order_id)){
+                      if ($.inArray( String(v.supply_order_id),
+                          [ String(self.activeOrder.upd.supply_order_id),
+                            (undefined === mutation[self.activeOrder.upd.supply_order_id])? null : String(mutation[self.activeOrder.upd.supply_order_id])]
+                          ) > -1 )
+                      {
                         var order_form_short = v.order_form.match(/^(.+?)\b/)[0].toLowerCase();
 
-                        mySupplyOrdersDrafts[i] = $.extend({
+                        if (undefined !== mutation[self.activeOrder.upd.supply_order_id]){
+                          self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
+                          self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
+                        }
+
+                        mySupplyOrdersDrafts[i] = $.extend( true, {
                           id: self.activeOrder.upd.supply_order_id,
                           supply_order_id: self.activeOrder.upd.supply_order_id,
                           supply_order_name: self.activeOrder.upd.supply_order_name,
@@ -242,7 +265,14 @@ var OrderOverallView = function(order_id){
 
                   app.sync_supply();
                   setTimeout(function(){
-                    app.siteFilter( "" == String(self.activeOrder.upd.site_id) ? "diamond_office" : self.activeOrder.upd.site_id ) ;
+                    var filter_site_id;
+                    try{
+                      filter_site_id = app.siteFilter();
+                      filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                    } catch (er){
+                      filter_site_id = "";
+                    }
+                    app.siteFilter( filter_site_id ) ;
                     self.activeOrder = {};
                     app.activeOrder(false);
                     app.route({
@@ -281,7 +311,19 @@ var OrderOverallView = function(order_id){
                 self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
                 if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                    (function(){var _tmp = [];_tmp = $.grep(drafts, function(n,i){return n.supply_order_id == String(self.activeOrder.upd.supply_order_id)});return !(_tmp.length>0);})() ){
+                    (function(){
+                      var _tmp = [];
+                      _tmp = $.grep(drafts, function(n,i){
+                        return $.inArray(n.supply_order_id,
+                            [ String(self.activeOrder.upd.supply_order_id),
+                              (undefined == mutation[self.activeOrder.upd.supply_order_id])
+                                  ? null
+                                  : String(mutation[self.activeOrder.upd.supply_order_id])
+                            ]
+                        ) > -1
+                      });
+                      return _tmp.length<1;
+                    })() ){
                   // новый черновик, не присутствующий в ЛС, добавляем его туда
 
                   drafts.unshift($.extend({
@@ -343,7 +385,14 @@ var OrderOverallView = function(order_id){
               }
 
               setTimeout(function(){
-                app.siteFilter( "" == String(self.activeOrder.upd.site_id) ? "diamond_office" : self.activeOrder.upd.site_id ) ;
+                var filter_site_id;
+                try{
+                  filter_site_id = app.siteFilter();
+                  filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                } catch (er){
+                  filter_site_id = "";
+                }
+                app.siteFilter( filter_site_id ) ;
                 self.activeOrder = {};
                 app.activeOrder(false);
                 app.route({
@@ -370,8 +419,24 @@ var OrderOverallView = function(order_id){
 
                 self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
+
+//alert("новый фьючер: " + ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) && (function(){ var _tmp = []; _tmp = $.grep(future_orders, function(n,i){ return $.inArray(n.supply_order_id, [ String(self.activeOrder.upd.supply_order_id), (undefined == mutation[self.activeOrder.upd.supply_order_id]) ? null : String(mutation[self.activeOrder.upd.supply_order_id]) ] ) > -1 }); return _tmp.length<1; })() ));
+
+
                 if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                    (function(){var _tmp = [];_tmp = $.grep(future_orders, function(n,i){return n.supply_order_id == String(self.activeOrder.upd.supply_order_id)});return !(_tmp.length>0);})() ){
+                    (function(){
+                      var _tmp = [];
+                      _tmp = $.grep(future_orders, function(n,i){
+                        return $.inArray(n.supply_order_id,
+                            [ String(self.activeOrder.upd.supply_order_id),
+                              (undefined == mutation[self.activeOrder.upd.supply_order_id])
+                                  ? null
+                                  : String(mutation[self.activeOrder.upd.supply_order_id])
+                            ]
+                        ) > -1
+                      });
+                      return _tmp.length<1;
+                    })() ){
                   // новый фьючер, не присутствующий в ЛС, добавляем его туда
 
                   future_orders.unshift($.extend(true, {
@@ -433,7 +498,14 @@ var OrderOverallView = function(order_id){
               }
 
               setTimeout(function(){
-                app.siteFilter( "" == String(self.activeOrder.upd.site_id) ? "diamond_office" : self.activeOrder.upd.site_id ) ;
+                var filter_site_id;
+                try{
+                  filter_site_id = app.siteFilter();
+                  filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                } catch (er){
+                  filter_site_id = "";
+                }
+                app.siteFilter( filter_site_id ) ;
                 self.activeOrder = {};
                 app.activeOrder(false);
                 app.route({
