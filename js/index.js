@@ -818,47 +818,70 @@ var app = {
                 break;
               case "my_draft_orders":
               case "my_future_orders":
-                  var tmp = [],
-                      mutations = app.ids_mutation(),
-                      local_storage_method = ("my_draft_orders" === self.func)? "mySupplyOrdersDrafts": "myFutureOrders",
-                      local_items = app[local_storage_method]();
+                var tmp = [],
+                    mutations = app.ids_mutation(),
+                    local_storage_method = ("my_draft_orders" === self.func)? "mySupplyOrdersDrafts": "myFutureOrders",
+                    local_items = app[local_storage_method]();
 
-                  $.each(data.supply_orders_list, function(ind,remote){
-                    var _tmp = {};
-                    try {
-                      if ( ( $.grep(local_items, function(loc,i){
-                        return ( ($.inArray(String(remote.supply_order_id),
-                            $.merge(
-                                [String(loc.supply_order_id)],
-                                (function(){
-                                  if (undefined != mutations[loc.supply_order_id] && String(remote.supply_order_id) == String(mutations[loc.supply_order_id])){
-                                    return [String(mutations[loc.supply_order_id])];
-                                  } else {
-                                    return [];
-                                  }
-                                })()
-                            )
-                        ) > -1) && ( (new Date(remote.updated_at_utc)) < (new Date(loc.updated_at_utc)) ) &&
-                            ( _tmp = $.extend(true, {}, loc) ) );
-                      } ) ).length > 0 ){
+                // проверяем ПОЯВИЛИСЬ ЛИ НОВЫЕ ордера/фьючеры пока идет процесс синхронизации до их перезаписи
+                try {
+                  $.each(local_items, function(c, loc_itm){
+                    $.merge(
+                        tmp,
+                        ($.grep(data.supply_orders_list, function(elm, ind){
+                          return ($.inArray(String(elm.supply_order_id),
+                              $.merge(
+                                  [String(loc_itm.supply_order_id)],
+                                  undefined === mutations[loc_itm.supply_order_id] ? [] : [String(mutations[loc_itm.supply_order_id])]
+                              )
+                          ) > -1)
+                        })).length == 0 ? [loc_itm] : []
+                    );
+                  });
 
-                        if (_tmp["sending"]){
-                          _tmp["sending"] = void 0;
-                        }
-                        if (_tmp["submitting"]){
-                          _tmp["submitting"] = void 0;
-                        }
-                        if (_tmp["removing"]){
-                          _tmp["removing"] = void 0;
-                        }
-                      } else {
-                        _tmp = $.extend(true, {}, formatSupplyOrders(remote));
+                } catch (er){
+                  tmp = [];
+                }
+
+                // перезаписываем ЛС ордерами с пришедшими с сервера
+                $.each(data.supply_orders_list, function(ind,remote){
+                  var _tmp = {};
+                  // проверяем ИЗМЕНИЛИСЬ ЛИ СУЩЕСТВУЮЩИЕ ордера/фьючеры в ЛС пока шла синхронизация
+                  try {
+                    if ( ( $.grep(local_items, function(loc,i){
+                      return ( ($.inArray(String(remote.supply_order_id),
+                          $.merge(
+                              [String(loc.supply_order_id)],
+                              (function(){
+                                if (undefined != mutations[loc.supply_order_id] && String(remote.supply_order_id) == String(mutations[loc.supply_order_id])){
+                                  return [String(mutations[loc.supply_order_id])];
+                                } else {
+                                  return [];
+                                }
+                              })()
+                          )
+                      ) > -1) && ( (new Date(remote.updated_at_utc)) < (new Date(loc.updated_at_utc)) ) &&
+                          ( _tmp = $.extend(true, {}, loc) ) );
+                    } ) ).length > 0
+                    ){
+
+                      if (_tmp["sending"]){
+                        _tmp["sending"] = void 0;
                       }
-                    } catch(err){
+                      if (_tmp["submitting"]){
+                        _tmp["submitting"] = void 0;
+                      }
+                      if (_tmp["removing"]){
+                        _tmp["removing"] = void 0;
+                      }
+                    } else {
                       _tmp = $.extend(true, {}, formatSupplyOrders(remote));
                     }
-                    tmp.push(_tmp);
-                  });
+                  } catch(err){
+                    _tmp = $.extend(true, {}, formatSupplyOrders(remote));
+                  }
+                  tmp.push(_tmp);
+                });
                 app[local_storage_method](tmp);
                 break;
               case "my_last_submitted_orders":
