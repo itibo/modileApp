@@ -275,6 +275,7 @@ var OrderOverallView = function(order_id){
                     app.siteFilter( filter_site_id ) ;
                     self.activeOrder = {};
                     app.activeOrder(false);
+                    app.activeTab("submitted");
                     app.route({
                       toPage: window.location.href + "#orders"
                     });
@@ -395,6 +396,7 @@ var OrderOverallView = function(order_id){
                 app.siteFilter( filter_site_id ) ;
                 self.activeOrder = {};
                 app.activeOrder(false);
+                app.activeTab("drafts");
                 app.route({
                   toPage: window.location.href + "#orders"
                 });
@@ -508,6 +510,7 @@ var OrderOverallView = function(order_id){
                 app.siteFilter( filter_site_id ) ;
                 self.activeOrder = {};
                 app.activeOrder(false);
+                app.activeTab("next_month");
                 app.route({
                   toPage: window.location.href + "#orders"
                 });

@@ -179,14 +179,12 @@
             </div>
           </div>
           {{#SitesFilter sites}}{{/SitesFilter}}
-          <div data-role="navbar">
-            <div class="draft active"><a href="#drafts" class="ui-btn-active ui-state-persist">Drafts ({{draftsCount}})</a></div>&nbsp;
-            <div class="submitted"><a href="#submitted">Submitted ({{submittedOrdersCount}})</a></div>&nbsp;
-            <div class="next_month"><a href="#next_month">Future ({{futureOrdersCount}})</a></div>
-          </div><!-- /navbar -->
-          {{#DraftsOrderContent drafts}}{{/DraftsOrderContent}}
-          {{#SubmittedOrderContent submitted_orders}}{{/SubmittedOrderContent}}
-          {{#FutureOrdersContent future_orders}}{{/FutureOrdersContent}}
+          {{#tabsContent}}
+            {{tabsHeaders}}
+            {{DraftsOrderContent}}
+            {{SubmittedOrderContent}}
+            {{FutureOrdersContent}}
+          {{/tabsContent}}
         </div>
       </div><!-- /content -->
     </script>

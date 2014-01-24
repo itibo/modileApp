@@ -593,6 +593,7 @@ var OrderView = function(order_id){
                 app.siteFilter( filter_site_id ) ;
                 self.activeOrder = {};
                 app.activeOrder(false);
+                app.activeTab("drafts");
                 app.route({
                   toPage: window.location.href + "#orders"
                 });

@@ -42,20 +42,58 @@ var app = {
     /* end: process execution flag */
 
     /* ------------------------- */
-    // sites filter
-    this.siteFilter = function(data){
-      var out = void 0;
+    // suppllier main page helper
+    this.supplierMainPageHelper = function(data){
+      var out = {};
       if (typeof data != "undefined"){
         data = data || false;
         if (data){
-          window.localStorage.setItem("siteFilter", data);
+          window.localStorage.setItem("supplierMainPageHelper", JSON.stringify(data));
           out = data;
         } else {
-          window.localStorage.removeItem("siteFilter");
-          out = void 0;
+          window.localStorage.removeItem("supplierMainPageHelper");
+          out = {};
         }
       } else {
-        out = window.localStorage.getItem("siteFilter") ? window.localStorage.getItem("siteFilter") : void 0;
+        out = window.localStorage.getItem("supplierMainPageHelper") ? JSON.parse(window.localStorage.getItem("supplierMainPageHelper")) : {};
+      }
+      return out;
+    };
+
+    // sites filter
+    this.siteFilter = function(data){
+      var out = void 0,
+          helper = app.supplierMainPageHelper();
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          out = helper.site_id = data;
+          app.supplierMainPageHelper(helper);
+        } else {
+          out = helper.site_id = void 0;
+          app.supplierMainPageHelper(helper);
+        }
+      } else {
+        out = helper.site_id;
+      }
+      return out;
+    };
+
+    // active tab
+    this.activeTab = function(data){
+      var out = void 0,
+          helper = app.supplierMainPageHelper();
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          out = helper.active_tab = data;
+          app.supplierMainPageHelper(helper);
+        } else {
+          out = helper.active_tab = "drafts";
+          app.supplierMainPageHelper(helper);
+        }
+      } else {
+        out = helper.active_tab || "drafts";
       }
       return out;
     };
@@ -1933,7 +1971,7 @@ var app = {
       app.activeOrder(false);
       app.last_supply_sync_date(false);
       app.ids_mutation(false);
-      app.siteFilter(false);
+      app.supplierMainPageHelper(false);
 
       $("#overlay").hide();
       if ($("#menu").is(":visible")){

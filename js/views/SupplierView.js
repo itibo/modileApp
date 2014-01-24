@@ -87,7 +87,6 @@ var SupplierView = function(){
       });
       return return_arr;
     })();
-    context.draftsCount = context.drafts.length;
 
     context.submitted_orders = (function(){
       var return_arr = [],
@@ -111,7 +110,6 @@ var SupplierView = function(){
       });
       return return_arr;
     })();
-    context.submittedOrdersCount = context.submitted_orders.length;
 
     context.future_orders = (function(){
       var return_arr = [],
@@ -138,7 +136,13 @@ var SupplierView = function(){
       });
       return return_arr;
     })();
-    context.futureOrdersCount = context.future_orders.length;
+
+    context.tabsInfo = {
+      draftsCount: context.drafts.length || 0,
+      submittedOrdersCount: context.submitted_orders.length || 0,
+      futureOrdersCount: context.future_orders.length || 0,
+      active_tab: app.activeTab()
+    }
 
     this.el.html(SupplierView.template(context));
     return this;
@@ -251,10 +255,12 @@ var SupplierView = function(){
 
     this.el.on("click", 'div[data-role="navbar"] div a', function(e){
       e.preventDefault();
+      var $elm = $(e.currentTarget);
       $('div[data-role="navbar"] > div').removeClass("active");
-      $(e.currentTarget).closest("div").addClass("active");
-      $('ul[data-role=\"listview\"]').hide();
-      $($(e.currentTarget).attr("href")).show().trigger( "pagecreate" );
+      $elm.closest("div").addClass("active");
+      $('ul[data-role="listview"]').hide();
+      app.activeTab(($elm.attr("href")).substring(1));
+      $($elm.attr("href")).show().trigger( "pagecreate" );
     });
 
     this.el.on("change", "select#sites_filter", function(e){
@@ -284,9 +290,30 @@ Handlebars.registerHelper('SitesFilter', function(sites){
   return new Handlebars.SafeString(out);
 });
 
-Handlebars.registerHelper('DraftsOrderContent', function(drafts){
-  var out = "<ul id=\"drafts\" data-role=\"listview\" data-inset=\"true\" class=\"draft\">";
-//  out = out + "<li data-role=\"list-divider\" role=\"heading\">Draft Orders</li>";
+Handlebars.registerHelper('tabsContent', function(options){
+  return options.fn(this);
+});
+
+Handlebars.registerHelper('tabsHeaders', function(){
+  var out = "";
+  out = "<div data-role=\"navbar\">" +
+          "<div class=\"draft"+ (("drafts" === this.tabsInfo.active_tab) ? ' active':'') +"\">" +
+            "<a href=\"#drafts\""+ (("drafts" === this.tabsInfo.active_tab) ? ' class="ui-btn-active ui-state-persist"':'') +">Drafts ("+ this.tabsInfo.draftsCount +")</a>" +
+          "</div>&nbsp;" +
+          "<div class=\"submitted"+ (("submitted" === this.tabsInfo.active_tab) ? ' active':'') +"\">" +
+            "<a href=\"#submitted\""+ (("submitted" === this.tabsInfo.active_tab) ? ' class="ui-btn-active ui-state-persist"':'') +">Submitted ("+ this.tabsInfo.submittedOrdersCount +")</a>" +
+          "</div>&nbsp;" +
+          "<div class=\"next_month"+ (("next_month" === this.tabsInfo.active_tab) ? ' active':'') +"\">" +
+            "<a href=\"#next_month\""+ (("next_month" === this.tabsInfo.active_tab) ? ' class="ui-btn-active ui-state-persist"':'') +">Future ("+ this.tabsInfo.futureOrdersCount +")</a>" +
+          "</div>" +
+        "</div>";
+  return new Handlebars.SafeString(out);
+});
+
+Handlebars.registerHelper('DraftsOrderContent', function(){
+  var drafts = this.drafts,
+      not_visible = "drafts" !== this.tabsInfo.active_tab ? " style=\'display:none;\'" : "",
+      out = "<ul id=\"drafts\" data-role=\"listview\" data-inset=\"true\" class=\"draft\""+not_visible+">";
   if (drafts.length > 0){
     $.each(drafts, function(i,v){
       if (!(undefined != v.submit_status && "submitting" == v.submit_status)){
@@ -324,9 +351,10 @@ Handlebars.registerHelper('DraftsOrderContent', function(drafts){
   return new Handlebars.SafeString(out);
 });
 
-Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
-  var out = "<ul id=\"submitted\" data-role=\"listview\" data-inset=\"true\" style=\'display:none;\'>";
-//  out = out + "<li data-role=\"list-divider\" role=\"heading\">Orders submitted this month ("+ submitted_orders.length+")</li>";
+Handlebars.registerHelper('SubmittedOrderContent', function(){
+  var submitted_orders = this.submitted_orders,
+      not_visible = "submitted" !== this.tabsInfo.active_tab ? " style=\'display:none;\'" : "",
+      out = "<ul id=\"submitted\" data-role=\"listview\" data-inset=\"true\""+not_visible+">";
   if (submitted_orders.length>0){
     $.each(submitted_orders, function(i,v){
       out = out + "<li class=\"inspectable\"><a href=\"#order-overall:"+ v.supply_order_id +"\">"+
@@ -360,8 +388,10 @@ Handlebars.registerHelper('SubmittedOrderContent', function(submitted_orders){
   return new Handlebars.SafeString(out);
 });
 
-Handlebars.registerHelper('FutureOrdersContent', function(future_orders){
-  var out = "<ul id=\"next_month\" data-role=\"listview\" data-inset=\"true\" style=\"display:none;\" class=\"next_month_orders\">";
+Handlebars.registerHelper('FutureOrdersContent', function(){
+  var future_orders = this.future_orders,
+      not_visible = "next_month" !== this.tabsInfo.active_tab ? " style=\'display:none;\'" : "",
+      out = "<ul id=\"next_month\" data-role=\"listview\" data-inset=\"true\" class=\"next_month_orders\""+not_visible+">";
   if (future_orders.length>0){
     $.each(future_orders, function(i,v){
       out = out + "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
@@ -393,6 +423,5 @@ Handlebars.registerHelper('FutureOrdersContent', function(future_orders){
   }
   return new Handlebars.SafeString(out);
 });
-
 
 SupplierView.template = Handlebars.compile($("#supplier-main-tpl").html());
