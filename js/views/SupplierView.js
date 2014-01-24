@@ -80,6 +80,7 @@ var SupplierView = function(){
               order_date: v.order_date,
               updated_at: v.updated_at,
               remaining_budget: v.remaining_budget,
+              syncing: (undefined !== v.locally_saved || undefined !== v.sending),
               total: String(calculate_total(v))
             });
           }
@@ -129,6 +130,7 @@ var SupplierView = function(){
               priority: getPriority(v),
               order_date: v.order_date,
               updated_at: v.updated_at,
+              syncing: (undefined !== v.locally_saved || undefined !== v.sending),
               total: calculate_total(v)
             });
           }
@@ -319,6 +321,7 @@ Handlebars.registerHelper('DraftsOrderContent', function(){
       if (!(undefined != v.submit_status && "submitting" == v.submit_status)){
         out = out +
             "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
+            ( v.syncing ? "<div class=\"syncreq\">waiting for sync</div>" : "") +
             "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
             "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id)
                 ? '<span>-</span>'
@@ -395,6 +398,7 @@ Handlebars.registerHelper('FutureOrdersContent', function(){
   if (future_orders.length>0){
     $.each(future_orders, function(i,v){
       out = out + "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
+          ( v.syncing ? "<div class=\"syncreq\">waiting for sync</div>" : "") +
           "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
           "<div class=\"points\">Order: " + ( (/^new_on_device/ig).test(v.supply_order_id)
                 ? '<span>-</span>'

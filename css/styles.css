@@ -1092,6 +1092,8 @@ ul#submitted{
 ul#next_month{
 	border-top: 5px solid #6cb692;
 }
+.syncreq{float:right;font-syze:80%;font-weight:normal;font-style:italic;color:red;margin:3px;padding:0;}
+
 .ui-content .ui-navbar + .ui-listview-inset li:first-child,
 .ui-content .ui-navbar + .ui-listview-inset + .ui-listview-inset li:first-child{
 	border-top: 1px solid #666;
