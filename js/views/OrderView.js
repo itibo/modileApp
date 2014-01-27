@@ -307,8 +307,44 @@ var OrderView = function(order_id){
   this.close_popup = function(){
     $(".popup-overlay").remove();
     $(".pop_up > input[type=hidden]").val("");
+
+    $(".pop_up .popup_content>div").hide();
+    $(".pop_up input[name=item_amount]").val("");
+    $(".pop_up .popup_content>div:first-child").show();
+
     $(".pop_up").css("visibility", "hidden");
     return this;
+  };
+
+  this.save_and_rebuild_view_by_value = function(new_value){
+
+    var self = this;
+    var $clicked_elm = $("a[id='"+$(".pop_up>input[type=hidden][id=item_id]").val()+"']");
+    try {
+      var clicked_category = $("li[data-role=list-divider]", $clicked_elm.closest("ul")).text();
+      var elm_id = $clicked_elm.attr("id").match(/^iid_(.*)$/i)[1];
+      var details_arr = $(".details", $clicked_elm);
+
+      self.activeOrder.upd.supply_order_categories[String(clicked_category)][String(elm_id)]['amount'] = new_value;
+      app.activeOrder(self.activeOrder);
+
+      if (new_value > 0){
+        $(".infodetails", $clicked_elm).removeClass("one");
+        $(details_arr[2]).html("Total: <span>$" + (parseFloat(new_value) *
+            parseFloat(self.activeOrder['upd']['supply_order_categories'][clicked_category][elm_id]["price"])).toFixed(2) + "</span>");
+
+        $(".infodetails>div.number", $clicked_elm).remove();
+        $("<div />", {
+          class: "number"
+        }).html("<font>Amount:</font><br /><span>"+ new_value +"</span>").appendTo($(".infodetails", $clicked_elm));
+      } else {
+        $(".infodetails", $clicked_elm).addClass("one");
+        $(details_arr[2]).html("<span></span>");
+        $(".infodetails>div.number", $clicked_elm).remove();
+      }
+      $clicked_elm.trigger("create");
+    } catch(er){}
+    return self;
   };
 
   this.recalculate_total = function(){
@@ -335,7 +371,7 @@ var OrderView = function(order_id){
       $(".over_budget .over").html("Over Budget!!!");
     }
     $("div.over_budget span.price").text("$" + total.toFixed(2));
-    return this;
+    return self;
   };
 
   this.initialize = function() {
@@ -377,15 +413,15 @@ var OrderView = function(order_id){
             win_height = $(window).height(),
             budget_position_width = $("div.over_budget").width();
 
-        budget_elm = $("div.over_budget").clone().attr("id", "budget_clone").css({
+        var budget_elm = $("div.over_budget").clone().attr("id", "budget_clone").css({
           "bottom": 0,
           "margin-bottom": 0,
           "margin-left": 0,
           "position": "fixed",
           "width": Math.floor(budget_position_width) + "px",
           "visibility": "hidden",
-          "z-index": 102
-        }).appendTo("div.categories[role=main]").trigger('create');
+          "z-index": 100
+        }).appendTo("div.categories").trigger('create');
 
         self.scroll_event_obj = $.extend(self.scroll_event_obj, {
           budget_position_y: budget_position_y,
@@ -623,18 +659,19 @@ var OrderView = function(order_id){
     this.el.on('click', 'ul[data-role=listview] li a', function(e){
       e.preventDefault();
 
-      var $popup = $(".pop_up");
+      var $popup = $(".pop_up"),
+          $score_elm = $(".number span", $(e.currentTarget)).eq(0);
+
       var $overlay = $("<div />", {
-        class: "popup-overlay"
-      }).on("click", function(ev){
-        ev.preventDefault();
-        self.close_popup();
+          class: "popup-overlay"
+        }).on("click", function(ev){
+          ev.preventDefault();
+          self.close_popup();
       });
 
       try {
 
-        if ( isNaN(parseInt($(".number span", $(e.currentTarget)).text())) ||
-            0 == parseInt($(".number span", $(e.currentTarget)).text()) ){
+        if ( isNaN(parseInt($score_elm.text())) || 0 == parseInt($score_elm.text()) ){
           $(".clear", $popup).addClass("disabled");
         } else {
           $(".clear", $popup).removeClass("disabled");
@@ -643,12 +680,25 @@ var OrderView = function(order_id){
         $("input[type=hidden][id=item_id]", $popup).val($(e.currentTarget).attr("id"));
         $popup.css( "left",  Math.round( ($(window).width() - $popup.width())/2 ) );
 
+        if ( !isNaN(parseInt($score_elm.text())) && parseInt($score_elm.text()) > 10 ){
+          $(".popup_content > div", $popup).eq(0).hide();
+          $("#more", $popup).show();
+        } else {
+          $(".popup_content > div", $popup).eq(0).show();
+          $("#more", $popup).hide();
+        }
+
         if ($popup.height() > ($(window).height() - 30)){
           $popup.css("top", $(document).scrollTop() + parseInt(25) + "px");
         } else {
           $popup.css("top", $(document).scrollTop() + Math.round(($(window).height() - $popup.height())/2) + "px");
         }
+
         $popup.css({"visibility": "visible", "z-index": 101});
+        if (!isNaN(parseInt($score_elm.text()) && "none" !== $("#more", $popup).css('display'))){
+          $("input[name=item_amount]", $popup).val(parseInt($score_elm.text())).focus();
+        }
+
       } catch (er){}
     });
 
@@ -659,36 +709,36 @@ var OrderView = function(order_id){
 
     this.el.on('click', '.pop_up .popup_content a, .pop_up a.clear', function(event){
       event.preventDefault();
-      if (!$(event.currentTarget).hasClass('disabled')){
-        var $clicked_elm = $("a[id='"+$(".pop_up>input[type=hidden][id=item_id]").val()+"']");
-        try {
-          var clicked_category = $("li[data-role=list-divider]", $clicked_elm.closest("ul")).text();
-          var elm_id = $clicked_elm.attr("id").match(/^iid_(.*)$/i)[1];
-          var details_arr = $(".details", $clicked_elm);
 
-          self.activeOrder.upd.supply_order_categories[String(clicked_category)][String(elm_id)]['amount'] =
-              $(event.currentTarget).attr("data-value");
-          app.activeOrder(self.activeOrder);
+      var $elm = $(event.currentTarget);
+      if ($elm.hasClass("more")){
+        $elm.closest("div").hide();
+        $(".popup_content > div#more").show();
+        $("div#more input[name=item_amount]").focus();
 
-          if ($(event.currentTarget).attr("data-value") > 0){
-            $(".infodetails", $clicked_elm).removeClass("one");
-            $(details_arr[2]).html("Total: <span>$" + (parseFloat($(event.currentTarget).attr("data-value")) *
-                parseFloat(self.activeOrder['upd']['supply_order_categories'][clicked_category][elm_id]["price"])).toFixed(2) + "</span>");
-
-            $("<div />", {
-              class: "number"
-            }).html("<font>Amount:</font><br /><span>"+ $(event.currentTarget).attr("data-value") +"</span>").appendTo($(".infodetails", $clicked_elm));
-          } else {
-            $(".infodetails", $clicked_elm).addClass("one");
-            $(details_arr[2]).html("<span></span>");
-            $(".infodetails>div.number", $clicked_elm).remove();
-          }
-          $clicked_elm.trigger("create");
-        } catch(er){}
+      } else {
+        if (!$elm.hasClass('disabled')){
+          self.save_and_rebuild_view_by_value($elm.attr("data-value")).recalculate_total().close_popup();
+        }
       }
-      setTimeout(function(){
-        self.recalculate_total().close_popup();
-      }, 0);
+    });
+
+    this.el.on('click', '#more button#save_btn', function(event){
+      event.preventDefault();
+      var new_val = parseInt($("input[name=item_amount]").val()) || 0;
+      self.save_and_rebuild_view_by_value(new_val).recalculate_total().close_popup();
+    });
+
+    this.el.on('keydown', '#more input#item_amount', function(event){
+      switch (true) {
+        case event.which === 9:
+        case event.keyCode === 13:
+          var new_val = parseInt($("input[name=item_amount]").val()) || 0;
+          self.save_and_rebuild_view_by_value(new_val).recalculate_total().close_popup();
+        break;
+        default:
+          break;
+      }
     });
 
     $( window ).on("resize", function(e) {
