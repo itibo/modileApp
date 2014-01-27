@@ -737,6 +737,9 @@ var OrderView = function(order_id){
           self.save_and_rebuild_view_by_value(new_val).recalculate_total().close_popup();
         break;
         default:
+          if ($(event.currentTarget).val().length > 2){
+            $(event.currentTarget).val($(event.currentTarget).val().slice(0,2));
+          }
           break;
       }
     });
