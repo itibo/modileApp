@@ -26,13 +26,23 @@ var app = {
 
     /* begin: process execution flag */
     this.process_execution_flag = function(){
-      var flag = false;
+      var flag = false,
+          changeTime;
+
       return {
         checkBusy: function(){
+          if (changeTime && ((Date.now()) - changeTime)/1000 > 600 ){
+            changeTime = flag = false;
+          }
           return flag;
         },
         setFlag: function(state){
-          flag = (state)? true : false;
+          if (state){
+            changeTime = Date.now();
+            flag = true;
+          } else {
+            changeTime = flag = false;
+          }
         }
       }
     };
@@ -681,7 +691,8 @@ var app = {
         sync_check: "sync_check",
         update_drafts: "save_orders",
         submit_to_vendor: "save_orders",
-        save_orders: "save_orders"
+        save_orders: "save_orders",
+        props: "sites_properties"
       },
           orders_ready_to_sync = function(){
             return ($.grep($.merge($.merge([], app.mySupplyOrdersDrafts()), app.myFutureOrders()), function(n,i){
@@ -691,8 +702,9 @@ var app = {
             }).length>0);
           };
       var allow_to_chain_methods = true;
-      var startdeferrpoint = $.Deferred();
-          startdeferrpoint.resolve();
+      var dfrrd = $.Deferred();
+      dfrrd.resolve();
+
 
       var DeferredAjax = function(func){
         this.deferred = $.Deferred();
@@ -829,7 +841,8 @@ var app = {
                 if (data.sync_list.length > 0){
                   var methods_to_chain_result = [];
                   $.each(data.sync_list, function(i,f){
-                    methods_to_chain_result.push(methods_to_chain_mapping[f]);
+                    if (undefined !== methods_to_chain_mapping[f])
+                      methods_to_chain_result.push(methods_to_chain_mapping[f]);
                   });
                   _time_to_remember = data.time;
                   setTimeout(function(){
@@ -945,7 +958,7 @@ var app = {
           },
           error: function(err){
             app.sync_supply_process_execution_flag.setFlag(false);
-            self.deferred.reject();
+            self.decline();
 
             if (err.status == 401){
               app.logout();
@@ -963,25 +976,26 @@ var app = {
         methods_to_chain.push('sync_check');
       }
 
-      $.each(methods_to_chain, function(ix, def_func) {
-        var da = new DeferredAjax(def_func);
-        $.when( startdeferrpoint, app.check_online(true) ).then(
-          function(){
-            da.invoke();
-          },
-          function(){
-            da.decline();
-            app.sync_supply_process_execution_flag.setFlag(false);
-            allow_to_chain_methods = false;
-          }
-        );
-
-        if (allow_to_chain_methods){
-          startdeferrpoint = da;
-        } else {
-          return false;
-        }
-      });
+      (function(methods){
+        $.each(methods, function(ix, def_func) {
+          dfrrd = dfrrd.then(function(){
+            return (function(method){
+              var da = new DeferredAjax(method);
+              $.when( app.check_online(true) ).then(
+                  function(){
+                    da.invoke();
+                  },
+                  function(){
+                    da.decline();
+                    app.sync_supply_process_execution_flag.setFlag(false);
+                    allow_to_chain_methods = false;
+                  }
+              );
+              return da.promise();
+            })(def_func);
+          });
+        });
+      })(methods_to_chain);
     };
 
     navigator.geolocation.getCurrentPosition(function(position){
