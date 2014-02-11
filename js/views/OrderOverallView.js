@@ -263,7 +263,7 @@ var OrderOverallView = function(order_id){
                     return myLastSubmittedOrders;
                   })(submitted_item));
 
-                  app.sync_supply();
+                  app.sync();
                   setTimeout(function(){
                     var filter_site_id;
                     try{
@@ -382,7 +382,7 @@ var OrderOverallView = function(order_id){
                   });
                 }
                 app.mySupplyOrdersDrafts(drafts);
-                app.sync_supply();
+                app.sync();
               }
 
               setTimeout(function(){
@@ -496,7 +496,7 @@ var OrderOverallView = function(order_id){
                   });
                 }
                 app.myFutureOrders(future_orders);
-                app.sync_supply();
+                app.sync();
               }
 
               setTimeout(function(){

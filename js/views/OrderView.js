@@ -96,13 +96,16 @@ var OrderView = function(order_id){
                         site_name: "Diamond Corporate Office",
                         site_address: "2249 N. Hollywood Way, Burbank CA 91505",
                         remaining_budget: (function(form_prefix){
-                          var val = 0;
-                          if ("paper" != form_prefix) {
+                          var val = 0,
+                              site_to_get_budgets = $.grep(my_sites, function(n,i){
+                                return n.assigned;
+                              })[0];
+                          if ("paper" != form_prefix && site_to_get_budgets) {
                             val = (prefix.length > 0
-                                ? (parseFloat(my_sites[0][prefix + "budget_"+form_prefix])
-                                  - parseFloat(my_sites[0][prefix + "pending_"+form_prefix]))
-                                : (parseFloat(my_sites[0]["budget_"+form_prefix])
-                                  - parseFloat(my_sites[0]["used_"+form_prefix])));
+                                ? (parseFloat(site_to_get_budgets[prefix + "budget_"+form_prefix])
+                                  - parseFloat(site_to_get_budgets[prefix + "pending_"+form_prefix]))
+                                : (parseFloat(site_to_get_budgets["budget_"+form_prefix])
+                                  - parseFloat(site_to_get_budgets["used_"+form_prefix])));
                           }
                           return val.toFixed(2);
                         })(form)
@@ -615,7 +618,7 @@ var OrderView = function(order_id){
                   });
                 }
                 app.mySupplyOrdersDrafts(drafts);
-                app.sync_supply();
+                app.sync();
               }
 
               setTimeout(function(){
@@ -786,19 +789,22 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
           return arr;
         })(),
         budget_info = (function(){
-          var ret = {};
+          var ret = {},
+              site_to_get_budgets = $.grep(my_sites, function(n,i){
+                return n.assigned;
+              })[0];
           try {
-            var d_budget = parseFloat(my_sites[0][prefix + "budget_discretionary"]).toFixed(2),
-                d_pending = parseFloat( undefined !== my_sites[0][prefix + "pending_discretionary"]
-                    ? (my_sites[0][prefix + "pending_discretionary"]) : 0).toFixed(2),
-                d_used = parseFloat( prefix.length > 0 ? (my_sites[0][prefix + "pending_discretionary"])
-                    : ( my_sites[0]["used_discretionary"] ) ).toFixed(2),
+            var d_budget = parseFloat(site_to_get_budgets[prefix + "budget_discretionary"]).toFixed(2),
+                d_pending = parseFloat( undefined !== site_to_get_budgets[prefix + "pending_discretionary"]
+                    ? (site_to_get_budgets[prefix + "pending_discretionary"]) : 0).toFixed(2),
+                d_used = parseFloat( prefix.length > 0 ? (site_to_get_budgets[prefix + "pending_discretionary"])
+                    : ( site_to_get_budgets["used_discretionary"] ) ).toFixed(2),
                 d_remain = ( d_budget - d_used ).toFixed(2),
-                u_budget = parseFloat(my_sites[0][prefix + "budget_equipment"]).toFixed(2),
-                u_pending = parseFloat( undefined !== my_sites[0][prefix + "pending_equipment"]
-                    ? (my_sites[0][prefix + "pending_equipment"]) : 0 ).toFixed(2),
-                u_used = parseFloat( prefix.length > 0 ? (my_sites[0][prefix + "pending_equipment"] )
-                    : ( my_sites[0]["used_equipment"] ) ).toFixed(2),
+                u_budget = parseFloat(site_to_get_budgets[prefix + "budget_equipment"]).toFixed(2),
+                u_pending = parseFloat( undefined !== site_to_get_budgets[prefix + "pending_equipment"]
+                    ? (site_to_get_budgets[prefix + "pending_equipment"]) : 0 ).toFixed(2),
+                u_used = parseFloat( prefix.length > 0 ? (site_to_get_budgets[prefix + "pending_equipment"] )
+                    : ( site_to_get_budgets["used_equipment"] ) ).toFixed(2),
                 u_remain = ( u_budget - u_used ).toFixed(2);
             ret = {
               discretionary: {
@@ -832,6 +838,30 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
           }
           return ret;
         })();
+
+    my_sites = (function(all_sites){
+      all_sites = $.grep(all_sites, function(n,i){
+        return n.assigned;
+      });
+      var sites = [],
+          date_allowed_to_create_future;
+      if ("future" === order.type) {
+        date_allowed_to_create_future = (function(){
+          var date = new Date();
+          return new Date(date.getFullYear(), date.getMonth() + 1, -6);
+        })();
+        try {
+          $.each(all_sites, function(ind, site){
+            if ( (new Date(site.last_inspection_date)) > date_allowed_to_create_future  )
+              sites.push(site);
+          });
+        } catch (er){}
+
+      } else {
+        sites = all_sites;
+      }
+      return sites;
+    })(my_sites);
 
     out = out + "<select name=\"client_site\" id=\"site\"><option value=\"\">- Select Site Location -</option>";
     $.each(my_sites, function( index, value ) {

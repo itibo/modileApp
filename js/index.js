@@ -14,7 +14,7 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
-    this.application_version = "0.3.8";
+    this.application_version = "0.4.0";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -47,7 +47,7 @@ var app = {
       }
     };
 
-    this.sync_supply_process_execution_flag = this.process_execution_flag();
+    this.sync_process_execution_flag = this.process_execution_flag();
 
     /* end: process execution flag */
 
@@ -122,6 +122,24 @@ var app = {
         }
       } else {
         out = window.localStorage.getItem("mySites") ? JSON.parse(window.localStorage.getItem("mySites")) : [];
+      }
+      return out;
+    };
+
+    // sitesStaffingInfo
+    this.sitesStaffingInfo = function(data){
+      var out = [];
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("sitesStaffingInfo", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("sitesStaffingInfo");
+          out = [];
+        }
+      } else {
+        out = window.localStorage.getItem("sitesStaffingInfo") ? JSON.parse(window.localStorage.getItem("sitesStaffingInfo")) : [];
       }
       return out;
     };
@@ -216,20 +234,20 @@ var app = {
       return out;
     }
 
-    // last supply sync date
-    this.last_supply_sync_date = function(data){
+    // last sync date
+    this.last_sync_date = function(data){
       var out = null;
       if (typeof data != "undefined"){
         data = data || false;
         if (data){
-          window.localStorage.setItem("last_supply_sync_date", data);
+          window.localStorage.setItem("last_sync_date", data);
           out = data;
         } else {
-          window.localStorage.removeItem("last_supply_sync_date");
+          window.localStorage.removeItem("last_sync_date");
           out = null;
         }
       } else {
-        out = window.localStorage.getItem("last_supply_sync_date") ? window.localStorage.getItem("last_supply_sync_date") : null;
+        out = window.localStorage.getItem("last_sync_date") ? window.localStorage.getItem("last_sync_date") : null;
       }
       return out;
     }
@@ -424,7 +442,7 @@ var app = {
 //      self.startCheckInterval();
     }
 
-    app.sync_supply_process_execution_flag.setFlag(false);
+    app.sync_process_execution_flag.setFlag(false);
 
     self.route();
 
@@ -628,7 +646,7 @@ var app = {
     } else {
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
-    app.sync_supply();
+    app.sync();
   },
 
   stopCheckInterval: function(){
@@ -642,16 +660,16 @@ var app = {
       setTimeout(function(){
         if (app.autoconnect_flag)
           app.check();
-        app.sync_supply();
+        app.sync();
       }, 1000);
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
   },
 
-  sync_supply: function(){
+  sync: function(){
 
     // return if sync process is already
-    if (app.sync_supply_process_execution_flag.checkBusy()){
+    if (app.sync_process_execution_flag.checkBusy()){
       return ;
     }
 
@@ -674,13 +692,13 @@ var app = {
       return tmp_obj;
     };
     var sync_process = function(position_obj, methods_to_chain, method_when_update_sync_time){
-      app.sync_supply_process_execution_flag.setFlag(true);
+      app.sync_process_execution_flag.setFlag(true);
 
       position_obj = position_obj || false;
       methods_to_chain = methods_to_chain || [];
       method_when_update_sync_time = method_when_update_sync_time || '';
 
-//      alert("sync_supply fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
+//      alert("sync fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
       // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts", "submit_to_vendor", "save_orders"]
       var methods_to_chain_mapping = {
         sites: "my_sites",
@@ -692,7 +710,8 @@ var app = {
         update_drafts: "save_orders",
         submit_to_vendor: "save_orders",
         save_orders: "save_orders",
-        props: "sites_properties"
+        props: "sites_properties",
+        site_schedule: "sites_schedule"
       },
           orders_ready_to_sync = function(){
             return ($.grep($.merge($.merge([], app.mySupplyOrdersDrafts()), app.myFutureOrders()), function(n,i){
@@ -714,7 +733,7 @@ var app = {
           var tmp = $.extend({},{
             id: app.token,
             version: app.application_version,
-            last_sync_at: app.last_supply_sync_date(),
+            last_sync_at: app.last_sync_date(),
             gps: (position_obj) ? [position_obj] : null
           });
           switch (method) {
@@ -849,7 +868,7 @@ var app = {
                     sync_process(position_obj, methods_to_chain_result, methods_to_chain_result[methods_to_chain_result.length-1]);
                   }, 0);
                 } else {
-                  app.sync_supply_process_execution_flag.setFlag(false);
+                  app.sync_process_execution_flag.setFlag(false);
                 }
                 break;
               case "save_orders":
@@ -866,6 +885,9 @@ var app = {
                 break;
               case "my_sites":
                 app.mySites(data.sites);
+                break;
+              case "sites_schedule":
+                app.sitesStaffingInfo(data.sites_schedule);
                 break;
               case "my_draft_orders":
               case "my_future_orders":
@@ -950,14 +972,14 @@ var app = {
             }
 
             if (method_when_update_sync_time == self.func && "" != _time_to_remember){
-              app.last_supply_sync_date(_time_to_remember);
-              app.sync_supply_process_execution_flag.setFlag(false);
+              app.last_sync_date(_time_to_remember);
+              app.sync_process_execution_flag.setFlag(false);
             }
 
             self.deferred.resolve();
           },
           error: function(err){
-            app.sync_supply_process_execution_flag.setFlag(false);
+            app.sync_process_execution_flag.setFlag(false);
             self.decline();
 
             if (err.status == 401){
@@ -987,7 +1009,7 @@ var app = {
                   },
                   function(){
                     da.decline();
-                    app.sync_supply_process_execution_flag.setFlag(false);
+                    app.sync_process_execution_flag.setFlag(false);
                     allow_to_chain_methods = false;
                   }
               );
@@ -1447,7 +1469,7 @@ var app = {
       });
     };
 
-    if (app.last_supply_sync_date()){
+    if (app.last_sync_date()){
       success_callback();
     } else {
       $.when( app.check_online() ).done(function(obj1){
@@ -1568,8 +1590,97 @@ var app = {
       });
     };
 
-    if ( app.last_supply_sync_date() ){
+    if ( app.last_sync_date() ){
       success_callback();
+    } else {
+      $.when( app.check_online() ).done(function(obj1){
+        navigator.geolocation.getCurrentPosition(function(position){
+          ajax_call.call(self, [{
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            acc: position.coords.accuracy,
+            time: (new Date()).toUTCString()
+          }]);
+        }, function(error){
+          ajax_call.call(self, null);
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+      }).fail(function(obj){
+        app.internet_gps_error(obj);
+        if ($("#overlay").is(':visible')){
+          $("#overlay").hide();
+        }
+      });
+    }
+  },
+
+  getSiteInfo: function(site_id, success_callback){
+    var self = this,
+        ajax_call = function(pos){
+      var token = app.token();
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/sites_schedule.json',
+        data: {
+          id: token,
+          last_sync_at: "",
+          gps: pos
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        timeout: 60000,
+        success: function(data) {
+          if (data.token == token){
+            if (typeof success_callback == "function"){
+              success_callback(get_full_site_info(site_id, data.sites_schedule));
+            }
+          } else {
+            app.setToken(false);
+            app.route();
+          }
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
+            } else {
+              app.errorAlert(error, "Error", function(){
+                app.route();
+              });
+            }
+          });
+        }
+      });
+    },
+        get_full_site_info = function(site_id, staffing_container){
+          var ret = {};
+
+          $.each(app.mySites(), function(i,v){
+            if (site_id == v.site_id) {
+              ret = $.extend(true, ret, {common_info: v} );
+            return false;
+            }
+          });
+          $.each(staffing_container, function(i,v){
+            if (site_id == v.site_id) {
+              ret = $.extend(true, ret, {staffing_plan: v} );
+              return false;
+            }
+          });
+          return ret;
+        };
+
+    if ( app.last_sync_date() ){
+      success_callback(get_full_site_info(site_id, app.sitesStaffingInfo()));
     } else {
       $.when( app.check_online() ).done(function(obj1){
         navigator.geolocation.getCurrentPosition(function(position){
@@ -1597,9 +1708,10 @@ var app = {
       var token = app.token();
       $.ajax({
         type: "POST",
-        url: app.site+'/mobile/jobs.json',
+        url: app.site+'/mobile/my_sites.json',
         data: {
           id: token,
+          version: app.application_version,
           gps: pos
         },
         cache: false,
@@ -1609,7 +1721,8 @@ var app = {
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
-              success_callback(data.jobs);
+              app.mySites(data.sites);
+              success_callback(data.sites);
             }
           } else {
             app.setToken(false);
@@ -1639,14 +1752,28 @@ var app = {
       });
     };
 
-    $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
-      ajax_call.call(self, obj1.position);
-    }).fail(function(obj){
+    if ( app.last_sync_date() ){
+      success_callback(app.mySites());
+    } else {
+      $.when( app.check_online() ).done(function(obj1){
+        navigator.geolocation.getCurrentPosition(function(position){
+          ajax_call.call(self, [{
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            acc: position.coords.accuracy,
+            time: (new Date()).toUTCString()
+          }]);
+        }, function(error){
+          ajax_call.call(self, null);
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+      }).fail(function(obj){
         app.internet_gps_error(obj);
-      if ($("#overlay").is(':visible')){
-        $("#overlay").hide();
-      }
-    });
+        if ($("#overlay").is(':visible')){
+          $("#overlay").hide();
+        }
+      });
+
+    }
   },
 
   showContent: function(args_array){
@@ -1665,11 +1792,16 @@ var app = {
         app.check(true, function(){
           $container.html(new MyJobsView().render().el).trigger('pagecreate');
         });
-
         break;
       case '#siteslist' == urlObj.hash:
         app.getSitesList(function(list){
           $container.html(new SitesListView(list).render().el).trigger('pagecreate');
+        });
+        break;
+      case /^#siteinfo:(\d+)$/.test(urlObj.hash):
+        var site_id = urlObj.hash.match(/^#siteinfo:(\d+)$/)[1];
+        app.getSiteInfo(site_id, function(site_info){
+          $container.html(new SiteInfoView(site_info).render().el).trigger('pagecreate');
         });
         break;
       case /^#inspection:(\d+)\-(\d+)$/.test(urlObj.hash):
@@ -1983,7 +2115,8 @@ var app = {
       app.mySupplyOrdersDrafts(false);
       app.myLastSubmittedOrders(false);
       app.activeOrder(false);
-      app.last_supply_sync_date(false);
+      app.sitesStaffingInfo(false);
+      app.last_sync_date(false);
       app.ids_mutation(false);
       app.supplierMainPageHelper(false);
 
@@ -2047,6 +2180,11 @@ var app = {
               "Inspection cancelling",
               'No,Yes'
           );
+          break;
+        case /^#siteinfo:(\d+)$/.test(app.current_page):
+          app.route({
+            toPage: window.location.href + "#siteslist"
+          });
           break;
         case /^#order:(.+)$/.test(app.current_page):
 

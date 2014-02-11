@@ -78,10 +78,26 @@
           </span>
         </h1>
       </div><!-- /header -->
-      <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
       <div class="site_list">
-        <div data-role="content">
+        <h5><font>{{userInfo.display_name}}</font>, {{userInfo.role}}</h5>
+        <div data-role="content" class="inspect">
           {{#ListOfAvailiableSitesContent sites}}{{/ListOfAvailiableSitesContent}}
+        </div>
+      </div><!-- /content -->
+    </script>
+    <script id="siteInfo-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>
+          <span class="address">Site info</span>
+          <span class="btn-back log_back">
+            <a href="/#siteslist" class="ui-btn-right" data-role="button">Back</a>
+          </span>
+        </h1>
+      </div><!-- /header -->
+      <div class="main">
+        <div data-role="content" class="inspect">
+          {{LocationDetailsContent}}
+          {{StaffingPlanContent}}
         </div>
       </div><!-- /content -->
     </script>
@@ -255,6 +271,7 @@
     <script type="text/javascript" src="js/views/LoginView.js"></script>
     <script type="text/javascript" src="js/views/MyJobsView.js"></script>
     <script type="text/javascript" src="js/views/SitesListView.js"></script>
+    <script type="text/javascript" src="js/views/SiteInfoView.js"></script>
     <script type="text/javascript" src="js/views/InspectionView.js"></script>
     <script type="text/javascript" src="js/views/InspectionsLogView.js"></script>
     <script type="text/javascript" src="js/views/SupplierView.js"></script>

@@ -242,7 +242,7 @@ var SupplierView = function(){
               })());
 
               setTimeout(function(){
-                app.sync_supply();
+                app.sync();
                 app.route({
                   toPage: window.location.href + "#orders"
                 });
