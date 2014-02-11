@@ -848,7 +848,7 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
       if ("future" === order.type) {
         date_allowed_to_create_future = (function(){
           var date = new Date();
-          return new Date(date.getFullYear(), date.getMonth() + 1, -6);
+          return new Date(date.getFullYear(), date.getMonth() + 1, -19);
         })();
         try {
           $.each(all_sites, function(ind, site){
