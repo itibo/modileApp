@@ -51,6 +51,28 @@ var app = {
 
     /* end: process execution flag */
 
+
+    /* start: my sites filter */
+
+    this.sitesFilters = function(data){
+      var out = void 0;
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("sitesFilters", JSON.stringify(data));
+          out = data;
+        } else {
+          window.localStorage.removeItem("sitesFilters");
+          out = {};
+        }
+      } else {
+        out = window.localStorage.getItem("sitesFilters") ? JSON.parse(window.localStorage.getItem("sitesFilters")) : {};
+      }
+      return out;
+    };
+
+    /* end: my sites filter */
+
     /* ------------------------- */
     // suppllier main page helper
     this.supplierMainPageHelper = function(data){
@@ -1867,6 +1889,7 @@ var app = {
       }
 
     } else {
+      app.LS_clean();
       u = $.mobile.path.parseUrl(u.hrefNoHash + "#login");
     }
     app.current_page = u.hash;
@@ -2097,37 +2120,34 @@ var app = {
     });
   },
 
+
+  // clean Local Storage
+  LS_clean: function(callback){
+    app.stopCheckInterval();
+    app.setToken(false);
+    app.coordinates = [];
+    app.setSitesToInspect([]);
+    app.setJobInspectionContainer(false);
+    app.autoconnect_flag = false;
+    app.cancell_inspection(false);
+
+    app.mySites(false);
+    app.supplyOrdersTemplate(false);
+    app.mySupplyOrdersDrafts(false);
+    app.myLastSubmittedOrders(false);
+    app.activeOrder(false);
+    app.sitesStaffingInfo(false);
+    app.last_sync_date(false);
+    app.ids_mutation(false);
+    app.supplierMainPageHelper(false);
+
+    if (typeof callback == "function"){
+      callback();
+    }
+  },
+
   //logout
   logout: function(){
-    var logout_process = function(){
-//      navigator.geolocation.clearWatch(app.watchID);
-//      app.watchID = null;
-      app.stopCheckInterval();
-      app.setToken(false);
-      app.coordinates = [];
-      app.setSitesToInspect([]);
-      app.setJobInspectionContainer(false);
-      app.autoconnect_flag = false;
-      app.cancell_inspection(false);
-
-      app.mySites(false);
-      app.supplyOrdersTemplate(false);
-      app.mySupplyOrdersDrafts(false);
-      app.myLastSubmittedOrders(false);
-      app.activeOrder(false);
-      app.sitesStaffingInfo(false);
-      app.last_sync_date(false);
-      app.ids_mutation(false);
-      app.supplierMainPageHelper(false);
-
-      $("#overlay").hide();
-      if ($("#menu").is(":visible")){
-        $("#menu").toggle();
-      }
-
-      app.route();
-    };
-
     $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
       $.ajax({
         type: "POST",
@@ -2142,7 +2162,14 @@ var app = {
         timeout: 60000
       });
     }).always(function(){
-      logout_process();
+      app.LS_clean(function(){
+        $("#overlay").hide();
+        if ($("#menu").is(":visible")){
+          $("#menu").toggle();
+        }
+
+        app.route();
+      });
     });
   },
 
