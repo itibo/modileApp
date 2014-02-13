@@ -1,10 +1,12 @@
 var SiteInfoView = function(site_info) {
   this.common_info = site_info.common_info || {};
   this.staffing_plan = site_info.staffing_plan || {};
+  this.back_to_page = site_info.back_to_page || "";
 
   this.render = function() {
     var context = $.extend(true, {}, {common_info: this.common_info, staffing_plan: this.staffing_plan});
     context.version = app.application_build + " " + app.application_version;
+    context.back_to_page = this.back_to_page;
     this.el.html(SiteInfoView.template(context));
     return this;
   };
@@ -13,6 +15,12 @@ var SiteInfoView = function(site_info) {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div/>');
+
+    this.el.on('click', ".btn-back a", function(e){
+      e.preventDefault();
+      app.backButton();
+    });
+
   };
   this.initialize();
 

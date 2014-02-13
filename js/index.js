@@ -1704,7 +1704,7 @@ var app = {
               if (site_id == v.site_id) {
                 ret = $.extend(true, ret, {common_info: v} );
                 ret.common_info.site_schedule = void 0;
-                ret = $.extend(true, ret, {staffing_plan: {site_data: v.site_schedule}} );
+                ret = $.extend(true, ret, {staffing_plan: {site_data: v.site_schedule}}, {back_to_page: "#my_jobs"} );
                 return false;
               }
             });
@@ -2222,9 +2222,15 @@ var app = {
               'No,Yes'
           );
           break;
-        case /^#siteinfo:(\d+)$/.test(app.current_page):
+        case /^#siteinfo:(.+)$/.test(app.current_page):
+          var back_to;
+          try{
+            back_to = $("input[type=hidden][id=back_to_page]").val() || "#siteslist"
+          } catch(er){
+            back_to = "";
+          }
           app.route({
-            toPage: window.location.href + "#siteslist"
+            toPage: window.location.href + back_to
           });
           break;
         case /^#order:(.+)$/.test(app.current_page):
