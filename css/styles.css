@@ -386,7 +386,7 @@ border-bottom-right-radius:4px;
 
 
 /* site list */
-.site_list .ui-btn-up-c.ui-last-child,.log .ui-btn-up-c.ui-last-child,.inspect .ui-btn-up-c.ui-last-child{
+.site_list .ui-btn-up-c.ui-last-child,.log .ui-btn-up-c.ui-last-child,.inspect .ui-btn-up-c.ui-last-child,.inspect .week .ui-btn-up-c.boxcntone.ui-last-child{
 	border-bottom:none;
 }
 .inspect .ui-li span, .site_list span{
@@ -397,12 +397,10 @@ border-bottom-right-radius:4px;
 /* logs */
 .log .ui-li-static.ui-li{
 	overflow:hidden;
-	padding: 0px;
-	background-image: url("./images/arrow_green_bg.png");
     background-repeat: repeat-y;
 	border-bottom: 1px solid #666;
 	color: #2F3E46;
-	padding: 2% 2% 2% 30px;
+	padding: 0.7em 2%;
 }
 .log .ui-li-static.ui-li:last-child{ border-bottom: none; }
 
@@ -940,6 +938,9 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
 .points span{
 	font-weight:normal;
 }
+.points:hover, .points:focus{
+	color: #2F3E46;
+}
 .box_points{
 	display: inline-table;
     height: 100%;
@@ -949,7 +950,7 @@ h1.ui-title span.btn-back,h1.ui-title span.logout,h1.ui-title span.btn-back_insp
     vertical-align: middle;
 }
 .inspect .ui-li-has-arrow{
-	background-image: url(./images/arrow_green_bg.png);
+	background-image: url(./images/arrow_gray_bg.gif);
 	background-repeat: repeat-y;
 }
 
@@ -1269,6 +1270,61 @@ ul#next_month{
 	font-size:120%;
     text-shadow:none;
 }
+
+/* .box_rightcnt.bottom{
+	float:none;
+	margin: 0 auto;
+	padding: 2% 0;
+    max-width: 1000px;
+    width: 100%;
+}
+.box_rightcnt.bottom td{
+	width: 45%;
+}
+.box_rightcnt .leftbtn{
+	padding-right: 5%;
+}
+.box_rightcnt .rightbtn{
+	padding-left: 5%;
+}
+.box_rightcnt.bottom .ui-btn{
+	padding: 0;
+} */
+
+
+.box_rightcnt.bottom{
+	padding: 2% 0 0 10%; 
+	width: 90%;
+}
+.box_rightcnt.bottom .ui-btn{
+	margin:0 0 2%; padding:0;
+}
+
+.box_rightcnt.view_details{
+	float: right;
+	padding: 0;
+	width: auto;
+}
+.view_details .ui-btn{
+	/* background:none; */
+	margin: 0;
+	padding: 0;
+}
+.view_details .ui-btn .ui-btn-inner{
+	font-size: 90%;
+	padding: 10px 50px 10px 30px;
+	background: url(./images/select_right_icon.png) no-repeat 90% 50%;
+}
+.view_details .ui-btn-text{
+	/* color: #000; */
+	text-transform: uppercase;
+}
+
+
+.inspect .week li.ui-btn-up-c{ background-image: url(./images/arrow_gray_bg.gif); border-bottom: 1px solid #bfd4d1; }
+.inspect .week li.ui-btn-up-c h2{ color: #666;  font-size: 85%; text-transform: uppercase; }
+.inspect .week li.ui-btn-up-c.boxcntone{ background-image: none; border-bottom: 1px solid #666; }
+.inspect .week li.ui-btn-up-c.boxcntone h2{ color: #222; }
 /* end new order */
 
 
@@ -1553,6 +1609,7 @@ ul#next_month{
 }
 /* end logout & delete */
 
+.inspect .ui-li-static.ui-li { padding:0.7em 2%; }
 
 
 /* |||||media screen|||| */
@@ -1566,10 +1623,16 @@ ul#next_month{
 @media screen and (max-width:854px) {
 	.btn2{ width:540px; }
 	.btn2 div{ width:250px; }
+	.box_rightcnt.bottom{ padding:2.5% 0 0 12%; width:88%; }
+	.box_rightcnt.bottom .ui-btn{ margin:0 0 3%; }
+	.box_rightcnt.bottom .ui-btn-inner{	font-size:100%; padding:0.5em 0.8%; }
 }
 @media screen and (max-width:570px) {
 	.btn2{ width:440px; }
 	.btn2 div{ width:200px; }
+	.box_rightcnt.bottom{ padding:3% 0 0 15%; width:85%; }
+	.box_rightcnt.bottom .ui-btn{ margin:0 0 4%; }
+	.box_rightcnt.bottom .ui-btn-inner{	font-size:90%; padding:0.5em 0.5%; }
 }
 @media screen and (max-width:480px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:90%; }
@@ -1591,6 +1654,7 @@ ul#next_month{
 	.btn2 div{ float:left; margin:0 10px; width:300px; }
 	.btn2{ height:auto; margin:0 auto 1.5%; width:300px; }
 	.btn2 div{ float:none; margin:4% 0; width:auto; }
+	.box_rightcnt.bottom .ui-btn{ margin:0 0 6%; }
 }
 @media screen and (max-width:320px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:85%; }
@@ -1609,6 +1673,9 @@ ul#next_month{
 	.neworder .boxcnt dt{ width:60%; }
 	.box_rightcnt .ui-btn{ font-size:90%; padding:0; margin-bottom: 3%; }
 	.box_rightcnt{ width: 94%; }
+	.box_rightcnt .leftbtn{ padding-right:1%; }
+	.box_rightcnt .rightbtn{ padding-left:1%; }
+
 	.details{ float:none; padding:2% 0; width:100%; }
 	.ui-content .block-submit .ui-submit, .ui-content h3, .block-textarea{ float:none; width:100%; }
 	.inspect ul li .ui-btn-inner .ui-btn-text a{ padding:2% 2% 2% 25px; }

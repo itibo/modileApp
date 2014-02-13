@@ -1108,7 +1108,7 @@ var app = {
               }
               tryToSubmitInspection(coord);
 
-              (new WelcomeView()).updateContent();
+//              (new WelcomeView()).updateContent();
 
               if(typeof callback == "function"){
                 callback();
@@ -1635,7 +1635,7 @@ var app = {
     }
   },
 
-  getSiteInfo: function(site_id, success_callback){
+  getSiteInfo: function(site_id, use_check_callback_to_get_info, success_callback){
     var self = this,
         ajax_call = function(pos){
       var token = app.token();
@@ -1683,25 +1683,38 @@ var app = {
         }
       });
     },
-        get_full_site_info = function(site_id, staffing_container){
+        get_full_site_info = function(site_id, staffing_container, check_container){
           var ret = {};
 
-          $.each(app.mySites(), function(i,v){
-            if (site_id == v.site_id) {
-              ret = $.extend(true, ret, {common_info: v} );
-            return false;
-            }
-          });
-          $.each(staffing_container, function(i,v){
-            if (site_id == v.site_id) {
-              ret = $.extend(true, ret, {staffing_plan: v} );
-              return false;
-            }
-          });
+          if (undefined == check_container){
+            $.each(app.mySites(), function(i,v){
+              if (site_id == v.site_id) {
+                ret = $.extend(true, ret, {common_info: v} );
+                return false;
+              }
+            });
+            $.each(staffing_container, function(i,v){
+              if (site_id == v.site_id) {
+                ret = $.extend(true, ret, {staffing_plan: v} );
+                return false;
+              }
+            });
+          } else {
+            $.each(check_container, function(i,v){
+              if (site_id == v.site_id) {
+                ret = $.extend(true, ret, {common_info: v} );
+                ret.common_info.site_schedule = void 0;
+                ret = $.extend(true, ret, {staffing_plan: {site_data: v.site_schedule}} );
+                return false;
+              }
+            });
+          }
           return ret;
         };
 
-    if ( app.last_sync_date() ){
+    if(use_check_callback_to_get_info){
+      success_callback(get_full_site_info(site_id, {}, app.sitesToInspect()));
+    } else if ( app.last_sync_date() ){
       success_callback(get_full_site_info(site_id, app.sitesStaffingInfo()));
     } else {
       $.when( app.check_online() ).done(function(obj1){
@@ -1820,9 +1833,10 @@ var app = {
           $container.html(new SitesListView(list).render().el).trigger('pagecreate');
         });
         break;
-      case /^#siteinfo:(\d+)$/.test(urlObj.hash):
-        var site_id = urlObj.hash.match(/^#siteinfo:(\d+)$/)[1];
-        app.getSiteInfo(site_id, function(site_info){
+      case /^#siteinfo:(.+)$/.test(urlObj.hash):
+        var site_id = urlObj.hash.match(/^#siteinfo:(\d+)/)[1],
+            use_check_callback_to_get_info = /^#siteinfo:(\d+)-check$/.test(urlObj.hash) ? true : false;
+        app.getSiteInfo(site_id, use_check_callback_to_get_info, function(site_info){
           $container.html(new SiteInfoView(site_info).render().el).trigger('pagecreate');
         });
         break;

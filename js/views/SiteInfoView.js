@@ -37,7 +37,7 @@ Handlebars.registerHelper('LocationDetailsContent', function(){
 });
 
 Handlebars.registerHelper('StaffingPlanContent', function(){
-  var out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">" +
+  var out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">" +
       "<li data-role=\"list-divider\" role=\"heading\">Staffing plan</li>";
   if (!$.isEmptyObject(this.staffing_plan)){
     $.each(this.staffing_plan.site_data, function(i, day_obj){

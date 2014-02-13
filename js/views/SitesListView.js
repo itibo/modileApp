@@ -87,12 +87,12 @@ var SitesListView = function(data) {
         for(var i=0, l=sites_arr.length; i<l; i++) {
           out = out + "<li class=\"inspectable\">" +
               "<a href=\"#siteinfo:"+sites_arr[i].site_id +"\">" +
-                "<div class=\"syncreq\" style=\"color:black;\">details</div>" +
                   "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\"/>" +
                   "<div class=\"points\">" +
                     sites_arr[i].site +"<br />" +
                     "<span class=\"address\">"+ sites_arr[i].address +"</span><br />" +
                     "<span class=\"time\">Client: <strong>"+ sites_arr[i].client +" / "+ sites_arr[i].client_group +"</strong></span>" +
+                    "<div class=\"box_rightcnt view_details\"><button>Details</button></div>" +
                   "</div>" +
               "</a>"+
             "</li>";
@@ -100,7 +100,7 @@ var SitesListView = function(data) {
         out = out + "</ul>";
 
         $("ul#sites_content").html(out).show(1, function(){
-          $("ul#sites_content").listview('refresh');
+          $("ul#sites_content").trigger("create").listview('refresh');
         });
       } else {
         $("ul#sites_content").hide(1, function(){
@@ -182,12 +182,12 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
     $.each(sites_to_display, function(i,v){
       out = out + "<li class=\"inspectable\">" +
         "<a href=\"#siteinfo:"+v.site_id +"\">" +
-        "<div class=\"syncreq\" style=\"color:black;\">details</div>" +
         "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\"/>" +
         "<div class=\"points\">" +
           v.site +"<br />" +
           "<span class=\"address\">"+ v.address +"</span><br />" +
           "<span class=\"time\">Client: <strong>"+ v.client +" / "+ v.client_group +"</strong></span>" +
+          "<div class=\"box_rightcnt view_details\"><button>Details</button></div>" +
         "</div>" +
        "</a>"+
      "</li>";
