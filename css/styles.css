@@ -1306,7 +1306,6 @@ ul#next_month{
 	width: auto;
 }
 .view_details .ui-btn{
-	/* background:none; */
 	margin: 0;
 	padding: 0;
 }
@@ -1314,10 +1313,6 @@ ul#next_month{
 	font-size: 90%;
 	padding: 10px 50px 10px 30px;
 	background: url(./images/select_right_icon.png) no-repeat 90% 50%;
-}
-.view_details .ui-btn-text{
-	/* color: #000; */
-	text-transform: uppercase;
 }
 
 
