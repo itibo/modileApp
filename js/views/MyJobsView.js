@@ -101,8 +101,8 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
             "</div>" +
             ((unsubmitted_inspecion == sites_for_inspect.assigned[i].id) ? "(UNSUBMITTED)": "") +
             "<div class=\"box_rightcnt bottom\">" +
-              "<button class=\"start_inspection\">Start</button>" +
-              "<button class=\"show_details\">Details</button>" +
+              "<button class=\"start_inspection\">Start Inspection</button>" +
+              "<button class=\"show_details\">Site Details</button>" +
             "</div>" +
             "<div style=\"clear:both;\"></div>" +
           "</li>";
@@ -131,8 +131,8 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
           "</div>" +
           ((unsubmitted_inspecion == sites_for_inspect.not_assigned[i].id) ? " (UNSUBMITTED)": "") +
           "<div class=\"box_rightcnt bottom\">" +
-            "<button class=\"start_inspection\">Start</button>" +
-            "<button class=\"show_details\">Details</button>" +
+            "<button class=\"start_inspection\">Start Inspection</button>" +
+            "<button class=\"show_details\">Site Details</button>" +
           "</div>" +
           "<div style=\"clear:both;\"></div>" +
         "</li>";
