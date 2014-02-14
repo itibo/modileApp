@@ -38,7 +38,7 @@ span.btn-back a, span.logout a, span.btn-back_inspect a{
     background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ffffff), color-stop(1, #e5e5e5));
     background-image: -webkit-linear-gradient(top, #ffffff 0%, #e5e5e5 100%);
     background-image: linear-gradient(to bottom, #ffffff 0%, #e5e5e5 100%);
-    color:#000;
+    color:#000 !important;
     margin:0px;
     text-shadow:none;
 }
@@ -978,6 +978,7 @@ span.address {
 }
 .location_details p.add_info{
 	color:#666;
+	line-height: 1.5;
 }
 .location_details p.add_info span{
 	font-weight: bold;
@@ -1271,25 +1272,6 @@ ul#next_month{
     text-shadow:none;
 }
 
-/* .box_rightcnt.bottom{
-	float:none;
-	margin: 0 auto;
-	padding: 2% 0;
-    max-width: 1000px;
-    width: 100%;
-}
-.box_rightcnt.bottom td{
-	width: 45%;
-}
-.box_rightcnt .leftbtn{
-	padding-right: 5%;
-}
-.box_rightcnt .rightbtn{
-	padding-left: 5%;
-}
-.box_rightcnt.bottom .ui-btn{
-	padding: 0;
-} */
 
 
 .box_rightcnt.bottom{
@@ -1314,12 +1296,38 @@ ul#next_month{
 	padding: 10px 50px 10px 30px;
 	background: url(./images/select_right_icon.png) no-repeat 90% 50%;
 }
+.unsubmitted-txt{
+	color: #c2c2c2;
+	font-size: 90%;
+	margin: 0 0 -1.5% 10%;
+    text-align: center;
+}
+.box_rightcnt .unsubmitted .ui-btn{
+	background-image: -ms-linear-gradient(top, #cccccc 0%, #b9b9b9 100%);
+    background-image: -moz-linear-gradient(top, #cccccc 0%, #b9b9b9 100%);
+    background-image: -o-linear-gradient(top, #cccccc 0%, #b9b9b9 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #cccccc), color-stop(1, #b9b9b9));
+    background-image: -webkit-linear-gradient(top, #cccccc 0%, #b9b9b9 100%);
+    background-image: linear-gradient(to bottom, #cccccc 0%, #b9b9b9 100%);
+}
 
 
 .inspect .week li.ui-btn-up-c{ background-image: url(./images/arrow_gray_bg.gif); border-bottom: 1px solid #bfd4d1; }
 .inspect .week li.ui-btn-up-c h2{ color: #666;  font-size: 85%; text-transform: uppercase; }
 .inspect .week li.ui-btn-up-c.boxcntone{ background-image: none; border-bottom: 1px solid #666; }
 .inspect .week li.ui-btn-up-c.boxcntone h2{ color: #222; }
+
+.dial.ui-link{
+	background: url(./images/dial.png) no-repeat 50% 0;
+	display: inline-block;
+	height: 22px;
+	padding: 3px 10px;
+	width: 22px;
+	vertical-align: middle;
+}
+.dial.ui-link span{
+	display: none;
+}
 /* end new order */
 
 
@@ -1372,7 +1380,6 @@ ul#next_month{
 }
 .over_budget .budget{
 	color: #000;
-	/*padding-right: 3%;*/
 	margin: 0 3em 0 0;
 	position: relative;
 }

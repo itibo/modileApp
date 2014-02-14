@@ -3,8 +3,8 @@ var app = {
   // Application Constructor
   initialize: function() {
     // config
-    this.site = 'http://209.123.209.168:3000';  // ALPHA
-//    this.site = 'http://209.123.209.154/';      // BETA
+//    this.site = 'http://209.123.209.168:3000';  // ALPHA
+    this.site = 'http://209.123.209.154/';      // BETA
     this.watchID = null;
     this.coordinates = [];
 
@@ -15,7 +15,7 @@ var app = {
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
     this.application_version = "0.4.0";
-    this.application_build = "ALPHA";
+    this.application_build = "BETA";
 
     // allow to submit inspection
     this.allowToSubmit = true;
@@ -50,7 +50,6 @@ var app = {
     this.sync_process_execution_flag = this.process_execution_flag();
 
     /* end: process execution flag */
-
 
     /* start: my sites filter */
 
@@ -476,7 +475,7 @@ var app = {
       }
     });
 
-    $(document).on('click', '#menu a', function(event){
+    $(document).on('click', '#menu a.logout', function(event){
       event.preventDefault();
       navigator.notification.confirm(
           ((app.getJobInspectionContainer().id != null) ?
@@ -1867,6 +1866,9 @@ var app = {
         app.getInspectionsLog(function(list){
           $container.html(new InspectionsLogView(list).render().el).trigger('pagecreate');
         });
+        break;
+      case '#gps_info' == urlObj.hash:
+        $container.html(new CurrentLocationView().render().el).trigger('pagecreate');
         break;
       case '#welcome' == urlObj.hash:
       default:

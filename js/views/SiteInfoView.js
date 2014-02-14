@@ -35,12 +35,11 @@ Handlebars.registerHelper('LocationDetailsContent', function(){
         "Client: <span>"+(this.common_info.client || "-")+"</span><br />" +
         "Client group: <span>"+(this.common_info.client_group || "-")+"</span><br />" +
         "Contact Name: <span>"+(this.common_info.contact_name || "-")+"</span><br />" +
-        "Contact Phone: <span>"+(this.common_info.contact_phone || "-")+"</span><br />" +
+        "Contact Phone: <span>"+(this.common_info.contact_phone || "-")+"</span>"+ ((this.common_info.contact_phone)? ("&nbsp;<a class=\"dial\" href=\"tel:"+this.common_info.contact_phone+"\"><span>Dial</span></a>") : "") +"<br />" +
         "Email: <span>"+(this.common_info.email || "-")+"</span>" +
       "</p>" +
     "</div>";
   }
-
   return new Handlebars.SafeString(out);
 });
 
@@ -52,8 +51,12 @@ Handlebars.registerHelper('StaffingPlanContent', function(){
       var day_part = "";
       $.each(day_obj.day_data, function(ik, staff_plan){
         day_part = day_part + "<li class=\"boxcntone\">"+ staff_plan.first_name +" "+ staff_plan.last_name +
-            " - <span class=\"address\">"+ staff_plan.begin_at +" - "+ staff_plan.end_at +"</span></li>";
-
+            "&nbsp;<span class=\"address\">(ID:"+staff_plan.unique_id+")</span><br/>" +
+            "<span class=\"address\">"+(staff_plan.phone || "-")+"</span>" +
+            ( (staff_plan.phone)
+                ?("&nbsp;<div style=\"display: inline;\"><a class=\"dial\" href=\"tel:"+ staff_plan.phone +"\"><span>Dial</span></a></div><br/>")
+                :"") +
+            "<span class=\"address\">Time shift: "+ staff_plan.begin_at +" - "+ staff_plan.end_at +"</span></li>";
       });
       out = out +"<li role=\"heading\"><h2>"+ (function(str){
         return str.charAt(0).toUpperCase() + str.slice(1);

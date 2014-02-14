@@ -26,6 +26,7 @@
     <div id="menu">
       <div data-role="footer" class="footer">
         <a class="logout" data-role="button" href="#logout"><img src="css/images/icons_logout.png" /> <span class="foot-txt">Logout</span></a>
+        <!--<a class="check_location" data-role="button" href="#gps_info"><span class="foot-txt">GPS Info</span></a>-->
       </div>
     </div>
     <script id="welcome-tpl" type="text/x-handlebars-template">
@@ -264,6 +265,27 @@
         </div>
       </div><!-- /content -->
     </script>
+    <script id="current-location-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>
+          <span class="address">Current Location</span>
+          <span class="btn-back log_back">
+            <a href="/#welcome" class="ui-btn-right" data-role="button">Back</a>
+          </span>
+        </h1>
+      </div><!-- /header -->
+      <div class="main">
+        <div class="gps_info">
+          <h2>GPS Info</h2>
+          <div class="placeholder">loading...</div>
+        </div>
+        <div class="gmaps">
+          <h2>Map</h2>
+          <div class="placeholder">loading...</div>
+          <div id="map_canvas"></div>
+        </div>
+      </div><!-- /content -->
+    </script>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="lib/handlebars.js"></script>
     <script type="text/javascript" src="js/PushNotification.js"></script>
@@ -278,6 +300,7 @@
     <script type="text/javascript" src="js/views/SupplierView.js"></script>
     <script type="text/javascript" src="js/views/OrderView.js"></script>
     <script type="text/javascript" src="js/views/OrderOverallView.js"></script>
+    <script type="text/javascript" src="js/views/CurrentLocationView.js"></script>
     <script type="text/javascript">
       app.initialize();
     </script>
