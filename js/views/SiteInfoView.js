@@ -46,12 +46,13 @@ Handlebars.registerHelper('LocationDetailsContent', function(){
 Handlebars.registerHelper('StaffingPlanContent', function(){
   var out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">" +
       "<li data-role=\"list-divider\" role=\"heading\">Staffing plan</li>";
+
   if (!$.isEmptyObject(this.staffing_plan)){
     $.each(this.staffing_plan.site_data, function(i, day_obj){
       var day_part = "";
       $.each(day_obj.day_data, function(ik, staff_plan){
         day_part = day_part + "<li class=\"boxcntone\">"+ staff_plan.first_name +" "+ staff_plan.last_name +
-            "&nbsp;<span class=\"address\">(ID:"+staff_plan.unique_id+")</span><br/>" +
+            "&nbsp;<span class=\"address\">(ID: "+(staff_plan.unique_id != null ? staff_plan.unique_id : "not set")+")</span><br/>" +
             "<span class=\"address\">"+(staff_plan.phone || "-")+"</span>" +
             ( (staff_plan.phone)
                 ?("&nbsp;<div style=\"display: inline;\"><a class=\"dial\" href=\"tel:"+ staff_plan.phone +"\"><span>Dial</span></a></div><br/>")

@@ -91,7 +91,7 @@ var SitesListView = function(data) {
                   "<div class=\"points\">" +
                     sites_arr[i].site +"<br />" +
                     "<span class=\"address\">"+ sites_arr[i].address +"</span><br />" +
-                    "<span class=\"time\">Client: <strong>"+ sites_arr[i].client +" / "+ sites_arr[i].client_group +"</strong></span>" +
+                    "<span class=\"time\">Client: "+ sites_arr[i].client +" / "+ sites_arr[i].client_group +"</span>" +
                     "<div class=\"box_rightcnt view_details\"><button>details</button></div>" +
                   "</div>" +
               "</a>"+
@@ -186,7 +186,7 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
         "<div class=\"points\">" +
           v.site +"<br />" +
           "<span class=\"address\">"+ v.address +"</span><br />" +
-          "<span class=\"time\">Client: <strong>"+ v.client +" / "+ v.client_group +"</strong></span>" +
+          "<span class=\"time\">Client: "+ v.client +" / "+ v.client_group +"</span>" +
           "<div class=\"box_rightcnt view_details\"><button>details</button></div>" +
         "</div>" +
        "</a>"+
