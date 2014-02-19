@@ -1591,7 +1591,7 @@ ul#next_month{
 	background-color: #000000;
     bottom: 0;
 	margin: 0;
-	padding: 0.75em 1%;
+	padding: 0.35em 1%;
     position: absolute;
 	text-align: left;
     width: 100%;
@@ -1606,9 +1606,10 @@ ul#next_month{
 	border: 0 none;
 	box-shadow: none;
 	color: #a4a4a4;
+	display: inline-block;
 	font: bold 12.5px Helvetica,Arial,sans-serif;
 	font-weight: 700;
-	margin-right: 8%;
+	margin: 0.4em 8% 0.4em 0;
 	text-decoration: none;
 	text-shadow: none;
 }
@@ -1617,8 +1618,7 @@ ul#next_month{
 }
 .footer a.report .foot-txt {
 	display: inline-block;
-    vertical-align: bottom;
-    width: 70px;
+    vertical-align: middle;
 }
 /* end logout & delete */
 
@@ -1668,6 +1668,7 @@ ul#next_month{
 	.btn2{ height:auto; margin:0 auto 1.5%; width:300px; }
 	.btn2 div{ float:none; margin:4% 0; width:auto; }
 	.box_rightcnt.bottom .ui-btn{ margin:0 0 6%; }
+	.footer a { margin-right: 6%; }
 }
 @media screen and (max-width:320px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:85%; }
@@ -1700,7 +1701,7 @@ ul#next_month{
 	.priority-box > div:first-child label{ border-top: 0 none; }
 	.priority-box .ui-radio .ui-btn-text span{ display:inline; }
 	.btn2{ margin:0 2% 1.5%; width:auto; }
-	.footer a { margin-right: 2%; }
+	.footer a { margin-right: 4%; }
 }
 @media screen and (max-width:240px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:80%; }

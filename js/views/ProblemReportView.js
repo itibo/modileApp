@@ -20,7 +20,9 @@ var ProblemReportView = function(){
               app.collectLSDataAndSendToServer(comment, function(){
                 navigator.notification.alert(
                     "Report was sent successfully.", // message
-                    function(){},   // callback
+                    function(){
+                      app.route({toPage: window.location.href + "#welcome"})
+                    },   // callback
                     "Send Report",    // title
                     'Ok'            // buttonName
                 );
