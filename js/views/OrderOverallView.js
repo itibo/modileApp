@@ -202,9 +202,9 @@ var OrderOverallView = function(order_id){
                       site_address: self.activeOrder.upd.site_address,
                       special_instructions: self.activeOrder.upd.special_instructions,
                       remaining_budget: self.activeOrder.upd.remaining_budget
-                    },{
+                    }/*,{
                       locally_saved: self.activeOrder.upd
-                    }, {
+                    }*/, {
                       order_status:"log"
                     }));
                   }

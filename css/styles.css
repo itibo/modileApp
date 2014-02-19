@@ -1395,17 +1395,23 @@ ul#next_month{
     right: -3em;
     top: 0;
 	text-align: right;
-	/*width: 6em;*/
 }
-.over_budget .total p{
+.total p, .total.hours p{
 	font-weight:normal;
 	margin:0;
 	color:black;
 	text-align:right;
 }
-.over_budget span.price{
+.total.hours p{
+	color: #666;
+	font-size: 100%;
+}
+.total span.price{
 	color:black;
 	font-weight:bold;
+}
+.total.hours span.price{
+	font-weight:normal;
 }
 
 .draft .ui-content h3 {
@@ -1609,6 +1615,11 @@ ul#next_month{
 .footer a:hover .foot-txt {
 	color: #fff;
 }
+.footer a.report .foot-txt {
+	display: inline-block;
+    vertical-align: bottom;
+    width: 70px;
+}
 /* end logout & delete */
 
 .inspect .ui-li-static.ui-li { padding:0.7em 2%; }
@@ -1689,6 +1700,7 @@ ul#next_month{
 	.priority-box > div:first-child label{ border-top: 0 none; }
 	.priority-box .ui-radio .ui-btn-text span{ display:inline; }
 	.btn2{ margin:0 2% 1.5%; width:auto; }
+	.footer a { margin-right: 2%; }
 }
 @media screen and (max-width:240px) {
 	body, .main .newbtn .ui-listview a.btn-ordet .infodetails{ font-size:80%; }

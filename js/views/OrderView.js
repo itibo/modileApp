@@ -67,7 +67,6 @@ var OrderView = function(order_id){
             // впервые открываем любой ордер, как вновь созданный, так и уже существкющий
 
             var obj = {};
-
 //alert("вновь созданный ордер: " + (RegExp('^new_on_device_','i').test(self.order_id) && ($.grep($.merge($.merge([], drafts), futures), function(n,i){ return $.inArray(n.supply_order_id, [_old_order_id, self.order_id ])>-1 })).length < 1));
 
             if (RegExp('^new_on_device_','i').test(self.order_id) &&
@@ -265,6 +264,7 @@ var OrderView = function(order_id){
           }
           return self.activeOrder;
         })();
+
         try {
           context.backTitle = ("log" == context.order.upd.order_status ) ? "Back" : "Cancel";
         } catch(e) {

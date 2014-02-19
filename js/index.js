@@ -14,7 +14,7 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
-    this.application_version = "0.4.0";
+    this.application_version = "0.4.1";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -711,6 +711,21 @@ var app = {
         });
       });
       return tmp_obj;
+    },
+        standardize_id = function(obj){
+          var mutations = app.ids_mutation(),
+              tmp = $.extend(true, {}, obj);
+          if (undefined === mutations[obj.supply_order_id]){
+            return tmp
+          } else {
+            return (function(){
+              tmp.id = tmp.supply_order_id = mutations[obj.supply_order_id];
+              if (undefined !== tmp.locally_saved){
+                tmp.locally_saved.id = tmp.locally_saved.supply_order_id = mutations[obj.supply_order_id];
+              }
+              return tmp;
+            })();
+          }
     };
     var sync_process = function(position_obj, methods_to_chain, method_when_update_sync_time){
       app.sync_process_execution_flag.setFlag(true);
@@ -912,71 +927,70 @@ var app = {
                 break;
               case "my_draft_orders":
               case "my_future_orders":
-                var tmp = [],
+                var result_items = [],
                     mutations = app.ids_mutation(),
                     local_storage_method = ("my_draft_orders" === self.func)? "mySupplyOrdersDrafts": "myFutureOrders",
-                    local_items = app[local_storage_method]();
+                    local_items = app[local_storage_method](),
+                    remote_items = data.supply_orders_list;
 
-                // проверяем ПОЯВИЛИСЬ ЛИ НОВЫЕ ордера/фьючеры пока идет процесс синхронизации до их перезаписи
-                try {
-                  $.each(local_items, function(c, loc_itm){
-                    $.merge(
-                        tmp,
-                        ($.grep(data.supply_orders_list, function(elm, ind){
-                          return ($.inArray(String(elm.supply_order_id),
-                              $.merge(
-                                  [String(loc_itm.supply_order_id)],
-                                  undefined === mutations[loc_itm.supply_order_id] ? [] : [String(mutations[loc_itm.supply_order_id])]
-                              )
-                          ) > -1)
-                        })).length == 0 ? [loc_itm] : []
-                    );
-                  });
+                // заполняем оредеры пришедшими с сервера
+                try{
+                  if (local_items.length === 0) {
+                    $.merge(result_items, remote_items);
+                  } else {
+                    // проверяем на наличие новых изменений в ордерах, которые уже синхронизизированы ранее
+                    $.each(remote_items, function(ir,remote_order){
+                      $.each(local_items, function(il,local_order){
+                        if ($.inArray(String(remote_order.supply_order_id),
+                            $.merge([String(local_order.supply_order_id)],
+                                undefined === mutations[local_order.supply_order_id]
+                                    ? []
+                                    : [String(mutations[local_order.supply_order_id])]
+                            )) > -1
+                            ){
+                          if ( (new Date(remote_order.updated_at_utc)) < (new Date(local_order.updated_at_utc)) ){
+                            var _tmp = $.extend(true, {}, standardize_id(local_order));
 
+                            if (_tmp["sending"]){
+                              _tmp["sending"] = void 0;
+                            }
+                            if (_tmp["submitting"]){
+                              _tmp["submitting"] = void 0;
+                            }
+                            if (_tmp["removing"]){
+                              _tmp["removing"] = void 0;
+                            }
+                            result_items.push(_tmp);
+
+                          } else {
+                            result_items.push($.extend(true, {}, formatSupplyOrders(remote_order)));
+                          }
+                          return false;
+                        }
+                      });
+                    });
+                  }
                 } catch (er){
-                  tmp = [];
+                  $.merge(result_items, remote_items);
                 }
 
-                // перезаписываем ЛС ордерами с пришедшими с сервера
-                $.each(data.supply_orders_list, function(ind,remote){
-                  var _tmp = {};
-                  // проверяем ИЗМЕНИЛИСЬ ЛИ СУЩЕСТВУЮЩИЕ ордера/фьючеры в ЛС пока шла синхронизация
-                  try {
-                    if ( ( $.grep(local_items, function(loc,i){
-                      return ( ($.inArray(String(remote.supply_order_id),
-                          $.merge(
-                              [String(loc.supply_order_id)],
-                              (function(){
-                                if (undefined != mutations[loc.supply_order_id] && String(remote.supply_order_id) == String(mutations[loc.supply_order_id])){
-                                  return [String(mutations[loc.supply_order_id])];
-                                } else {
-                                  return [];
-                                }
-                              })()
-                          )
-                      ) > -1) && ( (new Date(remote.updated_at_utc)) < (new Date(loc.updated_at_utc)) ) &&
-                          ( _tmp = $.extend(true, {}, loc) ) );
-                    } ) ).length > 0
-                    ){
-
-                      if (_tmp["sending"]){
-                        _tmp["sending"] = void 0;
-                      }
-                      if (_tmp["submitting"]){
-                        _tmp["submitting"] = void 0;
-                      }
-                      if (_tmp["removing"]){
-                        _tmp["removing"] = void 0;
-                      }
-                    } else {
-                      _tmp = $.extend(true, {}, formatSupplyOrders(remote));
-                    }
-                  } catch(err){
-                    _tmp = $.extend(true, {}, formatSupplyOrders(remote));
+//alert(result_items.length + " ордера с сервера: " + JSON.stringify(result_items));
+                // проверяем ПОЯВИЛИСЬ ЛИ НОВЫЕ ордера/фьючеры на девайсе пока идет процесс синхронизации до их перезаписи
+                $.each(local_items, function(ir, local_order){
+                  var resulted_orders = $.merge([], result_items);
+                  if ( $.grep(resulted_orders, function(resulted, ind){
+                    return ( /^new_on_device_/.test(local_order.supply_order_id)
+                        && undefined === mutations[local_order.supply_order_id]
+                        && String(resulted.supply_order_id) == String(local_order.supply_order_id) )
+                  }).length > 0 )
+                  {
+                    alert("прошел проверку этот ордер:" + JSON.stringify(local_order));
+                    result_items.push(local_order);
                   }
-                  tmp.push(_tmp);
                 });
-                app[local_storage_method](tmp);
+//alert(result_items.length + " ордера после проверки на появление новых: " + JSON.stringify(result_items));
+
+                app[local_storage_method](result_items);
                 break;
               case "my_last_submitted_orders":
                 var tmp = [];
@@ -1361,6 +1375,83 @@ var app = {
       if ($("#overlay").is(':visible')){
         $("#overlay").hide();
       }
+    });
+  },
+
+  collectLSDataAndSendToServer: function(){
+    var token = app.token(),
+        ret_LS_json = {};
+
+    $.extend(true, ret_LS_json, {
+      token: app.token(),
+      sync_process_execution_flag: app.sync_process_execution_flag.checkBusy(),
+      last_sync_date: app.last_sync_date(),
+      ids_mutation: app.ids_mutation(),
+      activeOrder: app.activeOrder(),
+      mySupplyOrdersDrafts: app.mySupplyOrdersDrafts(),
+      myFutureOrders: app.myFutureOrders(),
+      myLastSubmittedOrders: app.myLastSubmittedOrders(),
+      mySites: app.mySites(),
+      supplyOrdersTemplate: app.supplyOrdersTemplate()
+    });
+
+    $.when( app.check_online() ).done(function(obj1){
+      $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/dump_mobile_data.json',
+        data: {
+          id: token,
+          version: app.application_version,
+          data: ret_LS_json
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        timeout: 60000,
+        success: function(data) {
+          if (data.token == token){
+            navigator.notification.alert(
+                "Mobile data dump was sent to the server successfully", // message
+                function(){
+                  if ($("#overlay").is(':visible')){
+                    $("#overlay").hide();
+                  }
+                },    // callback
+                "Dump Data",       // title
+                'Ok'         // buttonName
+            );
+          } else {
+            app.setToken(false);
+            app.route();
+          }
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
+            } else {
+              app.errorAlert(error, "Error", function(){
+                app.route();
+              });
+            }
+          });
+        }
+      });
+    }).fail(function(obj){
+      app.internet_gps_error(obj);
+      if ($("#overlay").is(':visible')){
+        $("#overlay").hide();
+      }
+      $("#menu").hide();
     });
   },
 
@@ -1869,6 +1960,10 @@ var app = {
         break;
       case '#gps_info' == urlObj.hash:
         $container.html(new CurrentLocationView().render().el).trigger('pagecreate');
+        break;
+      case '#send_dump' == urlObj.hash:
+        $container.html(new ProblemReportView().render().el).trigger('pagecreate');
+//        app.collectLSDataAndSendToServer();
         break;
       case '#welcome' == urlObj.hash:
       default:

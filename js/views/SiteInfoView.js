@@ -34,9 +34,9 @@ Handlebars.registerHelper('LocationDetailsContent', function(){
       "<p class=\"add_info\">" +
         "Client: <span>"+(this.common_info.client || "-")+"</span><br />" +
         "Client group: <span>"+(this.common_info.client_group || "-")+"</span><br />" +
-        "Contact Name: <span>"+(this.common_info.contact_name || "-")+"</span><br />" +
+/*        "Contact Name: <span>"+(this.common_info.contact_name || "-")+"</span><br />" +
         "Contact Phone: <span>"+(this.common_info.contact_phone || "-")+"</span>"+ ((this.common_info.contact_phone)? ("&nbsp;<a class=\"dial\" href=\"tel:"+this.common_info.contact_phone+"\"><span>Dial</span></a>") : "") +"<br />" +
-        "Email: <span>"+(this.common_info.email || "-")+"</span>" +
+        "Email: <span>"+(this.common_info.email || "-")+"</span>" +*/
       "</p>" +
     "</div>";
   }
@@ -44,7 +44,41 @@ Handlebars.registerHelper('LocationDetailsContent', function(){
 });
 
 Handlebars.registerHelper('StaffingPlanContent', function(){
-  var out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">" +
+  var total_week_minutes = 0,
+      time_shift_out = function(begin_at, end_at){
+        begin_at = begin_at.toLowerCase().replace(" ", "");
+        end_at = end_at.toLowerCase().replace(" ", "");
+
+        var total_hours = (function(){
+          var str = "",
+              to_24h_time = function(time){
+                var _time = time.match(/^(\d+):(\d+)[\s]?(.+)$/),
+                    out = {};
+                if(_time[3] == "pm" && Number(_time[1])<12){
+                  out.h = Number(_time[1]) + 12;
+                } else if(_time[3] == "am" && Number(_time[1])==12) {
+                  out.h = 0;
+                } else {
+                  out.h = Number(_time[1]);
+                }
+                out.m = Number(_time[2]);
+                return out;
+              };
+          var _end_at = to_24h_time(end_at);
+          var _begin_at = to_24h_time(begin_at);
+          var diff = (_end_at.h*60 + _end_at.m) - (_begin_at.h*60 + _begin_at.m);
+          var hours = Math.floor( diff / 60);
+          var minutes = diff % 60;
+          if (diff>0){
+            total_week_minutes = total_week_minutes + diff;
+          }
+          str = ((hours>0)? (hours + "h"):"") + ((minutes>0)? ( " " + (minutes<10 ? ("0" + minutes) : minutes) + "m"):"");
+          return str.length > 0 ? ("&nbsp(<span class=\"total_hours\">"+ str +"</span>)") : "";
+        })();
+
+        return "<span class=\"address\">Time shift: "+ begin_at +" - "+ end_at + total_hours +"</span></li>";
+      },
+      out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">" +
       "<li data-role=\"list-divider\" role=\"heading\">Staffing plan</li>";
 
   if (!$.isEmptyObject(this.staffing_plan)){
@@ -57,7 +91,7 @@ Handlebars.registerHelper('StaffingPlanContent', function(){
             ( (staff_plan.phone)
                 ?("&nbsp;<div style=\"display: inline;\"><a class=\"dial\" href=\"tel:"+ staff_plan.phone +"\"><span>Dial</span></a></div><br/>")
                 :"") +
-            "<span class=\"address\">Time shift: "+ staff_plan.begin_at +" - "+ staff_plan.end_at +"</span></li>";
+            time_shift_out(staff_plan.begin_at, staff_plan.end_at);
       });
       out = out +"<li role=\"heading\"><h2>"+ (function(str){
         return str.charAt(0).toUpperCase() + str.slice(1);
@@ -66,10 +100,16 @@ Handlebars.registerHelper('StaffingPlanContent', function(){
   } else {
     out = out +"<li class=\"boxcntone\"> - </li>";
   }
+
+  out = out +"<li role=\"heading\"><div style=\"text-align: right;width:100%;\">Total weekly hours: "+ (function(all){
+    var out = "",
+        hours = Math.floor( all / 60),
+        minutes = all % 60;
+    out = ((hours>0)? (hours + "h"):"") + ((minutes>0)? ( " " + (minutes<10 ? ("0" + minutes) : minutes) + "m"):"");
+    return out.length > 0 ? out : " - ";
+  })(total_week_minutes) +"</div></li>";
   out = out +"</ul>";
   return new Handlebars.SafeString(out);
 });
 
 SiteInfoView.template = Handlebars.compile($("#siteInfo-tpl").html());
-
-
