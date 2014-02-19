@@ -1378,11 +1378,12 @@ var app = {
     });
   },
 
-  collectLSDataAndSendToServer: function(){
+  collectLSDataAndSendToServer: function(dump_to_extend, callback){
     var token = app.token(),
-        ret_LS_json = {};
+        ret_LS_json = {},
+        dump_to_extend = dump_to_extend || {};
 
-    $.extend(true, ret_LS_json, {
+    $.extend(true, ret_LS_json, dump_to_extend, {
       token: app.token(),
       sync_process_execution_flag: app.sync_process_execution_flag.checkBusy(),
       last_sync_date: app.last_sync_date(),
@@ -1410,16 +1411,9 @@ var app = {
         timeout: 60000,
         success: function(data) {
           if (data.token == token){
-            navigator.notification.alert(
-                "Mobile data dump was sent to the server successfully", // message
-                function(){
-                  if ($("#overlay").is(':visible')){
-                    $("#overlay").hide();
-                  }
-                },    // callback
-                "Dump Data",       // title
-                'Ok'         // buttonName
-            );
+            if ("function" == typeof callback) {
+              callback();
+            }
           } else {
             app.setToken(false);
             app.route();
