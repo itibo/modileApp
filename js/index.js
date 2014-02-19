@@ -1445,9 +1445,7 @@ var app = {
         1: {
           name: "Cancel",
           action: function(){
-            app.route({
-              toPage: window.location.href + app.current_page
-            });
+            // do nothind
           }
         },
         2: {
