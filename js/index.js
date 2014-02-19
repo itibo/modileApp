@@ -1441,7 +1441,23 @@ var app = {
         }
       });
     }).fail(function(obj){
-      app.internet_gps_error(obj);
+      var err_callbacks = {
+        1: {
+          name: "Cancel",
+          action: function(){
+            app.route({
+              toPage: window.location.href + app.current_page
+            });
+          }
+        },
+        2: {
+          name: "Back to Main Page",
+          action: function(){
+            app.route();
+          }
+        }
+      };
+      app.internet_gps_error(obj, err_callbacks);
       if ($("#overlay").is(':visible')){
         $("#overlay").hide();
       }
@@ -2459,12 +2475,27 @@ var app = {
     app.stopCheckInterval();
   },
 
-  internet_gps_error: function(error){
+  internet_gps_error: function(error, buttons_callback){
     error = error || {};
+    buttons_callback = buttons_callback || {
+      1: {
+        name: "Refresh",
+        action: function(){
+          app.route({
+            toPage: window.location.href + app.current_page
+          });
+        }
+      },
+      2: {
+        name: "Back to Main Page",
+        action: function(){
+          app.route();
+        }
+      }
+    };
     var title = ( error.type != "undefined" && 'gps' == error.type) ? 'Unable to determine your location' : 'Internet Connection Problem';
-    var buttons = "Refresh, Back to Main Page";
     var msg = (function(e){
-      if ($.isEmptyObject(error)){
+      if ($.isEmptyObject(e)){
         return "There is Internet connection problem. Please try again later";
       } else if (e.type != "undefined" && 'gps' == e.type) {
         return "Please check the location options/setting of your device or try again later.";
@@ -2481,16 +2512,20 @@ var app = {
     navigator.notification.confirm(
         msg,
         function(buttonIndex){
-          if (1 == buttonIndex){
-            app.route({
-              toPage: window.location.href + app.current_page
-            });
-          } else if (2 == buttonIndex){
-            app.route();
+          if (undefined != buttons_callback[buttonIndex]){
+            buttons_callback[buttonIndex]["action"]();
+          } else {
+            app.route({toPage: window.location.href + "#welcome"})
           }
         },
         title,
-        buttons
+        (function(){
+          var out = [];
+          for(var i in buttons_callback){
+            out.push(buttons_callback[i]["name"]);
+          }
+          return out.join(",");
+        })()
     );
   }
 };
