@@ -460,7 +460,7 @@ var app = {
       self.autoconnect_flag = true;
 //      self.updatePosition();
 //      self.check();
-//      self.startCheckInterval();
+      self.startCheckInterval();
     }
 
     app.sync_process_execution_flag.setFlag(false);
@@ -588,8 +588,9 @@ var app = {
   },
 
   checkTic: function() {
+//    alert("checkTic invoked!");
     if (navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(
+/*      navigator.geolocation.getCurrentPosition(
           function(position){
             if (app.token()){
               var job_inspect_container = app.getJobInspectionContainer();
@@ -663,6 +664,89 @@ var app = {
             //do nothing
           },
           { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
+      );*/
+        navigator.geolocation.getAccurateCurrentPosition(
+          function(position){
+            if (app.token()){
+              var job_inspect_container = app.getJobInspectionContainer();
+              if ("submitting" == job_inspect_container.status &&
+                  ("undefined" == typeof job_inspect_container.submitting_position || job_inspect_container.submitting_position.length == 0) )
+              {
+                job_inspect_container = app.setJobInspectionContainer($.extend(job_inspect_container,
+                    {
+                      submitting_position: [{
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        acc: position.coords.accuracy,
+                        time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
+                        timestamp: position.timestamp,
+                        application_status: app.getCheckStatus(),
+                        site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                        job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                      }]
+                    }
+                ));
+              }
+              if (!$.isEmptyObject(app.lastLocation)) {
+                var R = 6371; // km
+                var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
+                var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
+                var lat1 = app.lastLocation.lat.toRad();
+                var lat2 = position.coords.latitude.toRad();
+                var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                var d = R * c;
+                if (d > 0.05){
+                  app.coordinates.push({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    acc: position.coords.accuracy,
+                    time: (new Date()).toUTCString(),
+                    timestamp: position.timestamp,
+                    application_status: app.getCheckStatus(),
+                    site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
+                    job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
+                  });
+                }
+              } else {
+                app.coordinates.push({
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                  acc: position.coords.accuracy,
+                  time: (new Date()).toUTCString(),
+                  timestamp: position.timestamp,
+                  application_status: app.getCheckStatus(),
+                  site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
+                  job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
+                });
+              }
+              app.check();
+            } else {
+              app.coordinates = [{
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                acc: position.coords.accuracy,
+                time: (new Date()).toUTCString(),
+                timestamp: position.timestamp,
+                application_status: app.getCheckStatus()
+              }];
+            }
+            app.lastLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              acc: position.coords.accuracy,
+              timestamp: position.timestamp
+            };
+            app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
+          },
+          function(error){
+            app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
+            //do nothing
+          },
+          function(process){
+            //do nothing
+          },
+          { desiredAccuracy: 50 }
       );
     } else {
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
@@ -676,6 +760,7 @@ var app = {
   },
 
   startCheckInterval: function(){
+//    alert("startCheckInterval invoked!");
 //    clearTimeout(app.check_interval_flag);
     if(app.token() && undefined === app.check_interval_flag){
       setTimeout(function(){
@@ -688,7 +773,7 @@ var app = {
   },
 
   sync: function(){
-
+//    alert("sync invoked !" );
     // return if sync process is already
     if (app.sync_process_execution_flag.checkBusy()){
       return ;
@@ -747,6 +832,8 @@ var app = {
         submit_to_vendor: "save_orders",
         save_orders: "save_orders",
         props: "sites_properties",
+        sites_properties: "sites_properties",
+        site_properties: "sites_properties",
         site_schedule: "sites_schedule"
       },
           orders_ready_to_sync = function(){
@@ -1055,7 +1142,7 @@ var app = {
       })(methods_to_chain);
     };
 
-    navigator.geolocation.getCurrentPosition(function(position){
+/*    navigator.geolocation.getCurrentPosition(function(position){
       sync_process({
         lat: position.coords.latitude,
         lng: position.coords.longitude,
@@ -1064,7 +1151,24 @@ var app = {
       });
     }, function(error){
       sync_process();
-    }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+    }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
+
+    navigator.geolocation.getAccurateCurrentPosition(
+      function(position){
+        sync_process({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          acc: position.coords.accuracy,
+          time: (new Date()).toUTCString(),
+          timestamp: position.timestamp
+        });
+      },
+      function(error){
+        sync_process();
+      },
+      function(){},
+      {desiredAccuracy: 50}
+    );
   },
 
   //TODO: refactor, refactor and refactor again
@@ -1260,7 +1364,7 @@ var app = {
       }
 
       if (navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(
+/*        navigator.geolocation.getCurrentPosition(
             function(position){
               var inspection_status = app.getCheckStatus();
               $deferred.resolve({
@@ -1284,7 +1388,38 @@ var app = {
               });
             },
             { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
-        );
+        );*/
+        navigator.geolocation.getAccurateCurrentPosition(
+          function(position){
+            var inspection_status = app.getCheckStatus();
+            $deferred.resolve({
+              status: 'success',
+              position: [{
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                acc: position.coords.accuracy,
+                time: (new Date()).toUTCString(),
+                timestamp: position.timestamp,
+                application_status: inspection_status,
+                site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+              }]
+            });
+          },
+          function(error){
+            $deferred.reject({
+              status: 'error',
+              type: 'gps',
+              error: error
+            });
+          },
+          function(process){
+            //do nothing
+          },
+          {
+            desiredAccuracy:50
+          }
+         );
       } else {
         $deferred.reject({
           status: 'error',
@@ -1385,6 +1520,7 @@ var app = {
 
     $.extend(true, ret_LS_json, dump_to_extend, {
       token: app.token(),
+      lastLocation: app.lastLocation,
       sync_process_execution_flag: app.sync_process_execution_flag.checkBusy(),
       last_sync_date: app.last_sync_date(),
       ids_mutation: app.ids_mutation(),
@@ -1593,7 +1729,7 @@ var app = {
       success_callback();
     } else {
       $.when( app.check_online() ).done(function(obj1){
-        navigator.geolocation.getCurrentPosition(function(position){
+/*        navigator.geolocation.getCurrentPosition(function(position){
           ajax_call.call(self, [{
             lat: position.coords.latitude,
             lng: position.coords.longitude,
@@ -1602,7 +1738,23 @@ var app = {
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
+        navigator.geolocation.getAccurateCurrentPosition(
+          function(position){
+            ajax_call.call(self, [{
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              acc: position.coords.accuracy,
+              time: (new Date()).toUTCString(),
+              timestamp: position.timestamp
+            }]);
+          },
+          function(error){
+            ajax_call.call(self, null);
+          },
+          function(){},
+          {desiredAccuracy: 100}
+        );
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1714,7 +1866,7 @@ var app = {
       success_callback();
     } else {
       $.when( app.check_online() ).done(function(obj1){
-        navigator.geolocation.getCurrentPosition(function(position){
+/*        navigator.geolocation.getCurrentPosition(function(position){
           ajax_call.call(self, [{
             lat: position.coords.latitude,
             lng: position.coords.longitude,
@@ -1723,7 +1875,23 @@ var app = {
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
+        navigator.geolocation.getAccurateCurrentPosition(
+            function(position){
+              ajax_call.call(self, [{
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                acc: position.coords.accuracy,
+                time: (new Date()).toUTCString(),
+                timestamp: position.timestamp
+              }]);
+            },
+            function(error){
+              ajax_call.call(self, null);
+            },
+            function(){},
+            {desiredAccuracy: 100}
+        );
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1816,7 +1984,7 @@ var app = {
       success_callback(get_full_site_info(site_id, app.sitesStaffingInfo()));
     } else {
       $.when( app.check_online() ).done(function(obj1){
-        navigator.geolocation.getCurrentPosition(function(position){
+/*        navigator.geolocation.getCurrentPosition(function(position){
           ajax_call.call(self, [{
             lat: position.coords.latitude,
             lng: position.coords.longitude,
@@ -1825,7 +1993,23 @@ var app = {
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
+        navigator.geolocation.getAccurateCurrentPosition(
+            function(position){
+              ajax_call.call(self, [{
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                acc: position.coords.accuracy,
+                time: (new Date()).toUTCString(),
+                timestamp: position.timestamp
+              }]);
+            },
+            function(error){
+              ajax_call.call(self, null);
+            },
+            function(){},
+            {desiredAccuracy: 100}
+        );
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1889,7 +2073,7 @@ var app = {
       success_callback(app.mySites());
     } else {
       $.when( app.check_online() ).done(function(obj1){
-        navigator.geolocation.getCurrentPosition(function(position){
+/*        navigator.geolocation.getCurrentPosition(function(position){
           ajax_call.call(self, [{
             lat: position.coords.latitude,
             lng: position.coords.longitude,
@@ -1898,7 +2082,23 @@ var app = {
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
+        navigator.geolocation.getAccurateCurrentPosition(
+            function(position){
+              ajax_call.call(self, [{
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                acc: position.coords.accuracy,
+                time: (new Date()).toUTCString(),
+                timestamp: position.timestamp
+              }]);
+            },
+            function(error){
+              ajax_call.call(self, null);
+            },
+            function(){},
+            {desiredAccuracy: 100}
+        );
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){

@@ -73,6 +73,7 @@ var InspectionView = function(data) {
                 lng: pos.coords.longitude,
                 acc: pos.coords.accuracy,
                 time: (new Date()).toUTCString(),
+                timestamp: pos.timestamp,
                 job_id: submit_data.job_id,
                 site_id: submit_data.site_id
               }];
@@ -89,7 +90,9 @@ var InspectionView = function(data) {
             };
 
             setTimeout(function(){
-              navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+//              navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+              navigator.geolocation.getAccurateCurrentPosition(position_callback, position_callback, {}, {desiredAccuracy: 50});
+
               app.route({
                 toPage: window.location.href + "#welcome"
               });
