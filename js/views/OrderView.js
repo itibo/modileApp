@@ -328,7 +328,7 @@ var OrderView = function(order_id){
       var elm_id = $clicked_elm.attr("id").match(/^iid_(.*)$/i)[1];
       var details_arr = $(".details", $clicked_elm);
 
-      self.activeOrder.upd.supply_order_categories[String(clicked_category)][String(elm_id)]['amount'] = new_value;
+      self.activeOrder.upd.supply_order_categories[String(clicked_category)][String(elm_id)]['amount'] = new_value > 0 ? new_value : 0;
       app.activeOrder(self.activeOrder);
 
       if (new_value > 0){

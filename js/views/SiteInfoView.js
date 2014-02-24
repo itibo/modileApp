@@ -45,38 +45,55 @@ Handlebars.registerHelper('LocationDetailsContent', function(){
 
 Handlebars.registerHelper('StaffingPlanContent', function(){
   var total_week_minutes = 0,
-      time_shift_out = function(begin_at, end_at){
-        begin_at = begin_at.toLowerCase().replace(" ", "");
-        end_at = end_at.toLowerCase().replace(" ", "");
+      time_shift_out = function(staff_obj){
+
+        var begin_at = staff_obj.begin_at.toLowerCase().replace(" ", ""),
+            end_at = staff_obj.end_at.toLowerCase().replace(" ", ""),
+            break_start = (undefined === staff_obj.break_start || "-" == staff_obj.break_start)
+                ? false
+                : staff_obj.break_start.toLowerCase().replace(" ", ""),
+            break_end = (undefined === staff_obj.break_end || "-" == staff_obj.break_end)
+                ? false
+                : staff_obj.break_end.toLowerCase().replace(" ", "");
 
         var total_hours = (function(){
-          var str = "",
-              to_24h_time = function(time){
-                var _time = time.match(/^(\d+):(\d+)[\s]?(.+)$/),
-                    out = {};
-                if(_time[3] == "pm" && Number(_time[1])<12){
-                  out.h = Number(_time[1]) + 12;
-                } else if(_time[3] == "am" && Number(_time[1])==12) {
-                  out.h = 0;
-                } else {
-                  out.h = Number(_time[1]);
-                }
-                out.m = Number(_time[2]);
-                return out;
-              };
-          var _end_at = to_24h_time(end_at);
-          var _begin_at = to_24h_time(begin_at);
-          var diff = (_end_at.h*60 + _end_at.m) - (_begin_at.h*60 + _begin_at.m);
-          var hours = Math.floor( diff / 60);
-          var minutes = diff % 60;
-          if (diff>0){
-            total_week_minutes = total_week_minutes + diff;
+
+          if (undefined !== staff_obj.display_duration){
+            total_week_minutes = total_week_minutes + (undefined === staff_obj.duration ? 0 : (staff_obj.duration/60));
+            return "&nbsp;<span class=\"total_hours\">" + staff_obj.display_duration + "h" + "</span>";
+          } else {
+            var str = "",
+                to_24h_time = function(time){
+                  var _time = time.match(/^(\d+):(\d+)[\s]?(.+)$/),
+                      out = {};
+                  if(_time[3] == "pm" && Number(_time[1])<12){
+                    out.h = Number(_time[1]) + 12;
+                  } else if(_time[3] == "am" && Number(_time[1])==12) {
+                    out.h = 0;
+                  } else {
+                    out.h = Number(_time[1]);
+                  }
+                  out.m = Number(_time[2]);
+                  return out;
+                };
+            var _end_at = to_24h_time(end_at);
+            var _begin_at = to_24h_time(begin_at);
+            var diff = (_end_at.h*60 + _end_at.m) - (_begin_at.h*60 + _begin_at.m);
+            var hours = Math.floor( diff / 60);
+            var minutes = diff % 60;
+            if (diff>0){
+              total_week_minutes = total_week_minutes + diff;
+            }
+            str = ((hours>0)? hours :"0") + ":" + ((minutes>0)? ( (minutes<10 ? ("0" + minutes) : minutes)):"00") + "h";
+            return "&nbsp(<span class=\"total_hours\">"+ str + "</span>";
           }
-          str = ((hours>0)? (hours + "h"):"") + ((minutes>0)? ( " " + (minutes<10 ? ("0" + minutes) : minutes) + "m"):"");
-          return str.length > 0 ? ("&nbsp(<span class=\"total_hours\">"+ str +"</span>)") : "";
         })();
 
-        return "<span class=\"address\">Time shift: "+ begin_at +" - "+ end_at + total_hours +"</span></li>";
+        return "<span class=\"address\">Time shift: "+ begin_at +" - "+ end_at + "</span><br />" +
+            ((break_start || break_end)
+                ? ("<span class=\"address\">Break: " + (break_start ? break_start : "-") + " - " + (break_end ? break_end : "-") +"</span><br />")
+                : "") +
+            "<span class=\"address\">Duration: " + total_hours +"</span></li>";
       },
       out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">" +
       "<li data-role=\"list-divider\" role=\"heading\">Staffing plan</li>";
@@ -91,7 +108,7 @@ Handlebars.registerHelper('StaffingPlanContent', function(){
             ( (staff_plan.phone)
                 ?("&nbsp;<div style=\"display: inline;\"><a class=\"dial\" href=\"tel:"+ staff_plan.phone +"\"><span>Dial</span></a></div><br/>")
                 :"") +
-            time_shift_out(staff_plan.begin_at, staff_plan.end_at);
+            time_shift_out(staff_plan);
       });
       out = out +"<li role=\"heading\"><h2>"+ (function(str){
         return str.charAt(0).toUpperCase() + str.slice(1);
