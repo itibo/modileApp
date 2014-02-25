@@ -36,19 +36,6 @@ var CurrentLocationView = function(){
             },
             { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
         );
-/*        navigator.geolocation.getAccurateCurrentPosition(
-            function(position){
-              self.updateGPSsection(position);
-              self.updateMapsection(position);
-            },
-            function(error){
-              self.currentLocation = {};
-              self.updateGPSsection({});
-              self.updateMapsection({});
-            },
-            function(){},
-            {desiredAccuracy: 50}
-        );*/
       } else {
         self.currentLocation = {};
       }

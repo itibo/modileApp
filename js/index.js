@@ -671,89 +671,6 @@ var app = {
           },
           { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
       );
-/*        navigator.geolocation.getAccurateCurrentPosition(
-          function(position){
-            if (app.token()){
-              var job_inspect_container = app.getJobInspectionContainer();
-              if ("submitting" == job_inspect_container.status &&
-                  ("undefined" == typeof job_inspect_container.submitting_position || job_inspect_container.submitting_position.length == 0) )
-              {
-                job_inspect_container = app.setJobInspectionContainer($.extend(job_inspect_container,
-                    {
-                      submitting_position: [{
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        acc: position.coords.accuracy,
-                        time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
-                        timestamp: position.timestamp,
-                        application_status: app.getCheckStatus(),
-                        site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                        job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-                      }]
-                    }
-                ));
-              }
-              if (!$.isEmptyObject(app.lastLocation)) {
-                var R = 6371; // km
-                var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
-                var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
-                var lat1 = app.lastLocation.lat.toRad();
-                var lat2 = position.coords.latitude.toRad();
-                var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
-                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                var d = R * c;
-                if (d > 0.05){
-                  app.coordinates.push({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    acc: position.coords.accuracy,
-                    time: (new Date()).toUTCString(),
-                    timestamp: position.timestamp,
-                    application_status: app.getCheckStatus(),
-                    site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
-                    job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
-                  });
-                }
-              } else {
-                app.coordinates.push({
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude,
-                  acc: position.coords.accuracy,
-                  time: (new Date()).toUTCString(),
-                  timestamp: position.timestamp,
-                  application_status: app.getCheckStatus(),
-                  site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
-                  job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
-                });
-              }
-              app.check();
-            } else {
-              app.coordinates = [{
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                acc: position.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                timestamp: position.timestamp,
-                application_status: app.getCheckStatus()
-              }];
-            }
-            app.lastLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              acc: position.coords.accuracy,
-              timestamp: position.timestamp
-            };
-            app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
-          },
-          function(error){
-            app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
-            //do nothing
-          },
-          function(process){
-            //do nothing
-          },
-          { desiredAccuracy: 50 }
-      );*/
     } else {
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
@@ -925,11 +842,11 @@ var app = {
                 })());
 
                 return {
-                  updated_drafts: updated,
-                  submit_drafts: submitted,
-                  delete_drafts: delete_drafts,
-                  updated_future: updated_future,
-                  delete_future: delete_future
+                  updated_drafts: updated.reverse(),
+                  submit_drafts: submitted.reverse(),
+                  delete_drafts: delete_drafts.reverse(),
+                  updated_future: updated_future.reverse(),
+                  delete_future: delete_future.reverse()
                 };
               })();
 
@@ -1164,23 +1081,6 @@ var app = {
     }, function(error){
       sync_process();
     }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
-
-/*    navigator.geolocation.getAccurateCurrentPosition(
-      function(position){
-        sync_process({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-          acc: position.coords.accuracy,
-          time: (new Date()).toUTCString(),
-          timestamp: position.timestamp
-        });
-      },
-      function(error){
-        sync_process();
-      },
-      function(){},
-      {desiredAccuracy: 50}
-    );*/
   },
 
   //TODO: refactor, refactor and refactor again
@@ -1402,37 +1302,6 @@ var app = {
             },
             { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
         );
-/*        navigator.geolocation.getAccurateCurrentPosition(
-          function(position){
-            var inspection_status = app.getCheckStatus();
-            $deferred.resolve({
-              status: 'success',
-              position: [{
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                acc: position.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                timestamp: position.timestamp,
-                application_status: inspection_status,
-                site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-              }]
-            });
-          },
-          function(error){
-            $deferred.reject({
-              status: 'error',
-              type: 'gps',
-              error: error
-            });
-          },
-          function(process){
-            //do nothing
-          },
-          {
-            desiredAccuracy: 50
-          }
-         );*/
       } else {
         $deferred.reject({
           status: 'error',
@@ -1753,22 +1622,6 @@ var app = {
         }, function(error){
           ajax_call.call(self, null);
         }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
-/*        navigator.geolocation.getAccurateCurrentPosition(
-          function(position){
-            ajax_call.call(self, [{
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              acc: position.coords.accuracy,
-              time: (new Date()).toUTCString(),
-              timestamp: position.timestamp
-            }]);
-          },
-          function(error){
-            ajax_call.call(self, null);
-          },
-          function(){},
-          {desiredAccuracy: 100}
-        );*/
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1891,22 +1744,6 @@ var app = {
         }, function(error){
           ajax_call.call(self, null);
         }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
-/*        navigator.geolocation.getAccurateCurrentPosition(
-            function(position){
-              ajax_call.call(self, [{
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                acc: position.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                timestamp: position.timestamp
-              }]);
-            },
-            function(error){
-              ajax_call.call(self, null);
-            },
-            function(){},
-            {desiredAccuracy: 100}
-        );*/
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -2010,22 +1847,6 @@ var app = {
         }, function(error){
           ajax_call.call(self, null);
         }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
-/*        navigator.geolocation.getAccurateCurrentPosition(
-            function(position){
-              ajax_call.call(self, [{
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                acc: position.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                timestamp: position.timestamp
-              }]);
-            },
-            function(error){
-              ajax_call.call(self, null);
-            },
-            function(){},
-            {desiredAccuracy: 100}
-        );*/
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -2100,22 +1921,6 @@ var app = {
         }, function(error){
           ajax_call.call(self, null);
         }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
-/*        navigator.geolocation.getAccurateCurrentPosition(
-            function(position){
-              ajax_call.call(self, [{
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                acc: position.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                timestamp: position.timestamp
-              }]);
-            },
-            function(error){
-              ajax_call.call(self, null);
-            },
-            function(){},
-            {desiredAccuracy: 100}
-        );*/
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -2188,7 +1993,6 @@ var app = {
         break;
       case '#send_dump' == urlObj.hash:
         $container.html(new ProblemReportView().render().el).trigger('pagecreate');
-//        app.collectLSDataAndSendToServer();
         break;
       case '#welcome' == urlObj.hash:
       default:
@@ -2196,9 +2000,6 @@ var app = {
         break;
     }
     window.scrollTo(0,0);
-/*  $container.trigger( "pagecreate" );
-    options.dataUrl = urlObj.href;
-    $.mobile.changePage( $container, options );*/
     return this;
   },
 

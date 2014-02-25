@@ -202,9 +202,7 @@ var OrderOverallView = function(order_id){
                       site_address: self.activeOrder.upd.site_address,
                       special_instructions: self.activeOrder.upd.special_instructions,
                       remaining_budget: self.activeOrder.upd.remaining_budget
-                    }/*,{
-                      locally_saved: self.activeOrder.upd
-                    }*/, {
+                    }, {
                       order_status:"log"
                     }));
                   }
@@ -262,6 +260,34 @@ var OrderOverallView = function(order_id){
                     }
                     return myLastSubmittedOrders;
                   })(submitted_item));
+
+                  // локальный перерасчет бюджетов
+                  app.mySites((function(){
+                    var mySites = app.mySites(),
+                        short_order_form = self.activeOrder.upd.order_form.match(/^(.+?)\b/)[0].toLowerCase();
+                    $.each(mySites, function(i,v){
+                      try{
+                        if (v.assigned){
+                          if ("" === String(self.activeOrder.upd.site_id) || "paper" !== short_order_form )
+                          {
+                            mySites[i]["used_"+short_order_form] = parseFloat(mySites[i]["used_"+short_order_form])
+                                + parseFloat(active_order_info.total);
+                          } else {
+                            if (v.site_id == self.activeOrder.upd.site_id){
+                              for(var objkey in mySites[i]){
+                                if ((new RegExp("^used_"+short_order_form)).test(objkey)){
+                                  mySites[i][objkey] = parseFloat(mySites[i][objkey])
+                                      + parseFloat(active_order_info.total);
+                                }
+                              }
+                              return false;
+                            }
+                          }
+                        }
+                      } catch(er){}
+                    });
+                    return mySites;
+                  })());
 
                   app.sync();
                   setTimeout(function(){
@@ -496,6 +522,36 @@ var OrderOverallView = function(order_id){
                   });
                 }
                 app.myFutureOrders(future_orders);
+
+/*                // локальный перерасчет бюджетов
+                app.mySites((function(){
+                  var mySites = app.mySites(),
+                      short_order_form = self.activeOrder.upd.order_form.match(/^(.+?)\b/)[0].toLowerCase();
+                  $.each(mySites, function(i,v){
+                    try{
+                      if (v.assigned){
+                        if ("" === String(self.activeOrder.upd.site_id) || "paper" !== short_order_form )
+                        {
+                          mySites[i]["next_pending_"+short_order_form] = parseFloat(mySites[i]["next_pending_"+short_order_form])
+                              + parseFloat(active_order_info.total);
+                        } else {
+                          if (v.site_id == self.activeOrder.upd.site_id){
+                            for(var objkey in mySites[i]){
+                              if ((new RegExp("^next_pending_"+short_order_form)).test(objkey)){
+                                mySites[i][objkey] = parseFloat(mySites[i][objkey])
+                                    + parseFloat(active_order_info.total);
+                              }
+                            }
+                            return false;
+                          }
+                        }
+                      }
+                    } catch(er){}
+                  });
+                  return mySites;
+                })());*/
+
+
                 app.sync();
               }
 
