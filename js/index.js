@@ -24,6 +24,8 @@ var app = {
     // last location object
     this.lastLocation = {};
 
+    this.watch_position_ID = void 0;
+
     /* begin: process execution flag */
     this.process_execution_flag = function(){
       var flag = false,
@@ -590,7 +592,7 @@ var app = {
   checkTic: function() {
 //    alert("checkTic invoked!");
     if (navigator.geolocation){
-/*      navigator.geolocation.getCurrentPosition(
+      navigator.geolocation.getCurrentPosition(
           function(position){
             if (app.token()){
               var job_inspect_container = app.getJobInspectionContainer();
@@ -604,6 +606,7 @@ var app = {
                         lng: position.coords.longitude,
                         acc: position.coords.accuracy,
                         time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
+                        timestamp: position.timestamp,
                         application_status: app.getCheckStatus(),
                         site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
                         job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
@@ -637,6 +640,7 @@ var app = {
                   lng: position.coords.longitude,
                   acc: position.coords.accuracy,
                   time: (new Date()).toUTCString(),
+                  timestamp: position.timestamp,
                   application_status: app.getCheckStatus(),
                   site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
                   job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
@@ -649,13 +653,15 @@ var app = {
                 lng: position.coords.longitude,
                 acc: position.coords.accuracy,
                 time: (new Date()).toUTCString(),
+                timestamp: position.timestamp,
                 application_status: app.getCheckStatus()
               }];
             }
             app.lastLocation = {
               lat: position.coords.latitude,
               lng: position.coords.longitude,
-              acc: position.coords.accuracy
+              acc: position.coords.accuracy,
+              timestamp: position.timestamp,
             };
             app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
           },
@@ -664,8 +670,8 @@ var app = {
             //do nothing
           },
           { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
-      );*/
-        navigator.geolocation.getAccurateCurrentPosition(
+      );
+/*        navigator.geolocation.getAccurateCurrentPosition(
           function(position){
             if (app.token()){
               var job_inspect_container = app.getJobInspectionContainer();
@@ -747,7 +753,7 @@ var app = {
             //do nothing
           },
           { desiredAccuracy: 50 }
-      );
+      );*/
     } else {
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
@@ -757,6 +763,8 @@ var app = {
   stopCheckInterval: function(){
     clearTimeout(app.check_interval_flag);
     app.check_interval_flag = void 0;
+    navigator.geolocation.clearWatch(app.watch_position_ID);
+    app.watch_position_ID = void 0;
   },
 
   startCheckInterval: function(){
@@ -769,6 +777,9 @@ var app = {
         app.sync();
       }, 1000);
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
+      navigator.geolocation.clearWatch(app.watch_position_ID);
+      app.watch_position_ID = void 0;
+      app.watch_position_ID = navigator.geolocation.watchPosition(function(){}, function(){}, {maximumAge: 0, enableHighAccuracy: true});
     }
   },
 
@@ -1142,18 +1153,19 @@ var app = {
       })(methods_to_chain);
     };
 
-/*    navigator.geolocation.getCurrentPosition(function(position){
+    navigator.geolocation.getCurrentPosition(function(position){
       sync_process({
         lat: position.coords.latitude,
         lng: position.coords.longitude,
         acc: position.coords.accuracy,
-        time: (new Date()).toUTCString()
+        time: (new Date()).toUTCString(),
+        timestamp: position.timestamp
       });
     }, function(error){
       sync_process();
-    }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
+    }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
 
-    navigator.geolocation.getAccurateCurrentPosition(
+/*    navigator.geolocation.getAccurateCurrentPosition(
       function(position){
         sync_process({
           lat: position.coords.latitude,
@@ -1168,7 +1180,7 @@ var app = {
       },
       function(){},
       {desiredAccuracy: 50}
-    );
+    );*/
   },
 
   //TODO: refactor, refactor and refactor again
@@ -1364,7 +1376,7 @@ var app = {
       }
 
       if (navigator.geolocation){
-/*        navigator.geolocation.getCurrentPosition(
+        navigator.geolocation.getCurrentPosition(
             function(position){
               var inspection_status = app.getCheckStatus();
               $deferred.resolve({
@@ -1374,6 +1386,7 @@ var app = {
                   lng: position.coords.longitude,
                   acc: position.coords.accuracy,
                   time: (new Date()).toUTCString(),
+                  timestamp: position.timestamp,
                   application_status: inspection_status,
                   site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
                   job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
@@ -1388,8 +1401,8 @@ var app = {
               });
             },
             { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
-        );*/
-        navigator.geolocation.getAccurateCurrentPosition(
+        );
+/*        navigator.geolocation.getAccurateCurrentPosition(
           function(position){
             var inspection_status = app.getCheckStatus();
             $deferred.resolve({
@@ -1417,9 +1430,9 @@ var app = {
             //do nothing
           },
           {
-            desiredAccuracy:50
+            desiredAccuracy: 50
           }
-         );
+         );*/
       } else {
         $deferred.reject({
           status: 'error',
@@ -1729,17 +1742,18 @@ var app = {
       success_callback();
     } else {
       $.when( app.check_online() ).done(function(obj1){
-/*        navigator.geolocation.getCurrentPosition(function(position){
+        navigator.geolocation.getCurrentPosition(function(position){
           ajax_call.call(self, [{
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             acc: position.coords.accuracy,
-            time: (new Date()).toUTCString()
+            time: (new Date()).toUTCString(),
+            timestamp: position.timestamp
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
-        navigator.geolocation.getAccurateCurrentPosition(
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+/*        navigator.geolocation.getAccurateCurrentPosition(
           function(position){
             ajax_call.call(self, [{
               lat: position.coords.latitude,
@@ -1754,7 +1768,7 @@ var app = {
           },
           function(){},
           {desiredAccuracy: 100}
-        );
+        );*/
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1866,17 +1880,18 @@ var app = {
       success_callback();
     } else {
       $.when( app.check_online() ).done(function(obj1){
-/*        navigator.geolocation.getCurrentPosition(function(position){
+        navigator.geolocation.getCurrentPosition(function(position){
           ajax_call.call(self, [{
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             acc: position.coords.accuracy,
-            time: (new Date()).toUTCString()
+            time: (new Date()).toUTCString(),
+            timestamp: position.timestamp
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
-        navigator.geolocation.getAccurateCurrentPosition(
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+/*        navigator.geolocation.getAccurateCurrentPosition(
             function(position){
               ajax_call.call(self, [{
                 lat: position.coords.latitude,
@@ -1891,7 +1906,7 @@ var app = {
             },
             function(){},
             {desiredAccuracy: 100}
-        );
+        );*/
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1984,17 +1999,18 @@ var app = {
       success_callback(get_full_site_info(site_id, app.sitesStaffingInfo()));
     } else {
       $.when( app.check_online() ).done(function(obj1){
-/*        navigator.geolocation.getCurrentPosition(function(position){
+        navigator.geolocation.getCurrentPosition(function(position){
           ajax_call.call(self, [{
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             acc: position.coords.accuracy,
-            time: (new Date()).toUTCString()
+            time: (new Date()).toUTCString(),
+            timestamp: position.timestamp
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
-        navigator.geolocation.getAccurateCurrentPosition(
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+/*        navigator.geolocation.getAccurateCurrentPosition(
             function(position){
               ajax_call.call(self, [{
                 lat: position.coords.latitude,
@@ -2009,7 +2025,7 @@ var app = {
             },
             function(){},
             {desiredAccuracy: 100}
-        );
+        );*/
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -2073,17 +2089,18 @@ var app = {
       success_callback(app.mySites());
     } else {
       $.when( app.check_online() ).done(function(obj1){
-/*        navigator.geolocation.getCurrentPosition(function(position){
+        navigator.geolocation.getCurrentPosition(function(position){
           ajax_call.call(self, [{
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             acc: position.coords.accuracy,
-            time: (new Date()).toUTCString()
+            time: (new Date()).toUTCString(),
+            timestamp: position.timestamp
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});*/
-        navigator.geolocation.getAccurateCurrentPosition(
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+/*        navigator.geolocation.getAccurateCurrentPosition(
             function(position){
               ajax_call.call(self, [{
                 lat: position.coords.latitude,
@@ -2098,7 +2115,7 @@ var app = {
             },
             function(){},
             {desiredAccuracy: 100}
-        );
+        );*/
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){

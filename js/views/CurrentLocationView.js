@@ -24,7 +24,7 @@ var CurrentLocationView = function(){
 
     try {
       if (navigator.geolocation){
-/*        navigator.geolocation.getCurrentPosition(
+        navigator.geolocation.getCurrentPosition(
             function(position){
               self.updateGPSsection(position);
               self.updateMapsection(position);
@@ -35,8 +35,8 @@ var CurrentLocationView = function(){
               self.updateMapsection({});
             },
             { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
-        );*/
-        navigator.geolocation.getAccurateCurrentPosition(
+        );
+/*        navigator.geolocation.getAccurateCurrentPosition(
             function(position){
               self.updateGPSsection(position);
               self.updateMapsection(position);
@@ -48,7 +48,7 @@ var CurrentLocationView = function(){
             },
             function(){},
             {desiredAccuracy: 50}
-        );
+        );*/
       } else {
         self.currentLocation = {};
       }
