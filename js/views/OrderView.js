@@ -40,7 +40,6 @@ var OrderView = function(order_id){
               );
             })(),
             mutations_obj = app.ids_mutation();
-
         self.activeOrder = app.activeOrder();
 
         if (!$.isEmptyObject(mutations_obj)){
@@ -189,6 +188,7 @@ var OrderView = function(order_id){
                   return false;
                 }
               });
+//alert("после поиска в драфтах: " + JSON.stringify(obj));
 
               if ($.isEmptyObject(obj)){
                 $.each(futures, function(i,v){
@@ -205,6 +205,7 @@ var OrderView = function(order_id){
                     return false;
                   }
                 });
+//alert("после поиска в фьючерах: " + JSON.stringify(obj));
               }
             }
 
@@ -893,6 +894,7 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
 
 Handlebars.registerHelper("orderContent", function(order_obj){
   var out = "";
+
   if (undefined !== order_obj.id && undefined === order_obj.type){
     var order = order_obj.upd,
         total = 0;
@@ -909,38 +911,38 @@ Handlebars.registerHelper("orderContent", function(order_obj){
     out = out + "</p>";
     out = out + "</div>";
 
-    $.each(Object.keys(order.supply_order_categories), function(i,v){
-      var category_out = "",
-          empty_flag = true,
-          category = order['supply_order_categories'][v];
+    try {
+      $.each(Object.keys(order.supply_order_categories), function(i,v){
+        var category_out = "",
+            empty_flag = true,
+            category = order['supply_order_categories'][v];
 
-      /* begin: reorganization and sorting */
-      var sorted_items = [];
-      for( var _key in category){
-        if (category.hasOwnProperty(_key)) {
-          sorted_items.push(category[_key]);
-        }
-      }
-      sorted_items = sorted_items.sort(function (a, b) {
-        return a.description.localeCompare( b.description );
-      });
-      /* end: sorting */
-
-
-//      $.each(Object.keys(category), function(ik,vk){
-      $.each(sorted_items, function(ik,item){
-        var price = parseFloat(item.price),
-            amount = parseFloat(item.amount),
-            _total = price * amount;
-
-        if ("log" != order.order_status || amount > 0){
-
-          category_out = category_out + "<li>";
-          if ("log" != order.order_status){
-            category_out = category_out + "<a id=\"iid_"+item.item_id+"\" href=\"#editOrderItem:"+item.item_id+"\" class=\"btn-ordet\" data-role=\"button\">";
+        /* begin: reorganization and sorting */
+        var sorted_items = [];
+        for( var _key in category){
+          if (category.hasOwnProperty(_key)) {
+            sorted_items.push(category[_key]);
           }
-          category_out = category_out + "<div class=\"infodetails"+ (amount > 0?'':' one') +"\">" +
-            "<div>"+ item.description +"<br/>" +
+        }
+
+        sorted_items = sorted_items.sort(function (a, b) {
+          return a.description.localeCompare( b.description );
+        });
+        /* end: sorting */
+
+        $.each(sorted_items, function(ik,item){
+          var price = parseFloat(item.price),
+              amount = parseFloat(item.amount),
+              _total = price * amount;
+
+          if ("log" != order.order_status || amount > 0){
+
+            category_out = category_out + "<li>";
+            if ("log" != order.order_status){
+              category_out = category_out + "<a id=\"iid_"+item.item_id+"\" href=\"#editOrderItem:"+item.item_id+"\" class=\"btn-ordet\" data-role=\"button\">";
+            }
+            category_out = category_out + "<div class=\"infodetails"+ (amount > 0?'':' one') +"\">" +
+              "<div>"+ item.description +"<br/>" +
               "<div class=\"details-all\">" +
                 "<div class=\"details\">" + item.serial_number +"</div>" +
                 "<div class=\"details mea\">"+ item.measurement +" <span>$"+ price.toFixed(2) + "</span></div>" +
@@ -948,65 +950,64 @@ Handlebars.registerHelper("orderContent", function(order_obj){
               "</div>" +
             "</div>";
 
-          if ("log" != order.order_status && amount > 0){
-            category_out = category_out + "<div class=\"number\">" +
-              "<font>Amount:</font><br /><span>" + amount + "</span>" +
-            "</div>";
+            if ("log" != order.order_status && amount > 0){
+              category_out = category_out + "<div class=\"number\">" +
+                "<font>Amount:</font><br /><span>" + amount + "</span>" +
+              "</div>";
+            }
+
+            category_out = category_out + "</div>";
+            if ("log" != order.order_status){
+              category_out = category_out + "</a>";
+            }
+
+            category_out = category_out + "</li>";
+            empty_flag = false;
+            total = total + _total;
           }
-
-          category_out = category_out + "</div>";
-          if ("log" != order.order_status){
-            category_out = category_out + "</a>";
-          }
-
-          category_out = category_out + "</li>";
-          empty_flag = false;
-          total = total + _total;
-
-        }
+        });
+        if (!empty_flag)
+          out = out + "<ul data-role=\"listview\" data-inset=\"true\"><li class=\"boxheader\" data-role=\"list-divider\" role=\"heading\">"+ v +"</li>" + category_out + "</ul>";
       });
-      if (!empty_flag)
-        out = out + "<ul data-role=\"listview\" data-inset=\"true\"><li class=\"boxheader\" data-role=\"list-divider\" role=\"heading\">"+ v +"</li>" + category_out + "</ul>";
-    });
-
-    //over budget
-    out = out + "<div class=\"over_budget\">" +
-      "<div class=\"budget\">" +
-        "Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>" +
-        "<div class=\"over\">"+ ((total>order.remaining_budget && "log" != order.order_status)?'Over Budget!!!':'') +"</div>" +
-        "<div class=\"total\">" +
-          "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>" +
+      //over budget
+      out = out + "<div class=\"over_budget\">" +
+        "<div class=\"budget\">" +
+          "Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>" +
+          "<div class=\"over\">"+ ((total>order.remaining_budget && "log" != order.order_status)?'Over Budget!!!':'') +"</div>" +
+          "<div class=\"total\">" +
+            "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>" +
+          "</div>" +
         "</div>" +
-      "</div>" +
-    "</div>";
+      "</div>";
 
-    // Special Instructions
+      // Special Instructions
 
-    if ("log" != order.order_status){
-      out = out +"<h3>Special Instructions:</h3><div class=\"block-textarea\">";
-      out = out + "<textarea id=\"special_instructions\" name=\"special_instructions\">" + order.special_instructions + "</textarea>";
-    } else if ($.trim(order.special_instructions).length > 0) {
-      out = out +"<div class=\"location_details\">";
-      out = out +"<p><font>Special Instructions:</font></p>";
-      out = out + "<p>" + order.special_instructions + "</p>";
-      out = out +"</div>";
-    }
-
-    out = out +"</div>";
-
-    if ("log" != order.order_status){
-      out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
-      if ($.inArray(order.order_status, ["future", "new_future"])<0){
-        out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td>"+
-            "<td width=\"2%\">&nbsp;</td>" +
-            "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>";
-      } else {
-        out = out + "<td width=\"24%\">&nbsp</td>"+
-            "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>" +
-            "<td width=\"24%\">&nbsp;</td>";
+      if ("log" != order.order_status){
+        out = out +"<h3>Special Instructions:</h3><div class=\"block-textarea\">";
+        out = out + "<textarea id=\"special_instructions\" name=\"special_instructions\">" + order.special_instructions + "</textarea>";
+      } else if ($.trim(order.special_instructions).length > 0) {
+        out = out +"<div class=\"location_details\">";
+        out = out +"<p><font>Special Instructions:</font></p>";
+        out = out + "<p>" + order.special_instructions + "</p>";
+        out = out +"</div>";
       }
-      out = out + "</tr></table>";
-    }
+
+      out = out +"</div>";
+
+      if ("log" != order.order_status){
+        out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
+        if ($.inArray(order.order_status, ["future", "new_future"])<0){
+          out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td>"+
+              "<td width=\"2%\">&nbsp;</td>" +
+              "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>";
+        } else {
+          out = out + "<td width=\"24%\">&nbsp</td>"+
+              "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>" +
+              "<td width=\"24%\">&nbsp;</td>";
+        }
+        out = out + "</tr></table>";
+      }
+    } catch(er){}
   }
   return new Handlebars.SafeString(out);
 });

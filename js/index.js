@@ -14,7 +14,7 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
-    this.application_version = "0.4.2";
+    this.application_version = "0.4.3";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -947,7 +947,9 @@ var app = {
                     $.each(data.properties, function(i,prop){
                       $.each(mySites, function(ix,site_in_LS){
                         if (prop.site_id === site_in_LS.site_id){
+//alert("site_in_LS: " + JSON.stringify(site_in_LS) + "\r\n" + "propertie from server: " + JSON.stringify(prop));
                           mySites[ix] = $.extend(true, site_in_LS, prop);
+//alert("result site: " + JSON.stringify(mySites[ix]));
                           return false;
                         }
                       });
@@ -970,7 +972,9 @@ var app = {
                 // заполняем оредеры пришедшими с сервера
                 try{
                   if (local_items.length === 0) {
-                    $.merge(result_items, remote_items);
+                    $.each(remote_items, function(i,remote_order){
+                      result_items.push($.extend(true, {}, formatSupplyOrders(remote_order)));
+                    });
                   } else {
                     // проверяем на наличие новых изменений в ордерах, которые уже синхронизизированы ранее
                     $.each(remote_items, function(ir,remote_order){
@@ -1005,7 +1009,9 @@ var app = {
                     });
                   }
                 } catch (er){
-                  $.merge(result_items, remote_items);
+                  $.each(remote_items, function(i,remote_order){
+                    result_items.push($.extend(true, {}, formatSupplyOrders(remote_order)));
+                  });
                 }
 
 //alert(result_items.length + " ордера с сервера: " + JSON.stringify(result_items));
@@ -1994,6 +2000,7 @@ var app = {
         break;
       case /^#order:(.+)$/.test(urlObj.hash):
         var order_id = urlObj.hash.match(/^#order:(.+)$/)[1] || "new";
+        //alert("order_id on route: " + order_id);
         app.getSitesOrdersList(function(){
           $container.html(new OrderView(order_id).render().el).trigger('pagecreate');
           (function(){$("div", $container).first().trigger('orderevent');})();});
