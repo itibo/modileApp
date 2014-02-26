@@ -629,6 +629,7 @@ var app = {
                     lng: position.coords.longitude,
                     acc: position.coords.accuracy,
                     time: (new Date()).toUTCString(),
+                    timestamp: position.timestamp,
                     application_status: app.getCheckStatus(),
                     site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
                     job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
@@ -661,7 +662,7 @@ var app = {
               lat: position.coords.latitude,
               lng: position.coords.longitude,
               acc: position.coords.accuracy,
-              timestamp: position.timestamp,
+              timestamp: position.timestamp
             };
             app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
           },
@@ -936,6 +937,24 @@ var app = {
                 break;
               case "my_sites":
                 app.mySites(data.sites);
+                break;
+              case "sites_properties":
+                app.mySites((function(){
+                  var mySites = app.mySites();
+                  if (mySites.length == 0) {
+                    mySites = data.properties;
+                  } else {
+                    $.each(data.properties, function(i,prop){
+                      $.each(mySites, function(ix,site_in_LS){
+                        if (prop.site_id === site_in_LS.site_id){
+                          mySites[ix] = $.extend(true, site_in_LS, prop);
+                          return false;
+                        }
+                      });
+                    });
+                  }
+                  return mySites;
+                })());
                 break;
               case "sites_schedule":
                 app.sitesStaffingInfo(data.sites_schedule);
