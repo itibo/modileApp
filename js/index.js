@@ -3,8 +3,8 @@ var app = {
   // Application Constructor
   initialize: function() {
     // config
-    this.site = 'http://209.123.209.169:3000';  // ALPHA
-//    this.site = 'http://209.123.209.154/';      // BETA
+//    this.site = 'http://209.123.209.169:3000';  // ALPHA
+    this.site = 'http://209.123.209.154/';      // BETA
     this.watchID = null;
     this.coordinates = [];
 
@@ -15,7 +15,7 @@ var app = {
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
     this.application_version = "0.4.3";
-    this.application_build = "ALPHA";
+    this.application_build = "BETA";
 
     // allow to submit inspection
     this.allowToSubmit = true;
@@ -747,7 +747,7 @@ var app = {
       methods_to_chain = methods_to_chain || [];
       method_when_update_sync_time = method_when_update_sync_time || '';
 
-      alert("sync fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
+//      alert("sync fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
       // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts", "submit_to_vendor", "save_orders"]
       var methods_to_chain_mapping = {
         sites: "my_sites",
