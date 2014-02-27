@@ -743,12 +743,11 @@ var app = {
     };
     var sync_process = function(position_obj, methods_to_chain, method_when_update_sync_time){
       app.sync_process_execution_flag.setFlag(true);
-
       position_obj = position_obj || false;
       methods_to_chain = methods_to_chain || [];
       method_when_update_sync_time = method_when_update_sync_time || '';
 
-//      alert("sync fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
+      alert("sync fired with parems methods_to_chain: " + JSON.stringify(methods_to_chain) + "; method_when_update_sync_time: " + method_when_update_sync_time + "; _time_to_remember: " + _time_to_remember);
       // ["sites", "draft_order", "submitted_order", "supply_order_details", "sync_check", "update_drafts", "submit_to_vendor", "save_orders"]
       var methods_to_chain_mapping = {
         sites: "my_sites",
