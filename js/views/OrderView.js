@@ -369,7 +369,7 @@ var OrderView = function(order_id){
 
     $(".over_budget>.budget span.remain").html("$"+ parseFloat(self.activeOrder.upd.remaining_budget - total).toFixed(2));
 
-    if (parseFloat(self.activeOrder.upd.remaining_budget) > parseFloat(total)){
+    if (parseFloat(self.activeOrder.upd.remaining_budget) >= parseFloat(total)){
       $(".over_budget .over").html("");
     } else {
       $(".over_budget .over").html("Over Budget!!!");

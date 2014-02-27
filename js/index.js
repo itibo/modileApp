@@ -2243,6 +2243,7 @@ var app = {
         crossDomain: true,
         dataType: 'json',
         success: function(data) {
+          app.LS_clean();
           app.setToken(data.token);
           app.setUserInfo(data.user);
           app.cancell_inspection(false);
