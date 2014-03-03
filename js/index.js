@@ -296,9 +296,8 @@ var app = {
 
     /* ------------------------- */
 
-
     this.online_flag = function(){
-      return !(navigator.network.connection.type == Connection.NONE);
+      return !(navigator.connection.type == Connection.NONE);
     };
 
     this.cancell_inspection = function(data){

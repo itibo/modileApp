@@ -1718,3 +1718,40 @@ ul#next_month{
 	h1.ui-title span.btn-back_inspect span.ui-btn-inner{ font-size:10px; }
 	.main .newbtn .ui-listview a.btn-ordet .infodetails.one .details { display:block; width:100%; }
 }
+
+
+
+/* current position */
+body div[data-role=page], body div[data-role=page] > div{
+    display: table;
+    height: 100%;
+    width: 100%;
+}
+
+body div[data-role=page] .main {
+    display: table-row;
+    height: 100%;
+}
+
+body div[data-role=page] .main > div {
+    display: table;
+    height: 100%;
+    width: 100%;
+}
+
+body div[data-role=page] .main div.gmaps {
+    display: table-row;
+    height: 100%;
+}
+
+body div[data-role=page] .main div.gmaps > div {
+    display: table;
+    height: 100%;
+    width: 100%;
+}
+
+body div[data-role=page] .main div.gmaps > div div#map_canvas {
+    display: table-row;
+    /*background: pink;*/
+    height: 100%;
+}
