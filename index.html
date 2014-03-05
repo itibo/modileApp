@@ -66,9 +66,21 @@
       <div class="inspect">
         <div data-role="content">
           {{ListOfAvailiableJobsContent}}
-          <div class="all_input stnd_btn">
+
+<!--          <div class="all_input stnd_btn">
             <input type="button" id="recheck" value="Re-check"/>
-          </div>
+          </div>-->
+
+          <table class="manage_area" border="0" cellspacing="0" cellpadding="0"><tr>
+            <td class="green_btn btnbox_1">
+              <input type="button" id="nearest_locations" value="Nearest Locations"/>
+            </td>
+            <td width="2%">&nbsp;</td>
+            <td class="green_btn">
+              <input type="button" id="recheck" value="Re-check"/>
+            </td>
+          </tr></table>
+
         </div>
       </div><!-- /content -->
     </script>
@@ -322,6 +334,22 @@
         </div>
       </div><!-- /content -->
     </script>
+    <script id="nearest-locations-tpl" type="text/x-handlebars-template">
+      <div data-role="header">
+        <h1>
+          <span class="address">Nearest Locations</span>
+          <span class="btn-back log_back">
+            <a href="/#welcome" class="ui-btn-right" data-role="button">Back</a>
+          </span>
+        </h1>
+      </div><!-- /header -->
+      <div class="main">
+        <div data-role="content" class="log inspect">
+          {{NearestLocationsFilterContent}}
+          {{NearestLocationsContent}}
+        </div>
+      </div><!-- /content -->
+    </script>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="lib/handlebars.js"></script>
     <script type="text/javascript" src="js/PushNotification.js"></script>
@@ -340,12 +368,11 @@
     <script type="text/javascript" src="js/views/OrderOverallView.js"></script>
     <script type="text/javascript" src="js/views/CurrentLocationView.js"></script>
     <script type="text/javascript" src="js/views/ProblemReportView.js"></script>
+    <script type="text/javascript" src="js/views/NearestLocationsView.js"></script>
     <script type="text/javascript">
       app.initialize();
     </script>
     <!--debugging-->
-    <!--<script src="http://debug.build.phonegap.com/target/target-script-min.js#anonymous"></script>-->
     <script src="http://192.168.92.148:8080/target/target-script-min.js#anonymous"></script>
-
   </body>
 </html>

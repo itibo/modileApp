@@ -1736,7 +1736,7 @@ body div[data-role=page] .main {
 body div[data-role=page] .main > div {
     display: table;
     height: 100%;
-    width: 100%;
+    width: 98%
 }
 
 body div[data-role=page] .main div.gmaps {

@@ -44,7 +44,7 @@ var MyJobsView = function() {
     this.el.on('click', '.inspectable button.show_details', function(event){
       var id_str = $("input[type=hidden]", $(event.currentTarget).parents(".inspectable")).val();
       app.route({
-        toPage: window.location.href + "#siteinfo:" + (id_str.split("-"))[0] + "-check"
+        toPage: window.location.href + "#siteinfo:" + (id_str.split("-"))[0] + "-my_jobs"
       });
 /*      alert("id_str: " + JSON.stringify(id_str));
       alert("sitesToInspect: " + JSON.stringify(app.sitesToInspect()));*/
@@ -57,6 +57,16 @@ var MyJobsView = function() {
         $('body>div#main').html(new MyJobsView().render().el).trigger('pagecreate');
       });
     });
+
+    this.el.on('click', '#nearest_locations', function(event){
+      event.preventDefault();
+      app.route({
+        toPage: window.location.href + "#nearest_locations"
+      });
+    });
+
+
+
   };
 
   this.initialize();

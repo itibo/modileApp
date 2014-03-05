@@ -53,6 +53,25 @@ var app = {
 
     /* end: process execution flag */
 
+    /* start: nearest locations filter */
+    this.nearestLocationsFilter = function(data){
+      var out = void 0;
+      if (typeof data != "undefined"){
+        data = data || false;
+        if (data){
+          window.localStorage.setItem("nearestLocationsFilter", data);
+          out = data;
+        } else {
+          window.localStorage.removeItem("nearestLocationsFilter");
+          out = {};
+        }
+      } else {
+        out = window.localStorage.getItem("nearestLocationsFilter") ? window.localStorage.getItem("nearestLocationsFilter") : (void 0);
+      }
+      return out;
+    };
+    /* end: nearest locations filter */
+
     /* start: my sites filter */
 
     this.sitesFilters = function(data){
@@ -1191,6 +1210,7 @@ var app = {
         };
         if ( use_geofence ){
           $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
+
             ajax_call(obj1.position,
                 function(data, clb){
                   app.setSitesToInspect(data.jobs);
@@ -1243,6 +1263,12 @@ var app = {
           } else if ( 0 == coordinates.length && (1 == inspection_status || "submitting" == insp_cont.status)) {
             navigator.geolocation.getCurrentPosition(
                 function(position){
+                  app.lastLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    acc: position.coords.accuracy,
+                    timestamp: position.timestamp
+                  };
                   var gps = [{
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
@@ -1302,6 +1328,13 @@ var app = {
         navigator.geolocation.getCurrentPosition(
             function(position){
               var inspection_status = app.getCheckStatus();
+
+              app.lastLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                acc: position.coords.accuracy,
+                timestamp: position.timestamp
+              };
               $deferred.resolve({
                 status: 'success',
                 position: [{
@@ -1776,7 +1809,7 @@ var app = {
     }
   },
 
-  getSiteInfo: function(site_id, use_check_callback_to_get_info, success_callback){
+  getSiteInfo: function(site_id, back_to_page, success_callback){
     var self = this,
         ajax_call = function(pos){
       var token = app.token();
@@ -1795,7 +1828,7 @@ var app = {
         success: function(data) {
           if (data.token == token){
             if (typeof success_callback == "function"){
-              success_callback(get_full_site_info(site_id, data.sites_schedule));
+              success_callback(get_full_site_info(site_id, data.sites_schedule, back_to_page));
             }
           } else {
             app.setToken(false);
@@ -1824,10 +1857,11 @@ var app = {
         }
       });
     },
-        get_full_site_info = function(site_id, staffing_container, check_container){
-          var ret = {};
+        get_full_site_info = function(site_id, staffing_container, back_to_page){
+          var ret = {},
+              back_to_page = back_to_page || "siteslist";
 
-          if (undefined == check_container){
+          if ("my_jobs" != back_to_page ) {
             $.each(app.mySites(), function(i,v){
               if (site_id == v.site_id) {
                 ret = $.extend(true, ret, {common_info: v} );
@@ -1840,8 +1874,11 @@ var app = {
                 return false;
               }
             });
+            if (back_to_page){
+              ret = $.extend(true, ret, {back_to_page: "#" + back_to_page} );
+            }
           } else {
-            $.each(check_container, function(i,v){
+            $.each(staffing_container, function(i,v){
               if (site_id == v.site_id) {
                 ret = $.extend(true, ret, {common_info: v} );
                 ret.common_info.site_schedule = void 0;
@@ -1853,10 +1890,10 @@ var app = {
           return ret;
         };
 
-    if(use_check_callback_to_get_info){
-      success_callback(get_full_site_info(site_id, {}, app.sitesToInspect()));
+    if(back_to_page && "my_jobs" == back_to_page){
+      success_callback(get_full_site_info(site_id, app.sitesToInspect(), back_to_page));
     } else if ( app.last_sync_date() ){
-      success_callback(get_full_site_info(site_id, app.sitesStaffingInfo()));
+      success_callback(get_full_site_info(site_id, app.sitesStaffingInfo(), back_to_page));
     } else {
       $.when( app.check_online() ).done(function(obj1){
         navigator.geolocation.getCurrentPosition(function(position){
@@ -1978,8 +2015,12 @@ var app = {
         break;
       case /^#siteinfo:(.+)$/.test(urlObj.hash):
         var site_id = urlObj.hash.match(/^#siteinfo:(\d+)/)[1],
-            use_check_callback_to_get_info = /^#siteinfo:(\d+)-check$/.test(urlObj.hash) ? true : false;
-        app.getSiteInfo(site_id, use_check_callback_to_get_info, function(site_info){
+//            use_check_callback_to_get_info = /^#siteinfo:(\d+)-check$/.test(urlObj.hash) ? true : false;
+            back_to_page = /^#siteinfo:(\d+)-(\w+)$/.test(urlObj.hash)
+                ? ( urlObj.hash.match(/^#siteinfo:(\d+)-(\w+)$/)[2] || "" )
+                : false;
+//        app.getSiteInfo(site_id, use_check_callback_to_get_info, function(site_info){
+       app.getSiteInfo(site_id, back_to_page, function(site_info){
           $container.html(new SiteInfoView(site_info).render().el).trigger('pagecreate');
         });
         break;
@@ -2017,6 +2058,9 @@ var app = {
         break;
       case '#send_dump' == urlObj.hash:
         $container.html(new ProblemReportView().render().el).trigger('pagecreate');
+        break;
+      case '#nearest_locations' == urlObj.hash:
+        $container.html(new NearestLocationsView().render().el).trigger('pagecreate');
         break;
       case '#welcome' == urlObj.hash:
       default:
@@ -2458,6 +2502,11 @@ var app = {
             toPage: window.location.href + ((app.activeOrder().id) ? "#order:" + app.activeOrder().id : "#orders")
           });
           break;
+        case '#nearest_locations' == app.current_page:
+          app.route({
+            toPage: window.location.href + "#my_jobs"
+          });
+          break;
         case '#welcome' == app.current_page:
         case '' == app.current_page:
         case '#' == app.current_page:
@@ -2585,5 +2634,11 @@ $(document).ajaxStart(function() {
 if (typeof(Number.prototype.toRad) === "undefined") {
   Number.prototype.toRad = function() {
     return this * Math.PI / 180;
+  }
+}
+
+if (typeof(Number.prototype.toMiles) === "undefined") {
+  Number.prototype.toMiles = function() {
+    return (this * 0.621371).toFixed(1);
   }
 }
