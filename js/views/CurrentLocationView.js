@@ -35,7 +35,7 @@ var CurrentLocationView = function(){
 
   this.initialize = function() {
     var self = this;
-    this.el = $('<div/>');
+    this.el = $('<div class="curr_loc" />');
 
     try {
       if (navigator.geolocation){

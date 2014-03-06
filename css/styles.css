@@ -1722,38 +1722,41 @@ ul#next_month{
 
 
 /* current position */
-body div[data-role=page], body div[data-role=page] > div{
+
+body div[data-role=page] {
+    display: table;
+    height: 100%;
+    width: 100%;
+}
+body div[data-role=page] > div.curr_loc {
     display: table;
     height: 100%;
     width: 100%;
 }
 
-body div[data-role=page] .main {
+body div[data-role=page] > div.curr_loc .main {
     display: table-row;
     height: 100%;
-    width: 100%;
 }
 
-body div[data-role=page] .main > div {
+body div[data-role=page] > div.curr_loc .main > div {
     display: table;
     height: 100%;
-    /*width: 98%;*/
-    width: 100%;
+    width: 98%
 }
 
-body div[data-role=page] .main div.gmaps {
+body div[data-role=page] > div.curr_loc .main div.gmaps {
     display: table-row;
     height: 100%;
 }
 
-body div[data-role=page] .main div.gmaps > div {
+body div[data-role=page] > div.curr_loc .main div.gmaps > div {
     display: table;
     height: 100%;
     width: 100%;
 }
 
-body div[data-role=page] .main div.gmaps > div div#map_canvas {
+body div[data-role=page] > div.curr_loc .main div.gmaps > div div#map_canvas {
     display: table-row;
-    /*background: pink;*/
     height: 100%;
 }

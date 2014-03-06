@@ -14,7 +14,7 @@ var app = {
     this.current_page = "";
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
-    this.application_version = "0.4.3";
+    this.application_version = "0.4.4";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -2347,11 +2347,13 @@ var app = {
     app.supplyOrdersTemplate(false);
     app.mySupplyOrdersDrafts(false);
     app.myLastSubmittedOrders(false);
+    app.myFutureOrders(false);
     app.activeOrder(false);
     app.sitesStaffingInfo(false);
     app.last_sync_date(false);
     app.ids_mutation(false);
     app.supplierMainPageHelper(false);
+    app.nearestLocationsFilter(false);
 
     if (typeof callback == "function"){
       callback();
