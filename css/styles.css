@@ -1731,12 +1731,14 @@ body div[data-role=page], body div[data-role=page] > div{
 body div[data-role=page] .main {
     display: table-row;
     height: 100%;
+    width: 100%;
 }
 
 body div[data-role=page] .main > div {
     display: table;
     height: 100%;
-    width: 98%
+    /*width: 98%;*/
+    width: 100%;
 }
 
 body div[data-role=page] .main div.gmaps {

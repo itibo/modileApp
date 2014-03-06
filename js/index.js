@@ -24,6 +24,13 @@ var app = {
     // last location object
     this.lastLocation = {};
 
+    // nearest locations options
+    this.nearestLocDist = 20;
+    this.nearestLocDuration = function(){
+      return "Area Supervisor" == this.getUserInfo().role ? 7 : ( "Area Supervisor (RM)" == this.getUserInfo().role ? 14 : 7)
+    };
+
+
     this.watch_position_ID = void 0;
 
     /* begin: process execution flag */
@@ -2639,6 +2646,6 @@ if (typeof(Number.prototype.toRad) === "undefined") {
 
 if (typeof(Number.prototype.toMiles) === "undefined") {
   Number.prototype.toMiles = function() {
-    return (this * 0.621371).toFixed(1);
+    return (this * 0.621371).toFixed(2);
   }
 }

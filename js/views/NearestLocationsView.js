@@ -4,7 +4,7 @@ var NearestLocationsView = function() {
     var context = {};
 
     context.nearest_loc_filter = (function(){
-      return app.nearestLocationsFilter() || "by_date";
+      return app.nearestLocationsFilter() || "by_dist";
     })();
 
     /* prepare sites for display */
@@ -54,7 +54,11 @@ var NearestLocationsView = function() {
                         - (parseFloat(s.circle_radius))))
                 }
             );
-            ret.push(obj);
+
+            if ( /*true*/ obj.distance * 0.621371 <= app.nearestLocDist
+                && (new Date() - new Date(obj.last_inspection_date)) / (1000 * 3600 * 24) >= app.nearestLocDuration()){
+              ret.push(obj);
+            }
           }
         });
       } catch (e){}
@@ -120,17 +124,24 @@ var NearestLocationsView = function() {
   this.initialize();
 }
 
+Handlebars.registerHelper('IntroText', function(){
+  return new Handlebars.SafeString("<div class=\"location_details\">" +
+    "<p>Below are the list of nearest site locations (within "+ app.nearestLocDist +"ml distance to your current position) that haven't been visited within last "+ app.nearestLocDuration() +" days. </p>"+
+  "</div>");
+});
+
+
 Handlebars.registerHelper('NearestLocationsFilterContent', function(){
   var out = "<select id=\"nearest_loc_filter\">" +
-    "<option "+ (("by_date" === this.nearest_loc_filter)? ("selected=\"selected\" "): "") +"value=\"by_date\">Sort by Inspection Date</option>" +
     "<option "+ (("by_dist" === this.nearest_loc_filter)? ("selected=\"selected\" "): "") +"value=\"by_dist\">Sort by distance</option>" +
+    "<option "+ (("by_date" === this.nearest_loc_filter)? ("selected=\"selected\" "): "") +"value=\"by_date\">Sort by Inspection Date</option>" +
   "</select>";
   return new Handlebars.SafeString(out);
 });
 
 Handlebars.registerHelper('NearestLocationsContent', function(){
   var out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">" +
-      "<li data-role=\"list-divider\" role=\"heading\">Nearest Locations</li>";
+      "<li data-role=\"list-divider\" role=\"heading\">Nearest Locations ("+ this.mysites.length +")</li>";
 
   $.each(this.mysites, function(i,s){
     out = out + "<li class=\"inspectable\">" +
@@ -144,31 +155,13 @@ Handlebars.registerHelper('NearestLocationsContent', function(){
           "<span class=\"address\">"+ s.address +"</span><br />" +
           "<span class=\"address\">Inspected: "+(s.last_inspection_date
             ? ("<time datetime=\""+(new Date(s.last_inspection_date)).toJSON()+"\">"+
-                (function(){
-                  var ret;
-                  try {
-                    var parsed_time = new Date(s.last_inspection_date).toLocaleTimeString().match(/^(\d+)[:\.\-\s](\d+)(.*)$/i)
-                    var hour = parseInt(parsed_time[1]);
-                    var minute = parseInt(parsed_time[2]);
-                    var ap = "am";
-                    if (hour   > 11) { ap = "pm";             }
-                    if (hour   > 12) { hour = hour - 12;      }
-                    if (hour   == 0) { hour = 12;             }
-                    if (hour   < 10) { hour   = "0" + hour;   }
-                    if (minute < 10) { minute = "0" + minute; }
-                    var _time = hour + ':' + minute + " " +ap;
-                    ret =  (new Date(s.last_inspection_date)).toLocaleString().replace(/(\d+):(\d+)(.+)$/ig, _time);
-                  } catch(er){
-                    ret = (new Date(s.last_inspection_date)).toLocaleString();
-                  }
-                  return ret;
-                })() +
+                  $.prettyDate.format(new Date(s.last_inspection_date).toJSON()) +
               "</time>")
             :"never")  +" </span>" +
         "</div>" +
         "<div class=\"box_rightcnt bottom\">" +
           "<button class=\"show_details\" data-siteid=\""+ s.site_id +"\">Site Details</button>" +
-          "<a class=\"button\" data-role=\"button\" href=\"geo:"+app.lastLocation.lat +","+app.lastLocation.lng+"?q="+s.circle_latitude+","+s.circle_longitude+"\">Route</a>" +
+          "<a class=\"button\" data-role=\"button\" href=\"geo:"+app.lastLocation.lat +","+app.lastLocation.lng+"?q="+s.circle_latitude+","+s.circle_longitude+"\">See Route</a>" +
         "</div>" +
         "<div style=\"clear:both;\"></div>" +
       "</li>";
