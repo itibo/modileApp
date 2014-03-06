@@ -55,7 +55,7 @@ var NearestLocationsView = function() {
                 }
             );
 
-            if ( /*true*/ obj.distance * 0.621371 <= app.nearestLocDist
+            if (/* false *//*true*/ obj.distance * 0.621371 <= app.nearestLocDist
                 && (new Date() - new Date(obj.last_inspection_date)) / (1000 * 3600 * 24) >= app.nearestLocDuration()){
               ret.push(obj);
             }
@@ -126,7 +126,7 @@ var NearestLocationsView = function() {
 
 Handlebars.registerHelper('IntroText', function(){
   return new Handlebars.SafeString("<div class=\"location_details\">" +
-    "<p>Below are the list of nearest site locations (within "+ app.nearestLocDist +"ml distance to your current position) that haven't been visited within last "+ app.nearestLocDuration() +" days. </p>"+
+    "<p>Below are the list of nearest site locations (within "+ app.nearestLocDist +" mi distance to your current position) that haven't been visited within last "+ app.nearestLocDuration() +" days. </p>"+
   "</div>");
 });
 
@@ -143,8 +143,9 @@ Handlebars.registerHelper('NearestLocationsContent', function(){
   var out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">" +
       "<li data-role=\"list-divider\" role=\"heading\">Nearest Locations ("+ this.mysites.length +")</li>";
 
-  $.each(this.mysites, function(i,s){
-    out = out + "<li class=\"inspectable\">" +
+  if (this.mysites.length > 0){
+    $.each(this.mysites, function(i,s){
+      out = out + "<li class=\"inspectable\">" +
         "<div class=\"points\">" +
           "<div class=\"box_rightcnt\" style=\"padding: 0; width: auto;\">" +
             ( s.distance > 0
@@ -155,9 +156,10 @@ Handlebars.registerHelper('NearestLocationsContent', function(){
           "<span class=\"address\">"+ s.address +"</span><br />" +
           "<span class=\"address\">Inspected: "+(s.last_inspection_date
             ? ("<time datetime=\""+(new Date(s.last_inspection_date)).toJSON()+"\">"+
-                  $.prettyDate.format(new Date(s.last_inspection_date).toJSON()) +
+                $.prettyDate.format(new Date(s.last_inspection_date).toJSON()) +
               "</time>")
-            :"never")  +" </span>" +
+            :"never") +
+          "</span>" +
         "</div>" +
         "<div class=\"box_rightcnt bottom\">" +
           "<button class=\"show_details\" data-siteid=\""+ s.site_id +"\">Site Details</button>" +
@@ -165,7 +167,10 @@ Handlebars.registerHelper('NearestLocationsContent', function(){
         "</div>" +
         "<div style=\"clear:both;\"></div>" +
       "</li>";
-  });
+    });
+  } else {
+    out = out + "<li class=\"inspectable\">There are no sites that require inspection within "+ app.nearestLocDist +" mi distance.</li>";
+  }
 
   out = out + "</ul>";
 
