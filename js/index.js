@@ -430,7 +430,6 @@ var app = {
       return window.localStorage.getItem("jobInspection") ? JSON.parse(window.localStorage.getItem("jobInspection")) : job_container;
     };
 
-
     this.setUserInfo = function(obj){
       if (obj){
         window.localStorage.setItem("userInfo", JSON.stringify(obj));
@@ -2337,12 +2336,13 @@ var app = {
   LS_clean: function(callback){
     app.stopCheckInterval();
     app.setToken(false);
+    app.setPushID(false);
+    app.setUserInfo(false);
     app.coordinates = [];
     app.setSitesToInspect([]);
     app.setJobInspectionContainer(false);
     app.autoconnect_flag = false;
     app.cancell_inspection(false);
-
     app.mySites(false);
     app.supplyOrdersTemplate(false);
     app.mySupplyOrdersDrafts(false);
@@ -2354,6 +2354,9 @@ var app = {
     app.ids_mutation(false);
     app.supplierMainPageHelper(false);
     app.nearestLocationsFilter(false);
+    app.sitesFilters(false);
+
+//    savedCheckList ?
 
     if (typeof callback == "function"){
       callback();
