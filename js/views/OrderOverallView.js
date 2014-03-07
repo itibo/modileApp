@@ -170,7 +170,9 @@ var OrderOverallView = function(order_id){
                       submitted_item = {},
                       mutation = app.ids_mutation();
 
-                  self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+                  self.activeOrder.upd.updated_at_utc = (new Date(app.last_sync_date()) > new Date())
+                      ? new Date(app.last_sync_date()).toJSON().replace(/\.\d{3}Z$/,'Z')
+                      : (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
                   // новый черновик, не присутствующий в ЛС, добавляем его туда
                   if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
