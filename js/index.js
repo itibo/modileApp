@@ -613,6 +613,7 @@ var app = {
   },
 
   checkTic: function() {
+//    console.log("checkTic invoked!");
 //    alert("checkTic invoked!");
     if (navigator.geolocation){
       navigator.geolocation.getCurrentPosition(
@@ -1132,6 +1133,8 @@ var app = {
 
   //TODO: refactor, refactor and refactor again
   check: function(use_geofence, callback){
+//    console.log("check invoked!");
+//    alert("check invoked with use_geofence: " + use_geofence);
     use_geofence = use_geofence || false;
     var token = app.token();
 
@@ -1266,6 +1269,7 @@ var app = {
                 function(){}
             );
           } else if ( 0 == coordinates.length && (1 == inspection_status || "submitting" == insp_cont.status)) {
+//          alert("coordinates empty, insp_status: " + inspection_status + " cont_stattus: " + insp_cont.status);
             navigator.geolocation.getCurrentPosition(
                 function(position){
                   app.lastLocation = {
@@ -1467,6 +1471,10 @@ var app = {
       sync_process_execution_flag: app.sync_process_execution_flag.checkBusy(),
       last_sync_date: app.last_sync_date(),
       ids_mutation: app.ids_mutation(),
+      jobInspectionContainer: {
+        allowToSubmit: app.allowToSubmit,
+        jobInspectionContainer: app.getJobInspectionContainer()
+      },
       activeOrder: app.activeOrder(),
       mySupplyOrdersDrafts: app.mySupplyOrdersDrafts(),
       myFutureOrders: app.myFutureOrders(),
