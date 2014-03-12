@@ -517,14 +517,14 @@ var app = {
     });
   },
 
-  pushRegister: function(callback){
-    alert("push register invoked");
+  pushRegister: function(){
     var pushNotification;
     var successHandler = function (result) {
-      if (undefined !== callback)
-        callback();
+      alert("pushRegister success: " + JSON.stringify(result));
     };
-    var errorHandler = function(error) {};
+    var errorHandler = function(error) {
+      alert("pushRegister error: " + JSON.stringify(error));
+    };
     try
     {
       pushNotification = window.plugins.pushNotification;
@@ -2320,12 +2320,7 @@ var app = {
     };
 
     $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
-      alert("app.getPushID(): " + app.getPushID());
-      if (!app.getPushID()){
-        app.pushRegister(success_getting_position(obj2.position));
-      } else {
-        success_getting_position(obj2.position);
-      }
+      success_getting_position(obj2.position);
     }).fail(function(err_obj){
       var msg = (function(){
         var message = "";
@@ -2354,7 +2349,7 @@ var app = {
   LS_clean: function(callback){
     app.stopCheckInterval();
     app.setToken(false);
-    app.setPushID(false);
+//    app.setPushID(false);
     app.setUserInfo(false);
     app.coordinates = [];
     app.setSitesToInspect([]);
