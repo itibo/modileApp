@@ -539,7 +539,6 @@ var app = {
       } else {
         pushNotification.register(
           function(result){
-            successHandler();
             app.setPushID(result);
           },
           errorHandler,

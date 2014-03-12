@@ -24,7 +24,8 @@
   <!--<icon src="res/icon/android/icon-72-hdpi.png" width="72" height="72" />-->
   <!--<icon src="res/icon/android/icon-96-xhdpi.png" width="96" height="96" />-->
 
-  <cdv:plugin name="GenericPush" /> <!-- latest release -->
+  <!--<cdv:plugin name="GenericPush" /> &lt;!&ndash; latest release &ndash;&gt;-->
+  <cdv:plugin name="PushPlugin" /> <!-- latest release -->
 
   <access origin="*" />
   <preference name="fullscreen" value="false" />
