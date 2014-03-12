@@ -477,6 +477,8 @@ var app = {
     document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
     document.addEventListener('menubutton', $.proxy(this.menuButton, self), false);
 
+//    alert("self.getPushID(): " + self.getPushID() );
+
     if (!self.getPushID()){
       self.pushRegister();
     }
@@ -519,12 +521,8 @@ var app = {
 
   pushRegister: function(){
     var pushNotification;
-    var successHandler = function (result) {
-      alert("pushRegister success: " + JSON.stringify(result));
-    };
-    var errorHandler = function(error) {
-      alert("pushRegister error: " + JSON.stringify(error));
-    };
+    var successHandler = function (result) {};
+    var errorHandler = function(error) {};
     try
     {
       pushNotification = window.plugins.pushNotification;
