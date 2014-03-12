@@ -517,9 +517,13 @@ var app = {
     });
   },
 
-  pushRegister: function(){
+  pushRegister: function(callback){
+    alert("push register invoked");
     var pushNotification;
-    var successHandler = function (result) {};
+    var successHandler = function (result) {
+      if (undefined !== callback)
+        callback();
+    };
     var errorHandler = function(error) {};
     try
     {
@@ -535,6 +539,7 @@ var app = {
       } else {
         pushNotification.register(
           function(result){
+            successHandler();
             app.setPushID(result);
           },
           errorHandler,
@@ -2315,7 +2320,12 @@ var app = {
     };
 
     $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
-      success_getting_position(obj2.position);
+      alert("app.getPushID(): " + app.getPushID());
+      if (!app.getPushID()){
+        app.pushRegister(success_getting_position(obj2.position));
+      } else {
+        success_getting_position(obj2.position);
+      }
     }).fail(function(err_obj){
       var msg = (function(){
         var message = "";
