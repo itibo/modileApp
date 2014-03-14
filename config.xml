@@ -25,7 +25,8 @@
   <!--<icon src="res/icon/android/icon-96-xhdpi.png" width="96" height="96" />-->
 
   <cdv:plugin name="GenericPush" /> <!-- latest release -->
-  <cdv:plugin name="org.apache.cordova.device" />
+  <cdv:plugin name="Device" value="org.apache.cordova.core.Device"/>
+
   <cdv:plugin name="org.apache.cordova.console" />
   <cdv:plugin name="org.apache.cordova.geolocation" />
   <cdv:plugin name="org.apache.cordova.dialogs" />
