@@ -477,8 +477,6 @@ var app = {
     document.addEventListener('backbutton', $.proxy(this.backButton, self), false);
     document.addEventListener('menubutton', $.proxy(this.menuButton, self), false);
 
-//    alert("self.getPushID(): " + self.getPushID() );
-
     if (!self.getPushID()){
       self.pushRegister();
     }
@@ -2346,7 +2344,7 @@ var app = {
   LS_clean: function(callback){
     app.stopCheckInterval();
     app.setToken(false);
-//    app.setPushID(false);
+    app.setPushID(false);
     app.setUserInfo(false);
     app.coordinates = [];
     app.setSitesToInspect([]);
