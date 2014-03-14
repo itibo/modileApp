@@ -11,7 +11,6 @@
   </author>
 
   <!--<preference name="phonegap-version" value="2.9.0" />-->
-  <preference name="phonegap-version" value="3.4.0" /> 
 
   <!-- alpha icons-->
   <icon src="res/alpha_icon/android/icon-36-ldpi.png" width="36" height="36" />
@@ -26,7 +25,8 @@
   <!--<icon src="res/icon/android/icon-96-xhdpi.png" width="96" height="96" />-->
 
   <gap:plugin name="GenericPush" /> <!-- latest release -->
-  <gap:plugin name="Device" value="org.apache.cordova.core.Device"/>
+  <gap:plugin name="org.apache.cordova.core.device"/>
+  <gap:plugin name="org.apache.cordova.core.geolocation" />
   <!--
   <gap:plugin name="org.apache.cordova.console" />
   <gap:plugin name="org.apache.cordova.geolocation" />
