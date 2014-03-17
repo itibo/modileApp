@@ -10,7 +10,7 @@ var app = {
 
     // как часто в милисекундах проверять геопозицию
     this.watchPositionTimeout = 300000;
-    this.senderIDforPushMsg = "216199045656";
+    this.senderIDforPushMsg = "324530090267";
     this.current_page = "";
     this.check_interval_flag = void 0;
     this.autoconnect_flag = false;
