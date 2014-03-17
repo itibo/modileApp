@@ -26,6 +26,7 @@
 
   <!--<gap:plugin name="GenericPush" /> <!-- latest release -->
   <gap:plugin name="org.apache.cordova.core.device"/>
+  <gap:plugin name="org.apache.cordova.core.geolocation" />
   <!--
   <cdv:plugin name="org.apache.cordova.core.geolocation" />
   <gap:plugin name="org.apache.cordova.console" />
