@@ -322,7 +322,7 @@ var app = {
     /* ------------------------- */
 
     this.online_flag = function(){
-      return !(navigator.connection.type == Connection.NONE);
+      return !(navigator.connection.type == navigator.connection.NONE || navigator.connection.type == navigator.connection.UNKNOWN);
     };
 
     this.cancell_inspection = function(data){
@@ -518,6 +518,7 @@ var app = {
   },
 
   pushRegister: function(){
+  console.log("pushRegister invoked!");
     var pushNotification;
     var successHandler = function (result) {};
     var errorHandler = function(error) {};
@@ -694,7 +695,7 @@ var app = {
             app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
             //do nothing
           },
-          { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
+          { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
       );
     } else {
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
@@ -1128,7 +1129,7 @@ var app = {
       });
     }, function(error){
       sync_process();
-    }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+    }, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
   },
 
   //TODO: refactor, refactor and refactor again
@@ -1313,7 +1314,7 @@ var app = {
                 function(error){
                   // do nothing
                 },
-                {timeout:30000, maximumAge: 0, enableHighAccuracy: true}
+                {timeout:30000, maximumAge: 0, enableHighAccuracy: false}
             );
           }
         }
@@ -1365,7 +1366,7 @@ var app = {
                 error: error
               });
             },
-            { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
+            { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
         );
       } else {
         $deferred.reject({
@@ -1690,7 +1691,7 @@ var app = {
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1812,7 +1813,7 @@ var app = {
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1919,7 +1920,7 @@ var app = {
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){
@@ -1993,7 +1994,7 @@ var app = {
           }]);
         }, function(error){
           ajax_call.call(self, null);
-        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: true});
+        }, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
       }).fail(function(obj){
         app.internet_gps_error(obj);
         if ($("#overlay").is(':visible')){

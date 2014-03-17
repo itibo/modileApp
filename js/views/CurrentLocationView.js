@@ -49,7 +49,7 @@ var CurrentLocationView = function(){
               self.updateGPSsection({});
               self.updateMapsection({});
             },
-            { maximumAge: 0, timeout: 60000, enableHighAccuracy: true }
+            { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
         );
       } else {
         self.currentLocation = {};
