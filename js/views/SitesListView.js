@@ -86,7 +86,7 @@ var SitesListView = function(data) {
         var out = "";
         for(var i=0, l=sites_arr.length; i<l; i++) {
           out = out + "<li class=\"inspectable\">" +
-              "<a href=\"#siteinfo:"+sites_arr[i].site_id +"\">" +
+/*              "<a href=\"#siteinfo:"+sites_arr[i].site_id +"\">" +
                   "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\"/>" +
                   "<div class=\"points\">" +
                     sites_arr[i].site +"<br />" +
@@ -94,8 +94,21 @@ var SitesListView = function(data) {
                     "<span class=\"time\">Client: "+ sites_arr[i].client +" / "+ sites_arr[i].client_group +"</span>" +
                     "<div class=\"box_rightcnt view_details\"><button>details</button></div>" +
                   "</div>" +
-              "</a>"+
-            "</li>";
+              "</a>"+*/
+
+            "<div class=\"points\">" +
+              sites_arr[i].site +"<br />" +
+              "<span class=\"address\">"+ sites_arr[i].address +"</span><br />" +
+              "<span class=\"time\">Client: "+ sites_arr[i].client +" / "+ sites_arr[i].client_group +"</span>" +
+            "</div>" +
+            "<div class=\"box_rightcnt bottom\">" +
+              "<button class=\"show_details\" data-siteid=\""+sites_arr[i].site_id+"\">Site Details</button>" +
+              "<a class=\"button\" data-role=\"button\" href=\"geo:"+
+                app.lastLocation.lat +","+app.lastLocation.lng+"?q="+sites_arr[i].circle_latitude+","+sites_arr[i].circle_longitude+
+                "\">See Route</a>" +
+            "</div>" +
+            "<div style=\"clear:both;\"></div>" +
+          "</li>";
         }
         out = out + "</ul>";
 
@@ -108,6 +121,13 @@ var SitesListView = function(data) {
         });
       }
     });
+
+    this.el.on('click', '.show_details', function(event){
+      app.route({
+        toPage: window.location.href + "#siteinfo:" + $(event.currentTarget).attr("data-siteid")
+      });
+    });
+
   };
   this.initialize();
 
@@ -181,7 +201,7 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
     out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\" id=\"sites_content\">";
     $.each(sites_to_display, function(i,v){
       out = out + "<li class=\"inspectable\">" +
-        "<a href=\"#siteinfo:"+v.site_id +"\">" +
+/*        "<a href=\"#siteinfo:"+v.site_id +"\">" +
         "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\"/>" +
         "<div class=\"points\">" +
           v.site +"<br />" +
@@ -189,7 +209,19 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
           "<span class=\"time\">Client: "+ v.client +" / "+ v.client_group +"</span>" +
           "<div class=\"box_rightcnt view_details\"><button>details</button></div>" +
         "</div>" +
-       "</a>"+
+       "</a>"+*/
+        "<div class=\"points\">" +
+          v.site +"<br />" +
+          "<span class=\"address\">"+ v.address +"</span><br />" +
+          "<span class=\"time\">Client: "+ v.client +" / "+ v.client_group +"</span>" +
+        "</div>" +
+        "<div class=\"box_rightcnt bottom\">" +
+          "<button class=\"show_details\" data-siteid=\""+v.site_id+"\">Site Details</button>" +
+          "<a class=\"button\" data-role=\"button\" href=\"geo:"+
+            app.lastLocation.lat +","+app.lastLocation.lng+"?q="+v.circle_latitude+","+v.circle_longitude+
+            "\">See Route</a>" +
+        "</div>" +
+        "<div style=\"clear:both;\"></div>" +
      "</li>";
     });
   } else {

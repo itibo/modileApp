@@ -114,12 +114,6 @@ var NearestLocationsView = function() {
       });
     });
 
-    this.el.on('click', '.route', function(event){
-      app.route({
-        toPage: window.location.href + "#siteinfo:" + $(event.currentTarget).attr("data-siteid") + "-nearest_locations"
-      });
-    });
-
   };
   this.initialize();
 }
