@@ -13,6 +13,7 @@ var app = {
     this.senderIDforPushMsg = "324530090267";
     this.current_page = "";
     this.check_interval_flag = void 0;
+    this.collect_gps_interval_flag = void 0;
     this.autoconnect_flag = false;
     this.application_version = "0.4.5";
     this.application_build = "ALPHA";
@@ -615,7 +616,7 @@ var app = {
   checkTic: function() {
 //    console.log("checkTic invoked!");
 //    alert("checkTic invoked!");
-    if (navigator.geolocation){
+/*    if (navigator.geolocation){
       navigator.geolocation.getCurrentPosition(
           function(position){
             if (app.token()){
@@ -696,15 +697,104 @@ var app = {
           },
           { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
       );
+    }*/
+    if (app.coordinates.length > 0){
+      app.check();
     } else {
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
     app.sync();
   },
 
+  collectGeoPositions: function(){
+    if (navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+          function(position){
+            if (app.token()){
+              var job_inspect_container = app.getJobInspectionContainer();
+              if ("submitting" == job_inspect_container.status &&
+                  ("undefined" == typeof job_inspect_container.submitting_position || job_inspect_container.submitting_position.length == 0) )
+              {
+                job_inspect_container = app.setJobInspectionContainer($.extend(job_inspect_container,
+                    {
+                      submitting_position: [{
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        acc: position.coords.accuracy,
+                        time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
+                        timestamp: position.timestamp,
+                        application_status: app.getCheckStatus(),
+                        site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
+                        job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
+                      }]
+                    }
+                ));
+              }
+
+              if (!$.isEmptyObject(app.lastLocation)) {
+                var R = 6371; // km
+                var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
+                var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
+                var lat1 = app.lastLocation.lat.toRad();
+                var lat2 = position.coords.latitude.toRad();
+                var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                var d = R * c;
+                if (d > 0.03){
+                  app.coordinates.push({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                    acc: position.coords.accuracy,
+                    time: (new Date()).toUTCString(),
+                    timestamp: position.timestamp,
+                    application_status: app.getCheckStatus(),
+                    site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
+                    job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
+                  });
+                }
+              } else {
+                app.coordinates.push({
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude,
+                  acc: position.coords.accuracy,
+                  time: (new Date()).toUTCString(),
+                  timestamp: position.timestamp,
+                  application_status: app.getCheckStatus(),
+                  site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
+                  job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
+                });
+              }
+            } else {
+              app.coordinates = [{
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                acc: position.coords.accuracy,
+                time: (new Date()).toUTCString(),
+                timestamp: position.timestamp,
+                application_status: app.getCheckStatus()
+              }];
+            }
+            app.lastLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+              acc: position.coords.accuracy,
+              timestamp: position.timestamp
+            };
+          },
+          function(error){
+            //do nothing
+          },
+          { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
+      );
+    }
+    setTimeout(app.collectGeoPositions, 60000);
+  },
+
   stopCheckInterval: function(){
     clearTimeout(app.check_interval_flag);
     app.check_interval_flag = void 0;
+    clearTimeout(app.collect_gps_interval_flag);
+    app.collect_gps_interval_flag = void 0;
     navigator.geolocation.clearWatch(app.watch_position_ID);
     app.watch_position_ID = void 0;
   },
@@ -718,6 +808,7 @@ var app = {
           app.check();
         app.sync();
       }, 1000);
+      app.collect_gps_interval_flag = setTimeout(app.collectGeoPositions, 60000);
       app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
       navigator.geolocation.clearWatch(app.watch_position_ID);
       app.watch_position_ID = void 0;
