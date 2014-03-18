@@ -731,11 +731,12 @@ var app = {
                 ));
               }
 
-              if (!$.isEmptyObject(app.lastLocation)) {
+//              if (!$.isEmptyObject(app.lastLocation)) {
+              if (app.coordinates.length > 0 ) {
                 var R = 6371; // km
-                var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
-                var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
-                var lat1 = app.lastLocation.lat.toRad();
+                var dLat = (position.coords.latitude - app.coordinates[app.coordinates.length - 1].lat).toRad();
+                var dLon = (position.coords.longitude - app.coordinates[app.coordinates.length - 1].lng).toRad();
+                var lat1 = app.coordinates[app.coordinates.length - 1].lat.toRad();
                 var lat2 = position.coords.latitude.toRad();
                 var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
                 var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
