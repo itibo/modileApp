@@ -312,7 +312,7 @@ var OrderOverallView = function(order_id){
                 }
               },
               "Supply Order",
-              'Cancel,Submit'
+              ['Cancel','Submit']
           );
         }
 
@@ -432,7 +432,7 @@ var OrderOverallView = function(order_id){
             }
           },
           "Supply Order",
-          'Cancel,Save'
+          ['Cancel','Save']
       );
 
     });
@@ -576,9 +576,8 @@ var OrderOverallView = function(order_id){
             }
           },
           "Future Order",
-          'Cancel,Save'
+          ['Cancel','Save']
       );
-
     });
 
 

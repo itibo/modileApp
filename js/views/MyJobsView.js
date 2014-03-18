@@ -27,7 +27,7 @@ var MyJobsView = function() {
         }
       },
       'Inspection',
-      'Cancel,Yes'
+      ['Cancel','Yes']
     );
   };
 

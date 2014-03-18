@@ -643,7 +643,7 @@ var OrderView = function(order_id){
             }
           },
           "Supply Order",
-          'Cancel,Save'
+          ['Cancel','Save']
       );
 
     });

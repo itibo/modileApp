@@ -1,5 +1,6 @@
 var InspectionView = function(data) {
   this.data = data || [];
+  this.comment_maxlength = 2000;
 
   this.render = function() {
     var self = this;
@@ -39,7 +40,8 @@ var InspectionView = function(data) {
     context = $.extend(context, {
       controls: {
         checkList: populated_data,
-        commentVal: (job_inspect_container.comment) ? job_inspect_container.comment : ""
+        commentVal: (job_inspect_container.comment) ? job_inspect_container.comment : "",
+        comment_maxlength: self.comment_maxlength
       },
       site: site
     });
@@ -61,45 +63,56 @@ var InspectionView = function(data) {
         })();
 
     if (allow_to_submit){
-      navigator.notification.confirm('Do you want to submit the inspection?',
-        function(buttonIndex){
-          if(2 == buttonIndex){
-            var submit_data = app.getJobInspectionContainer();
-            submit_data = app.setJobInspectionContainer($.extend(submit_data, {status: "pre_submitting"}));
+      var submit_data = app.getJobInspectionContainer();
+      if (submit_data.comment > self.comment_maxlength){
+        navigator.notification.alert(
+            "Comment is too large. Please correct it.",         // message
+            function(){                       //callback
+              // do nothing
+            },
+            "Inspection submission",          // title
+            'Ok'                              // buttonName
+        );
+      } else {
+        navigator.notification.confirm('Do you want to submit the inspection?',
+            function(buttonIndex){
+              if(2 == buttonIndex){
+                submit_data = app.setJobInspectionContainer($.extend(submit_data, {status: "pre_submitting"}));
 
-            var get_position_arr = function(pos){
-              return [{
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude,
-                acc: pos.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                timestamp: pos.timestamp,
-                job_id: submit_data.job_id,
-                site_id: submit_data.site_id
-              }];
-            };
+                var get_position_arr = function(pos){
+                  return [{
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    acc: pos.coords.accuracy,
+                    time: (new Date()).toUTCString(),
+                    timestamp: pos.timestamp,
+                    job_id: submit_data.job_id,
+                    site_id: submit_data.site_id
+                  }];
+                };
 
-            var position_callback = function(arg){
-              submit_data.status = "submitting";
-              submit_data.completed_at = (submit_data.completed_at)? submit_data.completed_at: (new Date()).toUTCString();
-              if ( "undefined" == typeof arg.code ){
-                submit_data.submitting_position = get_position_arr(arg);
+                var position_callback = function(arg){
+                  submit_data.status = "submitting";
+                  submit_data.completed_at = (submit_data.completed_at)? submit_data.completed_at: (new Date()).toUTCString();
+                  if ( "undefined" == typeof arg.code ){
+                    submit_data.submitting_position = get_position_arr(arg);
+                  }
+                  submit_data = app.setJobInspectionContainer(submit_data);
+                  setTimeout(app.check, 1000);
+                };
+
+                setTimeout(function(){
+                  navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
+                  app.route({
+                    toPage: window.location.href + "#welcome"
+                  });
+                }, 0);
               }
-              submit_data = app.setJobInspectionContainer(submit_data);
-              setTimeout(app.check, 1000);
-            };
-
-            setTimeout(function(){
-              navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
-              app.route({
-                toPage: window.location.href + "#welcome"
-              });
-            }, 0);
-          }
-        },
-        'Inspection submission',
-        'No,Yes'
-      );
+            },
+            'Inspection submission',
+            ['No','Yes']
+        );
+      }
     } else {
       navigator.notification.alert(
         "The inspection is not completed. Please set rate on all items.",         // message
@@ -124,7 +137,7 @@ var InspectionView = function(data) {
         }
       },
       "Inspection cancelling",
-      'No,Yes'
+      ['No','Yes']
     );
   };
 
@@ -206,6 +219,16 @@ var InspectionView = function(data) {
       app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {comment: $(event.currentTarget).val()}));
     });
 
+    this.el.on('input propertychange', 'textarea#comment', function(event){
+      event.preventDefault();
+      $(".characterscountdown>span", $(event.delegateTarget)).html($(event.currentTarget).val().length);
+      if ($(event.currentTarget).val().length > self.comment_maxlength){
+        $(".characterscountdown>span", $(event.delegateTarget)).addClass("error");
+      } else {
+        $(".characterscountdown>span", $(event.delegateTarget)).removeClass("error");
+      }
+    });
+
     this.el.on('click', '.pop_up .popup_content a, .pop_up a.clear', function(event){
       event.preventDefault();
       if (!$(event.currentTarget).hasClass('disabled')){
@@ -250,8 +273,10 @@ var InspectionView = function(data) {
 
 Handlebars.registerHelper('checkListContent', function(container){
   var out = "";
-  var _items = container.checkList;
-  var comment = container.commentVal;
+  var _items = container.checkList,
+      comment = container.commentVal,
+      comment_maxlength = container.comment_maxlength || 2000;
+
   for(var i=0, l=_items.length; i<l; i++) {
     var devider = _items[i];
     //begin of section
@@ -275,6 +300,7 @@ Handlebars.registerHelper('checkListContent', function(container){
         "<h3>Notes <br /><font>(optional):</font></h3>" +
         "<div class=\"block-textarea\">" +
           "<textarea id=\"comment\" name=\"comment\">" + comment + "</textarea>" +
+          "<div class=\"characterscountdown\"><span>"+ comment.length +"</span> of "+ comment_maxlength +"</div>" +
         "</div>" +
         "<div class=\"block-submit\">" +
           "<input type=\"submit\" value=\"Submit\" />"+

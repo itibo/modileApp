@@ -1760,3 +1760,11 @@ body div[data-role=page] > div.curr_loc .main div.gmaps > div div#map_canvas {
     display: table-row;
     height: 100%;
 }
+
+.block-textarea .characterscountdown {
+    text-align: right;
+}
+
+.characterscountdown .error{
+    color: red;
+}

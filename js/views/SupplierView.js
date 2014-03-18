@@ -250,7 +250,7 @@ var SupplierView = function(){
             }
           },
           (("future" === order_type) ? "Future Orders" : "Drafts"),
-          'Cancel,Remove'
+          ['Cancel','Remove']
       );
     });
 

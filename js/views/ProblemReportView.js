@@ -30,7 +30,7 @@ var ProblemReportView = function(){
             }
           },
           "Send Report",
-          'Cancel,Send'
+          ['Cancel','Send']
       );
 
     });
