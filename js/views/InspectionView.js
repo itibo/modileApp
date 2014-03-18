@@ -64,7 +64,7 @@ var InspectionView = function(data) {
 
     if (allow_to_submit){
       var submit_data = app.getJobInspectionContainer();
-      if (submit_data.comment > self.comment_maxlength){
+      if (submit_data.comment.length > self.comment_maxlength){
         navigator.notification.alert(
             "Comment is too large. Please correct it.",         // message
             function(){                       //callback
