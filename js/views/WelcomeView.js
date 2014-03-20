@@ -31,7 +31,8 @@ var WelcomeView = function() {
       app.showConfirm('Close', 'Do you want to quit? ',
         function(buttonIndex){
           if(2 == buttonIndex){
-            app.stopCheckInterval();
+            app.stopCollectGeoPosition();
+            app.stopServerCommunication();
             navigator.app.exitApp();
           }
         }
