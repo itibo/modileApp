@@ -30,11 +30,8 @@ var WelcomeView = function() {
       event.preventDefault();
       app.showConfirm('Close', 'Do you want to quit? ',
         function(buttonIndex){
-          if(2 == buttonIndex){
-            app.stopCollectGeoPosition();
-            app.stopServerCommunication();
-            navigator.app.exitApp();
-          }
+          if(2 == buttonIndex)
+            app.closeApp();
         }
       );
     });

@@ -77,7 +77,10 @@ var InspectionView = function(data) {
         navigator.notification.confirm('Do you want to submit the inspection?',
             function(buttonIndex){
               if(2 == buttonIndex){
-                submit_data = app.setJobInspectionContainer($.extend(submit_data, {status: "pre_submitting"}));
+                submit_data = app.setJobInspectionContainer($.extend(submit_data, {
+                  status: "pre_submitting",
+                  completed_at: (new Date()).toUTCString()
+                }));
 
                 var get_position_arr = function(pos){
                   return [{
@@ -93,7 +96,6 @@ var InspectionView = function(data) {
 
                 var position_callback = function(arg){
                   submit_data.status = "submitting";
-                  submit_data.completed_at = (submit_data.completed_at)? submit_data.completed_at: (new Date()).toUTCString();
                   if ( "undefined" == typeof arg.code ){
                     submit_data.submitting_position = get_position_arr(arg);
                   }

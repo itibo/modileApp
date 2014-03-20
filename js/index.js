@@ -71,7 +71,7 @@ var app = {
         return 1;
       } else if (app.cancell_inspection()){
         return 2;
-      } else if ( $.inArray(app.getJobInspectionContainer().status, ["pending", "pre_submitting"]) > -1 ){
+      } else if ( $.inArray(app.getJobInspectionContainer().status, ["pending"]) > -1 ){
         return 3;
       } else {
         return 0;
@@ -309,8 +309,12 @@ var app = {
                     time: (new Date()).toUTCString(),
                     timestamp: position.timestamp,
                     application_status: app.getCheckStatus(),
-                    site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
-                    job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
+                    site_id: (job_inspect_container.site_id && !(/submitting$/.test(job_inspect_container.status)))
+                        ? (job_inspect_container.site_id)
+                        : null,
+                    job_id: (job_inspect_container.job_id && !(/submitting$/.test(job_inspect_container.status)))
+                        ? (job_inspect_container.job_id)
+                        : null
                   });
                 }
               } else {
@@ -321,8 +325,12 @@ var app = {
                   time: (new Date()).toUTCString(),
                   timestamp: position.timestamp,
                   application_status: app.getCheckStatus(),
-                  site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
-                  job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
+                  site_id: (job_inspect_container.site_id && !(/submitting$/.test(job_inspect_container.status)))
+                      ? (job_inspect_container.site_id)
+                      : null,
+                  job_id: (job_inspect_container.job_id && !(/submitting$/.test(job_inspect_container.status)))
+                      ? (job_inspect_container.job_id)
+                      : null
                 });
               }
             } else {
@@ -806,7 +814,11 @@ var app = {
       position = position || false;
       var inspection_container = app.getJobInspectionContainer();
       var pos = (inspection_container.submitting_position) ? inspection_container.submitting_position : position;
-      if (app.allowToSubmit && "submitting" == inspection_container.status && pos){
+      if (app.allowToSubmit
+          && ("submitting" == inspection_container.status
+            || ( "pre_submitting" == inspection_container.status
+              && (new Date() - new Date(inspection_container.completed_at))/60000 > 10 ))
+          && pos){
         app.submitInspection(function(){}, function(error){}, pos);
       }
     };
@@ -1942,7 +1954,6 @@ var app = {
           app.setToken(data.token);
           app.setUserInfo(data.user);
           app.cancell_inspection(false);
-          app.setJobInspectionContainer(false);
 
           app.startCollectGeoPosition();
           app.startServerCommunication();
@@ -2053,6 +2064,12 @@ var app = {
       default:
         break;
     }
+  },
+
+  closeApp: function(){
+    app.stopCollectGeoPosition();
+    app.stopServerCommunication();
+    navigator.app.exitApp();
   },
 
   backButton: function(){
@@ -2177,11 +2194,8 @@ var app = {
         case '#login' == app.current_page:
           app.showConfirm('Close', 'Do you want to quit? ',
               function(buttonIndex){
-                if(2 == buttonIndex){
-                  app.stopCollectGeoPosition();
-                  app.stopServerCommunication();
-                  navigator.app.exitApp();
-                }
+                if(2 == buttonIndex)
+                  app.closeApp();
               }
           );
           break;
