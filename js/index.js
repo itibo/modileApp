@@ -13,16 +13,17 @@ var app = {
     this.collectGeoCoordinatesTimeout = 60000;
     this.senderIDforPushMsg = "324530090267";
     this.current_page = "";
-    this.check_interval_flag = void 0;
+
+    this.server_communicate_interval_flag = void 0;
     this.collect_gps_interval_flag = void 0;
+
     this.autoconnect_flag = false;
     this.application_version = "0.4.5";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
     this.allowToSubmit = true;
-    // allow to send check
-    this.allowToCheck = true;
+
     // last location object
     this.lastLocation = {};
 
@@ -89,6 +90,8 @@ var app = {
     document.addEventListener('deviceready', $.proxy(this.onDeviceReady, self), false);
     document.addEventListener("online", $.proxy(this.onOnline, self), false);
     document.addEventListener("offline", $.proxy(this.onOffline, self), false);
+    document.addEventListener("pause", $.proxy(this.onPause, self), false);
+    document.addEventListener("resume", $.proxy(this.onResume, self), false);
   },
 
   // deviceready Event Handler
@@ -105,9 +108,9 @@ var app = {
 
     if(self.token()){
       self.autoconnect_flag = true;
-//      self.updatePosition();
-//      self.check();
-      self.startCheckInterval();
+
+      self.startCollectGeoPosition();
+      self.startServerCommunication();
     }
 
     app.sync_process_execution_flag.setFlag(false);
@@ -137,6 +140,24 @@ var app = {
           ["Cancel","Confirm"]
       );
     });
+  },
+
+  onOnline: function(){
+//    alert("onOnline");
+    app.startServerCommunication();
+  },
+
+  onOffline: function(){
+//    alert("onOffline");
+    app.stopServerCommunication();
+  },
+
+  onPause: function(){
+//    alert("onPause");
+  },
+
+  onResume: function(){
+//    alert("onResume");
   },
 
   pushRegister: function(){
@@ -235,95 +256,10 @@ var app = {
   },
 
   checkTic: function() {
-//    console.log("checkTic invoked!");
-/*    if (navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(
-          function(position){
-            if (app.token()){
-              var job_inspect_container = app.getJobInspectionContainer();
-              if ("submitting" == job_inspect_container.status &&
-                  ("undefined" == typeof job_inspect_container.submitting_position || job_inspect_container.submitting_position.length == 0) )
-              {
-                job_inspect_container = app.setJobInspectionContainer($.extend(job_inspect_container,
-                    {
-                      submitting_position: [{
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        acc: position.coords.accuracy,
-                        time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
-                        timestamp: position.timestamp,
-                        application_status: app.getCheckStatus(),
-                        site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
-                        job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
-                      }]
-                    }
-                ));
-              }
-              if (!$.isEmptyObject(app.lastLocation)) {
-                var R = 6371; // km
-                var dLat = (position.coords.latitude - app.lastLocation.lat).toRad();
-                var dLon = (position.coords.longitude - app.lastLocation.lng).toRad();
-                var lat1 = app.lastLocation.lat.toRad();
-                var lat2 = position.coords.latitude.toRad();
-                var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
-                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                var d = R * c;
-                if (d > 0.05){
-                  app.coordinates.push({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                    acc: position.coords.accuracy,
-                    time: (new Date()).toUTCString(),
-                    timestamp: position.timestamp,
-                    application_status: app.getCheckStatus(),
-                    site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
-                    job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
-                  });
-                }
-              } else {
-                app.coordinates.push({
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude,
-                  acc: position.coords.accuracy,
-                  time: (new Date()).toUTCString(),
-                  timestamp: position.timestamp,
-                  application_status: app.getCheckStatus(),
-                  site_id: (job_inspect_container.site_id && "submitting" != job_inspect_container.status)? (job_inspect_container.site_id) : null,
-                  job_id: (job_inspect_container.job_id && "submitting" != job_inspect_container.status)? (job_inspect_container.job_id) : null
-                });
-              }
-              app.check();
-            } else {
-              app.coordinates = [{
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                acc: position.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                timestamp: position.timestamp,
-                application_status: app.getCheckStatus()
-              }];
-            }
-            app.lastLocation = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-              acc: position.coords.accuracy,
-              timestamp: position.timestamp
-            };
-            app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
-          },
-          function(error){
-            app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
-            //do nothing
-          },
-          { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
-      );
-    }*/
-    if (app.coordinates.length > 0){
 //console.log("   check invoked! app.coordinates.length: " + app.coordinates.length);
-      app.check();
-    }
+    app.check();
     app.sync();
-    app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
+    setTimeout(app.checkTic, app.watchPositionTimeout);
   },
 
   collectGeoPositions: function(){
@@ -415,31 +351,43 @@ var app = {
     setTimeout(app.collectGeoPositions, app.collectGeoCoordinatesTimeout);
   },
 
-  stopCheckInterval: function(){
-    clearTimeout(app.check_interval_flag);
-    app.check_interval_flag = void 0;
-    clearTimeout(app.collect_gps_interval_flag);
-    app.collect_gps_interval_flag = void 0;
-    navigator.geolocation.clearWatch(app.watch_position_ID);
-    app.watch_position_ID = void 0;
-  },
-
-  startCheckInterval: function(){
-//    alert("startCheckInterval invoked!");
-//    clearTimeout(app.check_interval_flag);
-    if(app.token() && undefined === app.check_interval_flag){
+  startServerCommunication: function(){
+    if(app.token() && undefined === app.server_communicate_interval_flag){
       setTimeout(function(){
         if (app.autoconnect_flag)
           app.check();
         app.sync();
       }, 1000);
-      app.collect_gps_interval_flag = setTimeout(app.collectGeoPositions, app.collectGeoCoordinatesTimeout);
-      app.check_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
-      navigator.geolocation.clearWatch(app.watch_position_ID);
-      app.watch_position_ID = void 0;
-      app.watch_position_ID = navigator.geolocation.watchPosition(function(){}, function(){}, {maximumAge: 0, enableHighAccuracy: true});
+
+      app.server_communicate_interval_flag = setTimeout(function(){
+        app.checkTic();
+      }, app.watchPositionTimeout);
     }
   },
+
+  stopServerCommunication: function(){
+    clearTimeout(app.server_communicate_interval_flag);
+    app.server_communicate_interval_flag = void 0;
+  },
+
+
+  startCollectGeoPosition: function(){
+    navigator.geolocation.clearWatch(app.watch_position_ID);
+    app.watch_position_ID = void 0;
+    if(app.token()){
+      app.watch_position_ID = navigator.geolocation.watchPosition(function(){}, function(){}, {maximumAge: 0, enableHighAccuracy: true});
+      app.collect_gps_interval_flag = setTimeout(app.collectGeoPositions, app.collectGeoCoordinatesTimeout);
+    }
+  },
+
+  stopCollectGeoPosition: function(){
+    clearTimeout(app.collect_gps_interval_flag);
+    app.collect_gps_interval_flag = void 0;
+
+    navigator.geolocation.clearWatch(app.watch_position_ID);
+    app.watch_position_ID = void 0;
+  },
+
 
   sync: function(){
 //    alert("sync invoked !" );
@@ -849,7 +797,7 @@ var app = {
 
   //TODO: refactor, refactor and refactor again
   check: function(use_geofence, callback){
-//    console.log("check invoked!");
+//    console.log("check invoked with app.online_flag: " + app.online_flag());
 //    alert("check invoked with use_geofence: " + use_geofence);
     use_geofence = use_geofence || false;
     var token = app.token();
@@ -858,7 +806,6 @@ var app = {
       position = position || false;
       var inspection_container = app.getJobInspectionContainer();
       var pos = (inspection_container.submitting_position) ? inspection_container.submitting_position : position;
-
       if (app.allowToSubmit && "submitting" == inspection_container.status && pos){
         app.submitInspection(function(){}, function(error){}, pos);
       }
@@ -867,6 +814,7 @@ var app = {
     if (token){
       if (app.online_flag()){
         var ajax_call = function(coord, success, error){
+
           $.ajax({
             type: "POST",
             url: app.site+'/mobile/check.json',
@@ -882,38 +830,20 @@ var app = {
             dataType: 'json',
             global: (typeof callback == "function")? true : false,
             timeout: 60000,
-            beforeSend: function(xhr, options){
-              if (!use_geofence){
-                if (!app.allowToCheck){
-                  xhr.abort();
-                  return false;
-                }
-                app.allowToCheck = false;
-              }
-            },
             success: function(data) {
               app.autoconnect_flag = false;
               app.cancell_inspection(false);
 
               if (success && "function" == typeof success){
-                success(data, function(){
-                  if (!use_geofence)
-                    app.allowToCheck = true;
-                });
+                success(data);
               }
               tryToSubmitInspection(coord);
-
-//              (new WelcomeView()).updateContent();
 
               if(typeof callback == "function"){
                 callback();
               }
             },
             error: function(e){
-
-              if (!use_geofence)
-                app.allowToCheck = true;
-
               if (e.status == 401){
                 navigator.notification.alert(
                     "Invalid authentication token. You need to log in before continuing.", // message
@@ -926,7 +856,7 @@ var app = {
                 );
               } else{
                 if (error && "function" == typeof error){
-                  error();
+                  error(e);
                 }
               }
             }
@@ -936,11 +866,8 @@ var app = {
           $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
 
             ajax_call(obj1.position,
-                function(data, clb){
+                function(data){
                   app.setSitesToInspect(data.jobs);
-                  if ("function" == typeof clb && clb){
-                    clb();
-                  }
                 },
                 function(){
                   app.route();
@@ -953,15 +880,16 @@ var app = {
             }
           });
         } else {
-          var coordinates = app.coordinates,
+          var coordinates = app.coordinates.slice(0),
               insp_cont = app.getJobInspectionContainer(),
               inspection_status = app.getCheckStatus();
 
+//console.log("coordinates to pass to server: " + JSON.stringify(coordinates));
+
           if (coordinates.length > 0){
             ajax_call(coordinates,
-                function(data, clb){
+                function(data){
                   app.coordinates = (app.coordinates).slice(coordinates.length);
-
                   var savedSitesToInspect = app.sitesToInspect();
                   $.each(data.jobs, function(ind,v){
                     var new_site = true;
@@ -978,11 +906,10 @@ var app = {
                       app.setSitesToInspect(v, "last");
                     }
                   });
-                  if ("function" == typeof clb && clb){
-                    clb();
-                  }
                 },
-                function(){}
+                function(error){
+//console.log("check ajax error: " + JSON.stringify(error));
+                }
             );
           } else if ( 0 == coordinates.length && (1 == inspection_status || "submitting" == insp_cont.status)) {
 //          alert("coordinates empty, insp_status: " + inspection_status + " cont_stattus: " + insp_cont.status);
@@ -1002,7 +929,7 @@ var app = {
                     application_status: inspection_status
                   }];
                   ajax_call(gps,
-                      function(data, clb){
+                      function(data){
                         var savedSitesToInspect = app.sitesToInspect();
                         $.each(data.jobs, function(ind,v){
                           var new_site = true;
@@ -1019,9 +946,6 @@ var app = {
                             app.setSitesToInspect(v, "last");
                           }
                         });
-                        if ("function" == typeof clb && clb){
-                          clb();
-                        }
                       },
                       function(){}
                   );
@@ -2019,8 +1943,10 @@ var app = {
           app.setUserInfo(data.user);
           app.cancell_inspection(false);
           app.setJobInspectionContainer(false);
-//          app.updatePosition();
-          app.startCheckInterval();
+
+          app.startCollectGeoPosition();
+          app.startServerCommunication();
+
           app.route();
           return false;
         },
@@ -2058,7 +1984,10 @@ var app = {
 
   // clean Local Storage
   LS_clean: function(callback){
-    app.stopCheckInterval();
+
+    app.stopCollectGeoPosition();
+    app.stopServerCommunication();
+
     app.setToken(false);
     app.setPushID(false);
     app.setUserInfo(false);
@@ -2249,7 +2178,8 @@ var app = {
           app.showConfirm('Close', 'Do you want to quit? ',
               function(buttonIndex){
                 if(2 == buttonIndex){
-                  app.stopCheckInterval();
+                  app.stopCollectGeoPosition();
+                  app.stopServerCommunication();
                   navigator.app.exitApp();
                 }
               }
@@ -2290,14 +2220,6 @@ var app = {
         title,       // title
         'Ok'         // buttonName
     );
-  },
-
-  onOnline: function(){
-    app.startCheckInterval();
-  },
-
-  onOffline: function(){
-    app.stopCheckInterval();
   },
 
   internet_gps_error: function(error, buttons_callback){

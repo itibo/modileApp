@@ -276,7 +276,8 @@ $.extend(app, {
     if (typeof i != "undefined"){
       var savetSitesToInspect = app.sitesToInspect();
       if ( "last" == i ){
-        data = savetSitesToInspect.push(data);
+        savetSitesToInspect.push(data);
+        data = savetSitesToInspect;
       } else {
         savetSitesToInspect[i] = data;
         data = savetSitesToInspect;
