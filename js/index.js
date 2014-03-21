@@ -256,7 +256,7 @@ var app = {
   },
 
   checkTic: function() {
-//console.log("   check invoked! app.coordinates.length: " + app.coordinates.length);
+//console.log("checkTic invoked!");
     app.check();
     app.sync();
     setTimeout(app.checkTic, app.watchPositionTimeout);
@@ -806,7 +806,7 @@ var app = {
   //TODO: refactor, refactor and refactor again
   check: function(use_geofence, callback){
 //    console.log("check invoked with app.online_flag: " + app.online_flag());
-//    alert("check invoked with use_geofence: " + use_geofence);
+//console.log("check invoked with use_geofence: " + use_geofence);
     use_geofence = use_geofence || false;
     var token = app.token();
 
@@ -897,32 +897,33 @@ var app = {
               inspection_status = app.getCheckStatus();
 
 //console.log("coordinates to pass to server: " + JSON.stringify(coordinates));
-
           if (coordinates.length > 0){
-            ajax_call(coordinates,
-                function(data){
-                  app.coordinates = (app.coordinates).slice(coordinates.length);
-                  var savedSitesToInspect = app.sitesToInspect();
-                  $.each(data.jobs, function(ind,v){
-                    var new_site = true;
-                    for(var i=0; i < savedSitesToInspect.length; i++) {
-                      if(v.site_id == savedSitesToInspect[i].site_id && v.job_id == savedSitesToInspect[i].job_id){
-                        new_site = false;
-                        if (v.last_inspection != savedSitesToInspect[i].last_inspection){
-                          app.setSitesToInspect(v, i);
+            (function(coordinates_arr){
+              ajax_call(coordinates_arr,
+                  function(data){
+//console.log("app.coordinates before check slice: " + JSON.stringify(app.coordinates));
+                    app.coordinates = (app.coordinates).slice(coordinates_arr.length);
+//console.log("app.coordinates after check slice: " + JSON.stringify(app.coordinates));
+                    var savedSitesToInspect = app.sitesToInspect();
+                    $.each(data.jobs, function(ind,v){
+                      var new_site = true;
+                      for(var i=0; i < savedSitesToInspect.length; i++) {
+                        if(v.site_id == savedSitesToInspect[i].site_id && v.job_id == savedSitesToInspect[i].job_id){
+                          new_site = false;
+                          if (v.last_inspection != savedSitesToInspect[i].last_inspection){
+                            app.setSitesToInspect(v, i);
+                          }
+                          break;
                         }
-                        break;
                       }
-                    }
-                    if (new_site){
-                      app.setSitesToInspect(v, "last");
-                    }
-                  });
-                },
-                function(error){
-//console.log("check ajax error: " + JSON.stringify(error));
-                }
-            );
+                      if (new_site){
+                        app.setSitesToInspect(v, "last");
+                      }
+                    });
+                  },
+                  function(error){}
+              );
+            })(coordinates);
           } else if ( 0 == coordinates.length && (1 == inspection_status || "submitting" == insp_cont.status)) {
 //          alert("coordinates empty, insp_status: " + inspection_status + " cont_stattus: " + insp_cont.status);
             navigator.geolocation.getCurrentPosition(
