@@ -28,12 +28,7 @@ var WelcomeView = function() {
 
     this.el.on('click', 'a[href="#close"]', function(event){
       event.preventDefault();
-      app.showConfirm('Close', 'Do you want to quit? ',
-        function(buttonIndex){
-          if(2 == buttonIndex)
-            app.closeApp();
-        }
-      );
+      app.backButton();
     });
 
     this.el.on('click', '.logo_img', function(event){

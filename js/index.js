@@ -2068,9 +2068,22 @@ var app = {
   },
 
   closeApp: function(){
-    app.stopCollectGeoPosition();
-    app.stopServerCommunication();
-    navigator.app.exitApp();
+    navigator.notification.confirm(
+        ((app.getJobInspectionContainer().id != null) ?
+            "One or several completed inspections are saved on the device but not synced with the server yet. Please wait untill data is synced to the server. If you close the app now - the data will be synced when the app is opened next time." :
+            "Do you want to quit?"),
+        function(buttonIndex){
+          if(2 == buttonIndex){
+            app.stopCollectGeoPosition();
+            app.stopServerCommunication();
+            navigator.app.exitApp();
+          }
+        },
+        "Close",
+        ((app.getJobInspectionContainer().id != null)
+            ? ["Wait for sync","Close the app anyway"]
+            : ["Cancel","Confirm"])
+    );
   },
 
   backButton: function(){
@@ -2193,12 +2206,7 @@ var app = {
         case '' == app.current_page:
         case '#' == app.current_page:
         case '#login' == app.current_page:
-          app.showConfirm('Close', 'Do you want to quit? ',
-              function(buttonIndex){
-                if(2 == buttonIndex)
-                  app.closeApp();
-              }
-          );
+          app.closeApp();
           break;
 
         default:
