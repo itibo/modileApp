@@ -278,8 +278,7 @@ var app = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude,
                         acc: position.coords.accuracy,
-                        time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date()).toUTCString(),
-                        timestamp: position.timestamp,
+                        time: (job_inspect_container.completed_at) ? job_inspect_container.completed_at : (new Date(position.timestamp)).toUTCString(),
                         application_status: app.getCheckStatus(),
                         site_id: (job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
                         job_id: (job_inspect_container.job_id)? (job_inspect_container.job_id) : null
@@ -306,8 +305,7 @@ var app = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                     acc: position.coords.accuracy,
-                    time: (new Date()).toUTCString(),
-                    timestamp: position.timestamp,
+                    time: (new Date(position.timestamp)).toUTCString(),
                     application_status: app.getCheckStatus(),
                     site_id: (job_inspect_container.site_id && !(/submitting$/.test(job_inspect_container.status)))
                         ? (job_inspect_container.site_id)
@@ -322,8 +320,7 @@ var app = {
                   lat: position.coords.latitude,
                   lng: position.coords.longitude,
                   acc: position.coords.accuracy,
-                  time: (new Date()).toUTCString(),
-                  timestamp: position.timestamp,
+                  time: (new Date(position.timestamp)).toUTCString(),
                   application_status: app.getCheckStatus(),
                   site_id: (job_inspect_container.site_id && !(/submitting$/.test(job_inspect_container.status)))
                       ? (job_inspect_container.site_id)
@@ -338,8 +335,7 @@ var app = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
                 acc: position.coords.accuracy,
-                time: (new Date()).toUTCString(),
-                timestamp: position.timestamp,
+                time: (new Date(position.timestamp)).toUTCString(),
                 application_status: app.getCheckStatus()
               }];
             }
@@ -795,8 +791,7 @@ var app = {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
         acc: position.coords.accuracy,
-        time: (new Date()).toUTCString(),
-        timestamp: position.timestamp
+        time: (new Date(position.timestamp)).toUTCString()
       });
     }, function(error){
       sync_process();
@@ -938,7 +933,7 @@ var app = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                     acc: position.coords.accuracy,
-                    time: (new Date()).toUTCString(),
+                    time: (new Date(position.timestamp)).toUTCString(),
                     application_status: inspection_status
                   }];
                   ajax_call(gps,
@@ -1003,8 +998,7 @@ var app = {
                   lat: position.coords.latitude,
                   lng: position.coords.longitude,
                   acc: position.coords.accuracy,
-                  time: (new Date()).toUTCString(),
-                  timestamp: position.timestamp,
+                  time: (new Date(position.timestamp)).toUTCString(),
                   application_status: inspection_status,
                   site_id: (3 == inspection_status && job_inspect_container.site_id)? (job_inspect_container.site_id) : null,
                   job_id: (3 == inspection_status && job_inspect_container.job_id)? (job_inspect_container.job_id) : null
@@ -1338,8 +1332,7 @@ var app = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             acc: position.coords.accuracy,
-            time: (new Date()).toUTCString(),
-            timestamp: position.timestamp
+            time: (new Date(position.timestamp)).toUTCString()
           }]);
         }, function(error){
           ajax_call.call(self, null);
@@ -1460,8 +1453,7 @@ var app = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             acc: position.coords.accuracy,
-            time: (new Date()).toUTCString(),
-            timestamp: position.timestamp
+            time: (new Date(position.timestamp)).toUTCString()
           }]);
         }, function(error){
           ajax_call.call(self, null);
@@ -1567,8 +1559,7 @@ var app = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             acc: position.coords.accuracy,
-            time: (new Date()).toUTCString(),
-            timestamp: position.timestamp
+            time: (new Date(position.timestamp)).toUTCString()
           }]);
         }, function(error){
           ajax_call.call(self, null);
@@ -1641,8 +1632,7 @@ var app = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
             acc: position.coords.accuracy,
-            time: (new Date()).toUTCString(),
-            timestamp: position.timestamp
+            time: (new Date(position.timestamp)).toUTCString()
           }]);
         }, function(error){
           ajax_call.call(self, null);
@@ -1873,7 +1863,7 @@ var app = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           acc: pos.coords.accuracy,
-          time: (new Date()).toUTCString()
+          time: (new Date(pos.timestamp)).toUTCString()
         }, job_fields)];
       }
       return arr;

@@ -87,8 +87,7 @@ var InspectionView = function(data) {
                     lat: pos.coords.latitude,
                     lng: pos.coords.longitude,
                     acc: pos.coords.accuracy,
-                    time: (new Date()).toUTCString(),
-                    timestamp: pos.timestamp,
+                    time: (new Date(pos.timestamp)).toUTCString(),
                     job_id: submit_data.job_id,
                     site_id: submit_data.site_id
                   }];
@@ -98,6 +97,7 @@ var InspectionView = function(data) {
                   submit_data.status = "submitting";
                   if ( "undefined" == typeof arg.code ){
                     submit_data.submitting_position = get_position_arr(arg);
+                    submit_data.completed_at = (new Date(arg.timestamp)).toUTCString();
                   }
                   submit_data = app.setJobInspectionContainer(submit_data);
                   setTimeout(function(){
