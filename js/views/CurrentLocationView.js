@@ -7,7 +7,7 @@ var CurrentLocationView = function(){
     return this;
   };
 
-  this.updateGPSsection = function(position){
+  this.updateGPSSection = function(position){
     $(".gps_info .placeholder").remove();
     if ($.isEmptyObject(position)){
       $(".gps_info").append("<div class=\"placeholder\">Geo position is undefined.</div>");
@@ -19,18 +19,18 @@ var CurrentLocationView = function(){
           "Accuracy: " + position.coords.accuracy
       );
     }
+    return this;
   };
 
-  this.updateMapsection = function(position){
+  this.updateMapSection = function(position){
     $(".gmaps .placeholder").remove();
     if ($.isEmptyObject(position)){
       $("<div class=\"placeholder\">Geo position is undefined.</div>").insertAfter( ".gmaps h2" );
-      $(".gmaps>div").append();
     } else {
       var map = new GoogleMap();
       map.initialize(position);
-      $(".gmaps").trigger('pagecreate');
     }
+    return this;
   };
 
   this.initialize = function() {
@@ -41,13 +41,11 @@ var CurrentLocationView = function(){
       if (navigator.geolocation){
         navigator.geolocation.getCurrentPosition(
             function(position){
-              self.updateGPSsection(position);
-              self.updateMapsection(position);
+              self.updateGPSSection(position).updateMapSection(position);
             },
             function(error){
               self.currentLocation = {};
-              self.updateGPSsection({});
-              self.updateMapsection({});
+              self.updateGPSSection({}).updateMapSection({});
             },
             { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
         );
