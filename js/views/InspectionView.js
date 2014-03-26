@@ -196,7 +196,7 @@ var InspectionView = function(data) {
   this.close_and_clean_popup = function(){
     var $popup = $(".pop_up");
     $("a.clear", $popup).removeClass("disabled");
-    $("input[id=estimated_question][type=hidden]", $popup).val("");
+    $("#estimated_question", $popup).val("");
     $("h2", $popup).html();
     $(".popup-overlay").remove();
     $popup.css("visibility", "hidden");
@@ -254,7 +254,7 @@ var InspectionView = function(data) {
       });
 
       if ($("input", clicked_block).val() == ""){
-        $("a.clear", $popup).addClass("disabled");
+        $(".clear", $popup).addClass("disabled");
       }
       $("input[type=hidden]", $popup).val($("input", clicked_block).attr("id"));
       $("h2", $popup).html("<font>" + $("h2", $(clicked_block).parents("div[data-role=content]").eq(0)).text() + "</font><br />" + $("div", $(event.currentTarget)).text());
@@ -276,7 +276,7 @@ var InspectionView = function(data) {
 }
 
 Handlebars.registerHelper('checkListContent', function(container){
-  var out = "";
+  var out = [];
   var _items = container.checkList,
       comment = container.commentVal,
       comment_maxlength = container.comment_maxlength || 2000;
@@ -284,34 +284,33 @@ Handlebars.registerHelper('checkListContent', function(container){
   for(var i=0, l=_items.length; i<l; i++) {
     var devider = _items[i];
     //begin of section
-    out = out + "<div data-role=\"content\"><h2>" + devider.attr.item_group +"</h2>";
+    out.push("<div data-role=\"content\"><h2>" + devider.attr.item_group +"</h2>");
     for (var j=0, sl = devider.items.length; j<sl; j++){
       var question = devider.items[j];
-      out = out + "<div class=\"block" + ((question.saved_value)? " active":"") + "\">" +
+      out.push("<div class=\"block" + ((question.saved_value)? " active":"") + "\">" +
           "<a class=\"btn-main\"><div data-role=\"button\">" + question.name + "</div></a>" +
           "<div class=\"number" + (typeof question.saved_value != "undefined" && question.saved_value == "0" ? " na":"") + "\" total-scores=\"" + parseInt(question.total_points) + "\"><span>" +
-          (typeof question.saved_value != "undefined" ? ((question.saved_value == 0 )? "N/A": question.saved_value) : "") +
+            (typeof question.saved_value != "undefined" ? ((question.saved_value == 0 )? "N/A": question.saved_value) : "") +
           "</span></div>" +
           "<input type=\"hidden\" id=\"" + question.item_id + "\" value=\"" + (typeof question.saved_value != "undefined" ? question.saved_value: "") + "\" />" +
-          "</div>";
+        "</div>");
     }
-    out = out + "</div>";
+    out.push("</div>");
     //end of section
   }
   //begin of textarea and submit
-  out = out +
-      "<div data-role=\"content\">" +
-        "<h3>Notes <br /><font>(optional):</font></h3>" +
-        "<div class=\"block-textarea\">" +
-          "<textarea id=\"comment\" name=\"comment\">" + comment + "</textarea>" +
-          "<div class=\"characterscountdown\"><span>"+ comment.length +"</span> of "+ comment_maxlength +"</div>" +
-        "</div>" +
-        "<div class=\"block-submit\">" +
-          "<input type=\"submit\" value=\"Submit\" />"+
-        "</div>" +
-      "</div>";
+  out.push("<div data-role=\"content\">" +
+      "<h3>Notes <br /><font>(optional):</font></h3>" +
+      "<div class=\"block-textarea\">" +
+        "<textarea id=\"comment\" name=\"comment\">" + comment + "</textarea>" +
+        "<div class=\"characterscountdown\"><span>"+ comment.length +"</span> of "+ comment_maxlength +"</div>" +
+      "</div>" +
+      "<div class=\"block-submit\">" +
+        "<input type=\"submit\" value=\"Submit\" />"+
+      "</div>" +
+    "</div>");
   //end textarea and submit
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 InspectionView.template = Handlebars.compile($("#inspection-tpl").html());

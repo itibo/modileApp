@@ -55,7 +55,7 @@ var NearestLocationsView = function() {
                 }
             );
 
-            if (/* false *//*true*/ obj.distance * 0.621371 <= app.nearestLocDist
+            if (obj.distance * 0.621371 <= app.nearestLocDist
                 && (new Date() - new Date(obj.last_inspection_date)) / (1000 * 3600 * 24) >= app.nearestLocDuration()){
               ret.push(obj);
             }
@@ -84,10 +84,10 @@ var NearestLocationsView = function() {
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
 
-    this.el.on("change", "select#nearest_loc_filter", function(e){
+    this.el.on("change", "#nearest_loc_filter", function(e){
       e.preventDefault();
       app.nearestLocationsFilter($(e.currentTarget).val());
-      $('body>div#main').html(new NearestLocationsView().render().el).trigger('pagecreate');
+      $('body > #main').html(new NearestLocationsView().render().el).trigger('pagecreate');
     });
 
     this.el.on("click", "#refresh", function(e){
@@ -167,7 +167,6 @@ Handlebars.registerHelper('NearestLocationsContent', function(){
   }
 
   out = out + "</ul>";
-
   out = out + "<div class=\"all_input stnd_btn\"><input type=\"button\" id=\"refresh\" value=\"Refresh\"/></div>";
 
   return new Handlebars.SafeString(out);

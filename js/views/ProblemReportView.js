@@ -9,7 +9,7 @@ var ProblemReportView = function(){
     var self = this;
     this.el = $('<div/>');
 
-    this.el.on("click", ".manage_area #send", function(e){
+    this.el.on("click", "#send", function(e){
       e.preventDefault();
 
       navigator.notification.confirm(

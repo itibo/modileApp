@@ -83,19 +83,9 @@ var SitesListView = function(data) {
       });
 
       if (sites_arr.length>0){
-        var out = "";
+        var out = [];
         for(var i=0, l=sites_arr.length; i<l; i++) {
-          out = out + "<li class=\"inspectable\">" +
-/*              "<a href=\"#siteinfo:"+sites_arr[i].site_id +"\">" +
-                  "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\"/>" +
-                  "<div class=\"points\">" +
-                    sites_arr[i].site +"<br />" +
-                    "<span class=\"address\">"+ sites_arr[i].address +"</span><br />" +
-                    "<span class=\"time\">Client: "+ sites_arr[i].client +" / "+ sites_arr[i].client_group +"</span>" +
-                    "<div class=\"box_rightcnt view_details\"><button>details</button></div>" +
-                  "</div>" +
-              "</a>"+*/
-
+          out[i] = "<li class=\"inspectable\">" +
             "<div class=\"points\">" +
               sites_arr[i].site +"<br />" +
               "<span class=\"address\">"+ sites_arr[i].address +"</span><br />" +
@@ -110,9 +100,9 @@ var SitesListView = function(data) {
             "<div style=\"clear:both;\"></div>" +
           "</li>";
         }
-        out = out + "</ul>";
+        out.push("</ul>");
 
-        $("ul#sites_content").html(out).show(1, function(){
+        $("ul#sites_content").html(out.join("")).show(1, function(){
           $("ul#sites_content").trigger("create").listview('refresh');
         });
       } else {
@@ -134,7 +124,7 @@ var SitesListView = function(data) {
 }
 
 Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
-  var out = ""
+  var out = [],
       self = this,
       sites_to_display = $.grep(self.sites, function(st, ind){
         return (
@@ -167,49 +157,40 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
         return arr;
       })(self.filters);
 
-  out = out + "<select name=\"client\" id=\"client\">";
-  out = out + "<option value=\"\">- All Clients -</option>";
+  out.push("<select name=\"client\" id=\"client\">");
+  out.push("<option value=\"\">- All Clients -</option>");
   $.each(clients, function( index, value ) {
-    out = out + "<option value=\"" + value + "\""+
+    out.push("<option value=\"" + value + "\""+
         ((undefined !== self.filters && undefined !== self.filters.client && value === self.filters.client )
             ?' selected="selected"'
             :'') +
-        ">" + value + "</option>";
+        ">" + value + "</option>");
   });
-  out = out + "</select>";
+  out.push("</select>");
 
   if ( client_groups.length === 0 ){
-    out = out + "<select disabled=\"disabled\" name=\"client_group\" id=\"client_group\">";
-    out = out + "<option value=\"\">- All Client Groups -</option>";
+    out.push("<select disabled=\"disabled\" name=\"client_group\" id=\"client_group\">");
+    out.push("<option value=\"\">- All Client Groups -</option>");
   } else if ( 1 == client_groups.length && "null" == client_groups[0]) {
-    out = out + "<select name=\"client_group\" id=\"client_group\">";
-    out = out + "<option value=\"null\"></option>";
+    out.push("<select name=\"client_group\" id=\"client_group\">");
+    out.push("<option value=\"null\"></option>");
   } else if (( client_groups.length >= 1)){
-    out = out + "<select name=\"client_group\" id=\"client_group\">";
-    out = out + "<option value=\"\">- All Client Groups -</option>";
+    out.push("<select name=\"client_group\" id=\"client_group\">");
+    out.push("<option value=\"\">- All Client Groups -</option>");
     $.each(client_groups, function( index, value ) {
-      out = out + "<option value=\"" + value + "\""+
+      out.push("<option value=\"" + value + "\""+
           ((undefined !== self.filters && undefined !== self.filters.client_group && value === self.filters.client_group )
               ?' selected="selected"'
               :'') +
-          ">" + value + "</option>";
+          ">" + value + "</option>");
     });
   }
-  out = out + "</select>";
+  out.push("</select>");
 
   if (sites_to_display.length > 0) {
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\" id=\"sites_content\">";
+    out.push("<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\" id=\"sites_content\">");
     $.each(sites_to_display, function(i,v){
-      out = out + "<li class=\"inspectable\">" +
-/*        "<a href=\"#siteinfo:"+v.site_id +"\">" +
-        "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\"/>" +
-        "<div class=\"points\">" +
-          v.site +"<br />" +
-          "<span class=\"address\">"+ v.address +"</span><br />" +
-          "<span class=\"time\">Client: "+ v.client +" / "+ v.client_group +"</span>" +
-          "<div class=\"box_rightcnt view_details\"><button>details</button></div>" +
-        "</div>" +
-       "</a>"+*/
+      out.push("<li class=\"inspectable\">" +
         "<div class=\"points\">" +
           v.site +"<br />" +
           "<span class=\"address\">"+ v.address +"</span><br />" +
@@ -222,14 +203,14 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
             "\">See Route</a>" +
         "</div>" +
         "<div style=\"clear:both;\"></div>" +
-     "</li>";
+     "</li>");
     });
   } else {
-    out = out + "<li class=\"inspectable\"> - </li>";
+    out.push("<li class=\"inspectable\"> - </li>");
   }
-  out = out + "</ul>";
+  out.push("</ul>");
 
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 SitesListView.template = Handlebars.compile($("#siteslist-tpl").html());

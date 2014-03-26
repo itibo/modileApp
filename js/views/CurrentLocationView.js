@@ -14,9 +14,9 @@ var CurrentLocationView = function(){
     } else {
       $(".gps_info").append(
           "Timestamp: " + position.timestamp + "<br />"+
-              "Latitude: " + position.coords.latitude + "<br />"+
-              "Longitude: " + position.coords.longitude + "<br />"+
-              "Accuracy: " + position.coords.accuracy
+          "Latitude: " + position.coords.latitude + "<br />"+
+          "Longitude: " + position.coords.longitude + "<br />"+
+          "Accuracy: " + position.coords.accuracy
       );
     }
   };

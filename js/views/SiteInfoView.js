@@ -95,8 +95,8 @@ Handlebars.registerHelper('StaffingPlanContent', function(){
                 : "") +
             "<span class=\"address\">Duration: " + total_hours +"</span></li>";
       },
-      out = "<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">" +
-      "<li data-role=\"list-divider\" role=\"heading\">Staffing plan</li>";
+      out = ["<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">" +
+      "<li data-role=\"list-divider\" role=\"heading\">Staffing plan</li>"];
 
   if (!$.isEmptyObject(this.staffing_plan)){
     $.each(this.staffing_plan.site_data, function(i, day_obj){
@@ -110,23 +110,23 @@ Handlebars.registerHelper('StaffingPlanContent', function(){
                 :"") +
             time_shift_out(staff_plan);
       });
-      out = out +"<li role=\"heading\"><h2>"+ (function(str){
+      out.push("<li role=\"heading\"><h2>"+ (function(str){
         return str.charAt(0).toUpperCase() + str.slice(1);
-      })(day_obj.day_of_week) +"</h2></li>" + day_part;
+      })(day_obj.day_of_week) +"</h2></li>" + day_part);
     });
   } else {
-    out = out +"<li class=\"boxcntone\"> - </li>";
+    out.push("<li class=\"boxcntone\"> - </li>");
   }
 
-  out = out +"<li role=\"heading\"><div class=\"total hours\"><p>Total weekly hours: <span class=\"price\">"+ (function(all){
+  out.push("<li role=\"heading\"><div class=\"total hours\"><p>Total weekly hours: <span class=\"price\">"+ (function(all){
     var out = "",
         hours = Math.floor( all / 60),
         minutes = all % 60;
     out = ((hours>0)? (hours + "h"):"") + ((minutes>0)? ( " " + (minutes<10 ? ("0" + minutes) : minutes) + "m"):"");
     return out.length > 0 ? out : " - ";
-  })(total_week_minutes) +"</span></p></div></li>";
-  out = out +"</ul>";
-  return new Handlebars.SafeString(out);
+  })(total_week_minutes) +"</span></p></div></li>");
+  out.push("</ul>");
+  return new Handlebars.SafeString(out.join(""));
 });
 
 SiteInfoView.template = Handlebars.compile($("#siteInfo-tpl").html());

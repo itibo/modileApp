@@ -36,18 +36,16 @@ var MyJobsView = function() {
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
 
-    this.el.on('click', '.inspectable button.start_inspection', function(event){
+    this.el.on('click', '.inspectable .start_inspection', function(event){
       var id_str = $("input[type=hidden]", $(event.currentTarget).parents(".inspectable")).val();
       self.inspect.call(self, id_str);
     });
 
-    this.el.on('click', '.inspectable button.show_details', function(event){
+    this.el.on('click', '.inspectable .show_details', function(event){
       var id_str = $("input[type=hidden]", $(event.currentTarget).parents(".inspectable")).val();
       app.route({
         toPage: window.location.href + "#siteinfo:" + (id_str.split("-"))[0] + "-my_jobs"
       });
-/*      alert("id_str: " + JSON.stringify(id_str));
-      alert("sitesToInspect: " + JSON.stringify(app.sitesToInspect()));*/
     });
 
     this.el.on('click', '#recheck', function(event){
@@ -97,44 +95,36 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
     return tmp;
   })();
 
-  var out="";
+  var out=[];
   if ( (app.sitesToInspect()).length > 0 ){
-    out = out + "<div class=\"location_details\"><p>Site(s) available for inspection, based on your current position. Select site to start inspection.</p></div>";
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">";
-    out = out + "<li data-role=\"list-divider\" role=\"heading\">Site(s) Assigned to You</li>";
+    out.push("<div class=\"location_details\"><p>Site(s) available for inspection, based on your current position. Select site to start inspection.</p></div>");
+    out.push("<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">");
+    out.push("<li data-role=\"list-divider\" role=\"heading\">Site(s) Assigned to You</li>");
     if (sites_for_inspect.assigned.length > 0){
       for(var i=0, l=sites_for_inspect.assigned.length; i<l; i++) {
-        out = out + "<li class=\"inspectable\">" +
-            "<input type=\"hidden\" value=\""+ sites_for_inspect.assigned[i].site_id + "-"+sites_for_inspect.assigned[i].job_id +"\">" +
-            "<div class=\"points\">" +
-              sites_for_inspect.assigned[i].site + "<br/><span class=\"address\">" + sites_for_inspect.assigned[i].address +"</span><br />" +
-            "</div>" +
-            ((unsubmitted_inspecion == sites_for_inspect.assigned[i].id) ? "<div class=\"unsubmitted-txt\">(UNSUBMITTED)</div>": "") +
-            "<div class=\"box_rightcnt bottom\">" +
-              "<button class=\"start_inspection\">Start Inspection</button>" +
-              "<button class=\"show_details\">Site Details</button>" +
-            "</div>" +
-            "<div style=\"clear:both;\"></div>" +
-          "</li>";
+        out.push("<li class=\"inspectable\">" +
+          "<input type=\"hidden\" value=\""+ sites_for_inspect.assigned[i].site_id + "-"+sites_for_inspect.assigned[i].job_id +"\">" +
+          "<div class=\"points\">" +
+            sites_for_inspect.assigned[i].site + "<br/><span class=\"address\">" + sites_for_inspect.assigned[i].address +"</span><br />" +
+          "</div>" +
+          ((unsubmitted_inspecion == sites_for_inspect.assigned[i].id) ? "<div class=\"unsubmitted-txt\">(UNSUBMITTED)</div>": "") +
+          "<div class=\"box_rightcnt bottom\">" +
+            "<button class=\"start_inspection\">Start Inspection</button>" +
+            "<button class=\"show_details\">Site Details</button>" +
+          "</div>" +
+          "<div style=\"clear:both;\"></div>" +
+        "</li>");
       }
-/*      for(var i=0, l=sites_for_inspect.assigned.length; i<l; i++) {
-        out = out + "<li><a id=\""+sites_for_inspect.assigned[i].site_id + "-"+sites_for_inspect.assigned[i].job_id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +
-            sites_for_inspect.assigned[i].site  + " - <span class=\"address\">" + sites_for_inspect.assigned[i].address +
-            ((unsubmitted_inspecion == sites_for_inspect.assigned[i].id) ? " (UNSUBMITTED)": "") +
-//          "<br />" +
-//          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
-            "</span></a></li>";
-      }*/
     } else {
-      out = out + "<li>no sites</li>";
+      out.push("<li>no sites</li>");
     }
-    out = out + "</ul>";
+    out.push("</ul>");
 
     if (sites_for_inspect.not_assigned.length > 0){
-      out = out + "<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">";
-      out = out + "<li data-role=\"list-divider\" role=\"heading\">Other sites</li>";
+      out.push("<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\">");
+      out.push("<li data-role=\"list-divider\" role=\"heading\">Other sites</li>");
       for(var i=0, l=sites_for_inspect.not_assigned.length; i<l; i++) {
-       out = out + "<li  class=\"inspectable\">"+
+        out.push("<li class=\"inspectable\">"+
           "<input type=\"hidden\" value=\""+ sites_for_inspect.not_assigned[i].site_id+"-"+sites_for_inspect.not_assigned[i].job_id +"\">" +
           "<div class=\"points\">" +
             sites_for_inspect.not_assigned[i].site + "<br/><span class=\"address\">" + sites_for_inspect.not_assigned[i].address +"</span><br />" +
@@ -145,23 +135,15 @@ Handlebars.registerHelper('ListOfAvailiableJobsContent', function(){
             "<button class=\"show_details\">Site Details</button>" +
           "</div>" +
           "<div style=\"clear:both;\"></div>" +
-        "</li>";
+        "</li>");
        }
-/*      for(var i=0, l=sites_for_inspect.not_assigned.length; i<l; i++) {
-        out = out + "<li><a id=\""+sites_for_inspect.not_assigned[i].site_id+"-"+sites_for_inspect.not_assigned[i].job_id+"\" class=\"inspectable\"><img src=\"css/images/icons_0sprite.png\" />" +
-            sites_for_inspect.not_assigned[i].site  + " - <span class=\"address\">" + sites_for_inspect.not_assigned[i].address +
-            ((unsubmitted_inspecion == sites_for_inspect.not_assigned[i].id) ? " (UNSUBMITTED)": "") +
-//          "<br />" +
-//          "<span style=\"font-size: 0.8em;\">Last inspection: "+ ((app.jobsAvailiableToInspect[i].last_inspection)? app.jobsAvailiableToInspect[i].last_inspection : "never") +"</span>"+
-            "</span></a></li>";
-      }*/
-      out = out + "</ul>";
+      out.push("</ul>");
     }
   } else {
-    out = out + "<div class=\"location_details\"><p>No site(s) available for inspection, based on your current position.</p></div>";
+    out.push("<div class=\"location_details\"><p>No site(s) available for inspection, based on your current position.</p></div>");
   }
 
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 MyJobsView.template = Handlebars.compile($("#myjobs-tpl").html());

@@ -158,14 +158,14 @@ var SupplierView = function(){
         };
     this.el = $('<div/>');
 
-    this.el.on('click', 'button#start_new', function(event){
+    this.el.on('click', '#start_new', function(event){
       event.preventDefault();
       app.route({
         toPage: window.location.href + "#order:new"
       });
     });
 
-    this.el.on('click', 'button#start_future', function(event){
+    this.el.on('click', '#start_future', function(event){
       event.preventDefault();
       app.route({
         toPage: window.location.href + "#order:future"
@@ -180,7 +180,7 @@ var SupplierView = function(){
     this.el.on('taphold', 'li.editable', function(event){
       event.preventDefault();
       var order_id = $("a", $(event.currentTarget)).attr("href").match(/^#order:(.+)$/)[1],
-          order_type = "next_month" === $(event.currentTarget).closest("ul").attr("id") ? "future" : "draft";
+          order_type = "next_month" === $(event.currentTarget).closest("ul").attr("id") ? "future" : "draft",
           $popup = $("#context_menu"),
           $overlay = $("<div />", {
             class: "popup-overlay"
@@ -197,7 +197,7 @@ var SupplierView = function(){
       $popup.css("visibility","visible");
     });
 
-    this.el.on('click', 'button#remove_order', function(e){
+    this.el.on('click', '#remove_order', function(e){
       e.preventDefault();
 
       var order_type = ($("input", $(e.currentTarget).closest("div#context_menu")).val()).match(/^(\w+):(.+)$/)[1],
@@ -265,7 +265,7 @@ var SupplierView = function(){
       $($elm.attr("href")).show().trigger( "pagecreate" );
     });
 
-    this.el.on("change", "select#sites_filter", function(e){
+    this.el.on("change", "#sites_filter", function(e){
       e.preventDefault();
       var selected_site = $(e.currentTarget).val();
       selected_site = ("" != selected_site) ? selected_site : false;
@@ -297,8 +297,7 @@ Handlebars.registerHelper('tabsContent', function(options){
 });
 
 Handlebars.registerHelper('tabsHeaders', function(){
-  var out = "";
-  out = "<div data-role=\"navbar\">" +
+  var out = "<div data-role=\"navbar\">" +
           "<div class=\"draft"+ (("drafts" === this.tabsInfo.active_tab) ? ' active':'') +"\">" +
             "<a href=\"#drafts\""+ (("drafts" === this.tabsInfo.active_tab) ? ' class="ui-btn-active ui-state-persist"':'') +">Drafts ("+ this.tabsInfo.draftsCount +")</a>" +
           "</div>&nbsp;" +
@@ -315,117 +314,115 @@ Handlebars.registerHelper('tabsHeaders', function(){
 Handlebars.registerHelper('DraftsOrderContent', function(){
   var drafts = this.drafts,
       not_visible = "drafts" !== this.tabsInfo.active_tab ? " style=\'display:none;\'" : "",
-      out = "<ul id=\"drafts\" data-role=\"listview\" data-inset=\"true\" class=\"draft\""+not_visible+">";
+      out = ["<ul id=\"drafts\" data-role=\"listview\" data-inset=\"true\" class=\"draft\""+not_visible+">"];
   if (drafts.length > 0){
     $.each(drafts, function(i,v){
       if (!(undefined != v.submit_status && "submitting" == v.submit_status)){
-        out = out +
-            "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
-            ( v.syncing ? "<div class=\"syncreq\">waiting for sync</div>" : "") +
-            "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
-            "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id)
-                ? '<span>-</span>'
-                : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
-              "<br/ >"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/>"+"</div>" +
-              "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
-                "<td class=\"points_time\">" +
-                  "<span class=\"time\">" + v.order_form + "</span><br />" +
-                  (("" != v.priority ) ? ('<span class=\"priority '+ (v.priority.match(/^(.+?)\b/)[0]).toLowerCase() +'\">Priority: <strong>'+ v.priority +'</strong></span><br />') :'' ) +
-                  "<span class=\"time\">Draft saved: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
-                "</td>" +
-                "<td class=\"right_points\">" +
-                  "<div class=\"box_points\">" +
-                    "<div>" +
-                      "<span class=\"points_class\">Total:</span><br />" +
-                      "<span class=\"big_points\">$" + v.total + "</span><br />" +
-                      "<span class=\"procent\">Budget: $"+ parseFloat(v.remaining_budget).toFixed(2) +"</span>" +
-                    "</div>" +
+        out.push("<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">" +
+          ( v.syncing ? "<div class=\"syncreq\">waiting for sync</div>" : "") +
+          "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />" +
+          "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id)
+              ? '<span>-</span>'
+              : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
+            "<br/ >"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/>"+"</div>" +
+            "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+              "<td class=\"points_time\">" +
+                "<span class=\"time\">" + v.order_form + "</span><br />" +
+                (("" != v.priority ) ? ('<span class=\"priority '+ (v.priority.match(/^(.+?)\b/)[0]).toLowerCase() +'\">Priority: <strong>'+ v.priority +'</strong></span><br />') :'' ) +
+                "<span class=\"time\">Draft saved: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
+              "</td>" +
+              "<td class=\"right_points\">" +
+                "<div class=\"box_points\">" +
+                  "<div>" +
+                    "<span class=\"points_class\">Total:</span><br />" +
+                    "<span class=\"big_points\">$" + v.total + "</span><br />" +
+                    "<span class=\"procent\">Budget: $"+ parseFloat(v.remaining_budget).toFixed(2) +"</span>" +
                   "</div>" +
-                "</td>" +
-              "</tr></table>" +
-            "</a></li>";
+                "</div>" +
+              "</td>" +
+            "</tr></table>" +
+          "</a></li>");
       }
     });
-    out = out + "</ul>";
+    out.push("</ul>");
   } else {
-    out = out + "<li>No orders</li></ul>";
+    out.push("<li>No orders</li></ul>");
   }
-
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 Handlebars.registerHelper('SubmittedOrderContent', function(){
   var submitted_orders = this.submitted_orders,
       not_visible = "submitted" !== this.tabsInfo.active_tab ? " style=\'display:none;\'" : "",
-      out = "<ul id=\"submitted\" data-role=\"listview\" data-inset=\"true\""+not_visible+">";
+      out = ["<ul id=\"submitted\" data-role=\"listview\" data-inset=\"true\""+not_visible+">"];
   if (submitted_orders.length>0){
     $.each(submitted_orders, function(i,v){
-      out = out + "<li class=\"inspectable\"><a href=\"#order-overall:"+ v.supply_order_id +"\">"+
-          "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
-          "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id)
-              ? '<span>-</span>'
-              : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
-            ((undefined !== v.status && "rejected" == v.status) ? (" <span style=\"color:red;\">(rejected)</span>") : "") +
-            "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
-          "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
-            "<td class=\"points_time\">" +
-              "<span class=\"time\">" + v.order_form + "</span><br />" +
-              (("" != v.priority ) ? ('<span class=\"priority '+ (v.priority.match(/^(.+?)\b/)[0]).toLowerCase() +'\">Priority: <strong>'+ v.priority +'</strong></span><br />') :'' ) +
-              "<span class=\"time\">Submitted: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
-            "</td>" +
-            "<td class=\"right_points\">" +
-              "<div class=\"box_points\">" +
-                "<div>" +
-                  "<span class=\"points_class\">Total:</span><br />" +
-                  "<span class=\"big_points\">$" + v.total + "</span><br />" +
-                "</div>" +
+      out.push("<li class=\"inspectable\"><a href=\"#order-overall:"+ v.supply_order_id +"\">"+
+        "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
+        "<div class=\"points\">Order: " + ((/^new_on_device/ig).test(v.supply_order_id)
+            ? '<span>-</span>'
+            : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
+          ((undefined !== v.status && "rejected" == v.status) ? (" <span style=\"color:red;\">(rejected)</span>") : "") +
+          "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
+        "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+          "<td class=\"points_time\">" +
+            "<span class=\"time\">" + v.order_form + "</span><br />" +
+            (("" != v.priority ) ? ('<span class=\"priority '+ (v.priority.match(/^(.+?)\b/)[0]).toLowerCase() +'\">Priority: <strong>'+ v.priority +'</strong></span><br />') :'' ) +
+            "<span class=\"time\">Submitted: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
+          "</td>" +
+          "<td class=\"right_points\">" +
+            "<div class=\"box_points\">" +
+              "<div>" +
+                "<span class=\"points_class\">Total:</span><br />" +
+                "<span class=\"big_points\">$" + v.total + "</span><br />" +
               "</div>" +
-            "</td>" +
-          "</tr></table>" +
-        "</a></li>";
+            "</div>" +
+          "</td>" +
+        "</tr></table>" +
+      "</a></li>");
     });
-    out = out + "</ul>";
+    out.push("</ul>");
   } else {
-    out = out + "<li>No orders</li></ul>";
+    out.push("<li>No orders</li></ul>");
   }
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 Handlebars.registerHelper('FutureOrdersContent', function(){
   var future_orders = this.future_orders,
       not_visible = "next_month" !== this.tabsInfo.active_tab ? " style=\'display:none;\'" : "",
-      out = "<ul id=\"next_month\" data-role=\"listview\" data-inset=\"true\" class=\"next_month_orders\""+not_visible+">";
+      out = ["<ul id=\"next_month\" data-role=\"listview\" data-inset=\"true\" class=\"next_month_orders\""+not_visible+">"];
   if (future_orders.length>0){
     $.each(future_orders, function(i,v){
-      out = out + "<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
-          ( v.syncing ? "<div class=\"syncreq\">waiting for sync</div>" : "") +
-          "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
-          "<div class=\"points\">Order: " + ( (/^new_on_device/ig).test(v.supply_order_id)
-                ? '<span>-</span>'
-                : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
-            "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
-          "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
-            "<td class=\"points_time\">" +
-              "<span class=\"time\">" + v.order_form + "</span><br />" +
-              (("" != v.priority ) ? ('<span class=\"priority '+ (v.priority.match(/^(.+?)\b/)[0]).toLowerCase() +'\">Priority: <strong>'+ v.priority +'</strong></span><br />') :'' ) +
-              "<span class=\"time\">Saved: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
-            "</td>" +
-            "<td class=\"right_points\">" +
-              "<div class=\"box_points\">" +
-                "<div>" +
-                  "<span class=\"points_class\">Total:</span><br />" +
-                  "<span class=\"big_points\">$" + v.total + "</span><br />" +
-                "</div>" +
+      out.push("<li class=\"editable inspectable\"><a href=\"#order:"+ v.supply_order_id +"\">"+
+        ( v.syncing ? "<div class=\"syncreq\">waiting for sync</div>" : "") +
+        "<img src=\"css/images/icons_0sprite.png\" class=\"ui-li-thumb\" />"+
+        "<div class=\"points\">Order: " + ( (/^new_on_device/ig).test(v.supply_order_id)
+              ? '<span>-</span>'
+              : ('#' + v.supply_order_id) + '<span> from </span>' +  (('' != v.order_date) ? v.order_date : '-') ) +
+          "<br/>"+v.site_name +"<br/><span class=\"address\">"+ v.site_address +"</span><br/></div>" +
+        "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+          "<td class=\"points_time\">" +
+            "<span class=\"time\">" + v.order_form + "</span><br />" +
+            (("" != v.priority ) ? ('<span class=\"priority '+ (v.priority.match(/^(.+?)\b/)[0]).toLowerCase() +'\">Priority: <strong>'+ v.priority +'</strong></span><br />') :'' ) +
+            "<span class=\"time\">Saved: <strong>" + (('' != v.updated_at) ? v.updated_at : '-') + "</strong></span>" +
+          "</td>" +
+          "<td class=\"right_points\">" +
+            "<div class=\"box_points\">" +
+              "<div>" +
+                "<span class=\"points_class\">Total:</span><br />" +
+                "<span class=\"big_points\">$" + v.total + "</span><br />" +
               "</div>" +
-            "</td>" +
-          "</tr></table>" +
-        "</a></li>";
+            "</div>" +
+          "</td>" +
+        "</tr></table>" +
+      "</a></li>");
     });
-    out = out + "</ul>";
+    out.push("</ul>");
   } else {
-    out = out + "<li>No orders</li></ul>";
+    out.push("<li>No orders</li></ul>");
   }
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 SupplierView.template = Handlebars.compile($("#supplier-main-tpl").html());

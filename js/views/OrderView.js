@@ -337,14 +337,14 @@ var OrderView = function(order_id){
         $(details_arr[2]).html("Total: <span>$" + (parseFloat(new_value) *
             parseFloat(self.activeOrder['upd']['supply_order_categories'][clicked_category][elm_id]["price"])).toFixed(2) + "</span>");
 
-        $(".infodetails>div.number", $clicked_elm).remove();
+        $(".infodetails > .number", $clicked_elm).remove();
         $("<div />", {
           class: "number"
         }).html("<font>Amount:</font><br /><span>"+ new_value +"</span>").appendTo($(".infodetails", $clicked_elm));
       } else {
         $(".infodetails", $clicked_elm).addClass("one");
         $(details_arr[2]).html("<span></span>");
-        $(".infodetails>div.number", $clicked_elm).remove();
+        $(".infodetails > .number", $clicked_elm).remove();
       }
       $clicked_elm.trigger("create");
     } catch(er){}
@@ -425,7 +425,7 @@ var OrderView = function(order_id){
           "width": Math.floor(budget_position_width) + "px",
           "visibility": "hidden",
           "z-index": 100
-        }).appendTo("div.categories").trigger('create');
+        }).appendTo(".categories").trigger('create');
 
         self.scroll_event_obj = $.extend(self.scroll_event_obj, {
           budget_position_y: budget_position_y,
@@ -463,7 +463,7 @@ var OrderView = function(order_id){
               result = true
             }
             return result;
-          })($(elm).closest("div.start_order").attr('id'));
+          })($(elm).closest(".start_order").attr('id'));
 
           if (not_null_flag) {
             var obj_key_prefix = ("future" === self.order_id
@@ -500,7 +500,7 @@ var OrderView = function(order_id){
           }
         });
       } else {
-        $(".order_form_selection>.site_dependent dd").html("-");
+        $(".order_form_selection > .site_dependent dd").html("-");
       }
     });
 
@@ -509,7 +509,7 @@ var OrderView = function(order_id){
       app.backButton();
     });
 
-    this.el.on('click', "button.start_new_order", function(e){
+    this.el.on('click', ".start_new_order", function(e){
       var future_order = $(e.currentTarget).hasClass("future");
       if ($("select#site").val() == "" && "paper" == $(e.currentTarget).closest("div.start_order").attr("id") ){
 
@@ -521,11 +521,11 @@ var OrderView = function(order_id){
         );
 
       } else {
-        if ("-" == $(".budget>dd", $(e.currentTarget).closest("div.start_order")).text()){
+        if ("-" == $(".budget > dd", $(e.currentTarget).closest(".start_order")).text()){
           navigator.notification.alert(
               "The order can't be placed: no budget available for the selected site.", // message
               function(){},   // callback
-              $(".boxheader", $(e.currentTarget).closest("div.start_order")).text(),    // title
+              $(".boxheader", $(e.currentTarget).closest(".start_order")).text(),    // title
               'Ok'            // buttonName
           );
         } else {
@@ -533,15 +533,15 @@ var OrderView = function(order_id){
           setTimeout(function(){
             app.route({
               toPage: window.location.href + "#order:new_on_device_" +
-                  (future_order ? "f-": "") + $(e.currentTarget).closest("div.start_order").attr("id") +
-                  "_" + ((""!=$("select#site").val())? $("select#site").val() : '0000') + "_" + (new Date()).getTime()
+                  (future_order ? "f-": "") + $(e.currentTarget).closest(".start_order").attr("id") +
+                  "_" + ((""!=$("#site").val())? $("#site").val() : '0000') + "_" + (new Date()).getTime()
             });
           },0);
         }
       }
     });
 
-    this.el.on('click', "button#save_draft", function(e){
+    this.el.on('click', "#save_draft", function(e){
 
       navigator.notification.confirm(
           "Do you want to save this order as draft?",
@@ -648,7 +648,7 @@ var OrderView = function(order_id){
 
     });
 
-    this.el.on('click', "button#proceed", function(e){
+    this.el.on('click', "#proceed", function(e){
       e.preventDefault();
       setTimeout(function(){
         app.route({
@@ -657,7 +657,7 @@ var OrderView = function(order_id){
       },0);
     });
 
-    this.el.on('input propertychange', 'textarea#special_instructions', function(e){
+    this.el.on('input propertychange', '#special_instructions', function(e){
       self.activeOrder.upd.special_instructions = $(e.currentTarget).val();
       app.activeOrder(self.activeOrder);
     });
@@ -719,9 +719,8 @@ var OrderView = function(order_id){
       var $elm = $(event.currentTarget);
       if ($elm.hasClass("more")){
         $elm.closest("div").hide();
-        $(".popup_content > div#more").show();
-        $("div#more input[name=item_amount]").focus();
-
+        $(".popup_content > #more").show();
+        $("#more").find("input[name=item_amount]").focus();
       } else {
         if (!$elm.hasClass('disabled')){
           self.save_and_rebuild_view_by_value($elm.attr("data-value")).recalculate_total().close_popup();
@@ -729,13 +728,13 @@ var OrderView = function(order_id){
       }
     });
 
-    this.el.on('click', '#more button#save_btn', function(event){
+    this.el.on('click', '#more #save_btn', function(event){
       event.preventDefault();
       var new_val = parseInt($("input[name=item_amount]").val()) || 0;
       self.save_and_rebuild_view_by_value(new_val).recalculate_total().close_popup();
     });
 
-    this.el.on('keydown', '#more input#item_amount', function(event){
+    this.el.on('keydown', '#more #item_amount', function(event){
       switch (true) {
         case event.which === 9:
         case event.keyCode === 13:
@@ -776,9 +775,9 @@ var OrderView = function(order_id){
 }
 
 Handlebars.registerHelper("newOrderStartContent", function(order){
-  var out = "";
+  var out = [];
   if (undefined !== order.type){
-    out = out + "<div data-role=\"content\" class=\"select_location\">";
+    out.push("<div data-role=\"content\" class=\"select_location\">");
     var my_sites = app.mySites(),
         current_order_type,
         prefix = "future" === order.type ? "next_" : "",
@@ -866,15 +865,15 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
       return sites;
     })(my_sites);
 
-    out = out + "<select name=\"client_site\" id=\"site\"><option value=\"\">- Select Site Location -</option>";
+    out.push("<select name=\"client_site\" id=\"site\"><option value=\"\">- Select Site Location -</option>");
     $.each(my_sites, function( index, value ) {
-      out = out + "<option value=\"" + value.site_id + "\">" + value.site + "</option>";
+      out.push("<option value=\"" + value.site_id + "\">" + value.site + "</option>");
     });
-    out = out + "</select>";
-    out = out + "<div data-role=\"content\" class=\"order_form_selection\">";
+    out.push("</select>");
+    out.push("<div data-role=\"content\" class=\"order_form_selection\">");
     $.each(order_forms, function(i,v){
       current_order_type = v.match(/^(.+?)\b/)[1].toLowerCase();
-      out = out + "<div id=\""+ current_order_type +"\" class=\"box start_order"+ (("paper" == current_order_type)?' site_dependent':'') +"\">" +
+      out.push("<div id=\""+ current_order_type +"\" class=\"box start_order"+ (("paper" == current_order_type)?' site_dependent':'') +"\">" +
           "<div role=\"heading\" class=\"boxheader\">"+ v +"</div>" +
           "<div class=\"boxpoints\">" +
             "<div class=\"boxcnt\">" +
@@ -886,32 +885,31 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
               "<button class=\"start_new_order"+ (prefix.length > 0 ? ' future' : '') +"\">Start</button>" +
             "</div>" +
           "</div>" +
-        "</div>";
+        "</div>");
     });
-    out = out + "</div></div>";
+    out.push("</div></div>");
   }
 
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 Handlebars.registerHelper("orderContent", function(order_obj){
-  var out = "";
+  var out = [];
 
   if (undefined !== order_obj.id && undefined === order_obj.type){
     var order = order_obj.upd,
         total = 0;
 
-    out = out + "<div class=\"location_details\">";
-    out = out + "<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>-</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>'));
-    out = out + "<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>";
-    out = out + "<p class=\"add_info\">Order type: <span>"+order.order_form+"</span>";
+    out.push("<div class=\"location_details\">");
+    out.push("<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>-</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>')));
+    out.push("<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>");
+    out.push("<p class=\"add_info\">Order type: <span>"+order.order_form+"</span>");
 
     if ("log" == order.order_status){
-      out = out + "<br />Submitted: <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>";
+      out.push("<br />Submitted: <span>"+ (('' != order.updated_at) ? order.updated_at : '-') +"</span>");
     }
 
-    out = out + "</p>";
-    out = out + "</div>";
+    out.push("</p></div>");
 
     try {
       $.each(Object.keys(order.supply_order_categories), function(i,v){
@@ -969,10 +967,10 @@ Handlebars.registerHelper("orderContent", function(order_obj){
           }
         });
         if (!empty_flag)
-          out = out + "<ul data-role=\"listview\" data-inset=\"true\"><li class=\"boxheader\" data-role=\"list-divider\" role=\"heading\">"+ v +"</li>" + category_out + "</ul>";
+          out.push("<ul data-role=\"listview\" data-inset=\"true\">" + "<li class=\"boxheader\" data-role=\"list-divider\" role=\"heading\">"+ v +"</li>" + category_out + "</ul>");
       });
       //over budget
-      out = out + "<div class=\"over_budget\">" +
+      out.push("<div class=\"over_budget\">" +
         "<div class=\"budget\">" +
           "Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>" +
           "<div class=\"over\">"+ ((total>order.remaining_budget && "log" != order.order_status)?'Over Budget!!!':'') +"</div>" +
@@ -980,38 +978,38 @@ Handlebars.registerHelper("orderContent", function(order_obj){
             "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>" +
           "</div>" +
         "</div>" +
-      "</div>";
+      "</div>");
 
       // Special Instructions
 
       if ("log" != order.order_status){
-        out = out +"<h3>Special Instructions:</h3><div class=\"block-textarea\">";
-        out = out + "<textarea id=\"special_instructions\" name=\"special_instructions\">" + order.special_instructions + "</textarea>";
+        out.push("<h3>Special Instructions:</h3><div class=\"block-textarea\">");
+        out.push("<textarea id=\"special_instructions\" name=\"special_instructions\">" + order.special_instructions + "</textarea>");
       } else if ($.trim(order.special_instructions).length > 0) {
-        out = out +"<div class=\"location_details\">";
-        out = out +"<p><font>Special Instructions:</font></p>";
-        out = out + "<p>" + order.special_instructions + "</p>";
-        out = out +"</div>";
+        out.push("<div class=\"location_details\">");
+        out.push("<p><font>Special Instructions:</font></p>");
+        out.push("<p>" + order.special_instructions + "</p>");
+        out.push("</div>");
       }
 
-      out = out +"</div>";
+      out.push("</div>");
 
       if ("log" != order.order_status){
-        out = out + "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>";
+        out.push("<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>");
         if ($.inArray(order.order_status, ["future", "new_future"])<0){
-          out = out + "<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td>"+
+          out.push("<td class=\"green_btn btnbox_1\"><button id=\"save_draft\">Save as Draft</button></td>"+
               "<td width=\"2%\">&nbsp;</td>" +
-              "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>";
+              "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>");
         } else {
-          out = out + "<td width=\"24%\">&nbsp</td>"+
+          out.push("<td width=\"24%\">&nbsp</td>"+
               "<td class=\"green_btn\"><button id=\"proceed\">Proceed</button></td>" +
-              "<td width=\"24%\">&nbsp;</td>";
+              "<td width=\"24%\">&nbsp;</td>");
         }
-        out = out + "</tr></table>";
+        out.push("</tr></table>");
       }
     } catch(er){}
   }
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 OrderView.template = Handlebars.compile($("#order-tpl").html());

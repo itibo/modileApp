@@ -37,16 +37,16 @@ var InspectionsLogView = function(data) {
 }
 
 Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
-  var out = "";
+  var out = [];
   var items = inspectionsLog.log;
   if (items.length>0 || inspectionsLog.unsubmitted){
-    out = out + "<ul data-role=\"listview\" data-inset=\"true\">";
+    out.push("<ul data-role=\"listview\" data-inset=\"true\">");
     if (inspectionsLog.unsubmitted){
-      out = out + "<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + "<br/><span class=\"address\">" + inspectionsLog.unsubmitted.address + "(UNSUBMITTED)</span></div></li>";
+      out.push("<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + "<br/><span class=\"address\">" + inspectionsLog.unsubmitted.address + "(UNSUBMITTED)</span></div></li>");
     }
 
     for(var i=0, l=items.length; i<l; i++) {
-      out = out + "<li>" +
+      out.push("<li>" +
           "<div class=\"points\">" + items[i].site  + "<br/><span></span><span class=\"address\">" + items[i].address + "</span></div>" +
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
@@ -63,13 +63,13 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
               "</div>" +
             "</td>" +
           "</tr></table>" +
-        "</li>";
+        "</li>");
     }
-    out = out + "</ul>";
+    out.push("</ul>");
   } else {
-    out = out + "<p>You haven't made any inspection yet.</p>";
+    out.push("<p>You haven't made any inspection yet.</p>");
   }
-  return new Handlebars.SafeString(out);
+  return new Handlebars.SafeString(out.join(""));
 });
 
 InspectionsLogView.template = Handlebars.compile($("#inspectionslog-tpl").html());
