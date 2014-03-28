@@ -36,14 +36,9 @@ var SupplierView = function(){
     context.version = app.application_build + " " + app.application_version;
 
     context.sites = (function(){
-      return $.merge([{
-        site_id: "diamond_office",
-        site: "Diamond Corporate Office",
-        address: "2249 N. Hollywood Way, Burbank CA 91505",
-        client: "",
-        client_group: "",
+      return $.merge([ $.extend({}, app.diamond_office, {
         selected: ((undefined != filter_site_id && "diamond_office" == String(filter_site_id))? true : false)
-      }], $.map(app.mySites(), function(st){
+      })], $.map(app.mySites(), function(st){
         return $.extend({}, {
           site_id: st.site_id,
           site: st.site,

@@ -78,6 +78,14 @@ var app = {
       }
     };
 
+    this.diamond_office = {
+      site_id: "diamond_office",
+      site: "Diamond Corporate Office",
+      address: "11432 Vanowen Street, North Hollywood, CA 91605",
+      client: "",
+      client_group: ""
+    };
+
     this.bindEvents();
   },
 

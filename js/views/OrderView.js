@@ -89,10 +89,7 @@ var OrderView = function(order_id){
                     });
 
                     if ($.isEmptyObject(tmp)){
-                      return {
-                        site_id: "",
-                        site_name: "Diamond Corporate Office",
-                        site_address: "2249 N. Hollywood Way, Burbank CA 91505",
+                      return $.extend( {}, app.diamond_office, {
                         remaining_budget: (function(form_prefix){
                           var val = 0,
                               site_to_get_budgets = $.grep(my_sites, function(n,i){
@@ -101,13 +98,13 @@ var OrderView = function(order_id){
                           if ("paper" != form_prefix && site_to_get_budgets) {
                             val = (prefix.length > 0
                                 ? (parseFloat(site_to_get_budgets[prefix + "budget_"+form_prefix])
-                                  - parseFloat(site_to_get_budgets[prefix + "pending_"+form_prefix]))
+                                - parseFloat(site_to_get_budgets[prefix + "pending_"+form_prefix]))
                                 : (parseFloat(site_to_get_budgets["budget_"+form_prefix])
-                                  - parseFloat(site_to_get_budgets["used_"+form_prefix])));
+                                - parseFloat(site_to_get_budgets["used_"+form_prefix])));
                           }
                           return val.toFixed(2);
                         })(form)
-                      }
+                      });
                     } else {
                       return {
                         site_id: tmp.site_id,
@@ -902,7 +899,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
     out.push("<div class=\"location_details\">");
     out.push("<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>-</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>')));
-    out.push("<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>");
+    out.push("<br />"+order.site+"</font><br /><em>" + order.address + "</em></p>");
     out.push("<p class=\"add_info\">Order type: <span>"+order.order_form+"</span>");
 
     if ("log" == order.order_status){
