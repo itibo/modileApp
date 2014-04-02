@@ -3,8 +3,8 @@ var app = {
   // Application Constructor
   initialize: function() {
     // config
-//    this.site = 'http://209.123.209.169:3000';  // ALPHA
-    this.site = 'http://209.123.209.154/';      // BETA
+    this.site = 'http://209.123.209.169:3000';  // ALPHA
+//    this.site = 'http://209.123.209.154/';      // BETA
     this.watchID = null;
     this.coordinates = [];
 
@@ -19,7 +19,7 @@ var app = {
 
     this.autoconnect_flag = false;
     this.application_version = "0.4.6";
-    this.application_build = "BETA";
+    this.application_build = "ALPHA";
 
     // allow to submit inspection
     this.allowToSubmit = true;
