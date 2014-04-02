@@ -272,7 +272,6 @@ var OrderView = function(order_id){
         context.title = ("future" === self.order_type)? "Future Order Details" : "Order Details";
         break;
     }
-
     context.subheader = (function(){
       var userInfo = app.getUserInfo();
       return "<h5><font>" + userInfo.display_name +"</font>, " + userInfo.role + "<br />" +
@@ -507,151 +506,170 @@ var OrderView = function(order_id){
     });
 
     this.el.on('click', ".start_new_order", function(e){
-      var future_order = $(e.currentTarget).hasClass("future");
-      if ($("select#site").val() == "" && "paper" == $(e.currentTarget).closest("div.start_order").attr("id") ){
+      e.preventDefault();
+      var $order_form_selection = $(e.currentTarget).parents(".order_form_selection")[0];
 
-        navigator.notification.alert(
-            "Please, select site to continue.", // message
-            function(){},   // callback
-            (future_order ? "New Future Order" : "New Order"),    // title
-            'Ok'            // buttonName
-        );
+      if (!$order_form_selection.clicked) {
+        $order_form_selection.clicked = true;
+        var future_order = $(e.currentTarget).hasClass("future");
+        if ($("select#site").val() == "" && "paper" == $(e.currentTarget).closest("div.start_order").attr("id") ){
 
-      } else {
-        if ("-" == $(".budget > dd", $(e.currentTarget).closest(".start_order")).text()){
           navigator.notification.alert(
-              "The order can't be placed: no budget available for the selected site.", // message
-              function(){},   // callback
-              $(".boxheader", $(e.currentTarget).closest(".start_order")).text(),    // title
+              "Please, select site to continue.", // message
+              function(){
+                $order_form_selection.clicked = false;
+              },   // callback
+              (future_order ? "New Future Order" : "New Order"),    // title
               'Ok'            // buttonName
           );
-        } else {
 
-          setTimeout(function(){
-            app.route({
-              toPage: window.location.href + "#order:new_on_device_" +
-                  (future_order ? "f-": "") + $(e.currentTarget).closest(".start_order").attr("id") +
-                  "_" + ((""!=$("#site").val())? $("#site").val() : '0000') + "_" + (new Date()).getTime()
-            });
-          },0);
+        } else {
+          if ("-" == $(".budget > dd", $(e.currentTarget).closest(".start_order")).text()){
+            navigator.notification.alert(
+                "The order can't be placed: no budget available for the selected site.", // message
+                function(){
+                  $order_form_selection.clicked = false;
+                },   // callback
+                $(".boxheader", $(e.currentTarget).closest(".start_order")).text(),    // title
+                'Ok'            // buttonName
+            );
+          } else {
+            setTimeout(function(){
+              app.route({
+                toPage: window.location.href + "#order:new_on_device_" +
+                    (future_order ? "f-": "") + $(e.currentTarget).closest(".start_order").attr("id") +
+                    "_" + ((""!=$("#site").val())? $("#site").val() : '0000') + "_" + (new Date()).getTime()
+              });
+              $order_form_selection.clicked = false;
+            },0);
+          }
         }
       }
     });
 
     this.el.on('click', "#save_draft", function(e){
+      e.preventDefault();
+      var $manage_area = $(e.currentTarget).parents(".manage_area")[0];
+      if (!$manage_area.clicked) {
+        $manage_area.clicked = true;
+        navigator.notification.confirm(
+            "Do you want to save this order as draft?",
+            function(buttonIndex){
+              if(2 == buttonIndex){
 
-      navigator.notification.confirm(
-          "Do you want to save this order as draft?",
-          function(buttonIndex){
-            if(2 == buttonIndex){
+                if(String(self.order_id) == String(self.activeOrder.id) && !isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
+                  var drafts = app.mySupplyOrdersDrafts(),
+                      mutation = app.ids_mutation();
 
-              if(String(self.order_id) == String(self.activeOrder.id) && !isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
-                var drafts = app.mySupplyOrdersDrafts(),
-                    mutation = app.ids_mutation();
+                  self.activeOrder.upd.updated_at_utc = (new Date(app.last_sync_date()) > new Date())
+                      ? new Date(app.last_sync_date()).toJSON().replace(/\.\d{3}Z$/,'Z')
+                      : (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
-                self.activeOrder.upd.updated_at_utc = (new Date(app.last_sync_date()) > new Date())
-                    ? new Date(app.last_sync_date()).toJSON().replace(/\.\d{3}Z$/,'Z')
-                    : (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+                  if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
+                      (function(){
+                        var _tmp = [];
+                        _tmp = $.grep(drafts, function(n,i){
+                          return $.inArray(n.supply_order_id,
+                              [ String(self.activeOrder.upd.supply_order_id),
+                                (undefined == mutation[self.activeOrder.upd.supply_order_id])
+                                    ? null
+                                    : String(mutation[self.activeOrder.upd.supply_order_id])
+                              ]
+                          ) > -1
+                        });
+                        return _tmp.length<1;
+                      })() ){
+                    // новый черновик, не присутствующий в ЛС, добавляем его туда
 
-                if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                    (function(){
-                      var _tmp = [];
-                      _tmp = $.grep(drafts, function(n,i){
-                        return $.inArray(n.supply_order_id,
-                            [ String(self.activeOrder.upd.supply_order_id),
-                              (undefined == mutation[self.activeOrder.upd.supply_order_id])
-                                  ? null
-                                  : String(mutation[self.activeOrder.upd.supply_order_id])
-                            ]
-                        ) > -1
-                      });
-                      return _tmp.length<1;
-                    })() ){
-                  // новый черновик, не присутствующий в ЛС, добавляем его туда
+                    drafts.unshift($.extend({
+                      id: self.activeOrder.upd.supply_order_id,
+                      supply_order_id: self.activeOrder.upd.supply_order_id,
+                      supply_order_name: self.activeOrder.upd.supply_order_name,
+                      updated_at: self.activeOrder.upd.updated_at,
+                      updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                      order_date: self.activeOrder.upd.order_date,
+                      order_form: self.activeOrder.upd.order_form,
+                      site_id: self.activeOrder.upd.site_id,
+                      site_name: self.activeOrder.upd.site_name,
+                      site_address: self.activeOrder.upd.site_address,
+                      special_instructions: self.activeOrder.upd.special_instructions,
+                      remaining_budget: self.activeOrder.upd.remaining_budget
+                    },{
+                      locally_saved: self.activeOrder.upd
+                    }));
+                  } else {
+                    $.each(drafts, function(i, dr){
+                      if ($.inArray(String(dr.supply_order_id), [String(self.order_id), (undefined == mutation[self.order_id])? null : String(mutation[self.order_id])] ) > -1 ){
+                        var draft_to_update = {};
 
-                  drafts.unshift($.extend({
-                    id: self.activeOrder.upd.supply_order_id,
-                    supply_order_id: self.activeOrder.upd.supply_order_id,
-                    supply_order_name: self.activeOrder.upd.supply_order_name,
-                    updated_at: self.activeOrder.upd.updated_at,
-                    updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                    order_date: self.activeOrder.upd.order_date,
-                    order_form: self.activeOrder.upd.order_form,
-                    site_id: self.activeOrder.upd.site_id,
-                    site_name: self.activeOrder.upd.site_name,
-                    site_address: self.activeOrder.upd.site_address,
-                    special_instructions: self.activeOrder.upd.special_instructions,
-                    remaining_budget: self.activeOrder.upd.remaining_budget
-                  },{
-                    locally_saved: self.activeOrder.upd
-                  }));
-                } else {
-                  $.each(drafts, function(i, dr){
-                    if ($.inArray(String(dr.supply_order_id), [String(self.order_id), (undefined == mutation[self.order_id])? null : String(mutation[self.order_id])] ) > -1 ){
-                      var draft_to_update = {};
+                        if (undefined != mutation[self.order_id]){
+                          self.activeOrder.upd.supply_order_id = mutation[self.order_id];
+                          self.activeOrder.upd.id = mutation[self.order_id];
+                        }
 
-                      if (undefined != mutation[self.order_id]){
-                        self.activeOrder.upd.supply_order_id = mutation[self.order_id];
-                        self.activeOrder.upd.id = mutation[self.order_id];
+                        draft_to_update = $.extend({
+                          id: self.activeOrder.upd.supply_order_id,
+                          supply_order_id: self.activeOrder.upd.supply_order_id,
+                          supply_order_name: self.activeOrder.upd.supply_order_name,
+                          updated_at: self.activeOrder.upd.updated_at,
+                          updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                          order_date: self.activeOrder.upd.order_date,
+                          order_form: self.activeOrder.upd.order_form,
+                          site_id: self.activeOrder.upd.site_id,
+                          site_name: self.activeOrder.upd.site_name,
+                          site_address: self.activeOrder.upd.site_address,
+                          special_instructions: self.activeOrder.upd.special_instructions,
+                          remaining_budget: self.activeOrder.upd.remaining_budget
+                        },{
+                          locally_saved: self.activeOrder.upd
+                        });
+
+                        drafts[i] = draft_to_update;
+                        return false;
                       }
+                    });
+                  }
+                  app.mySupplyOrdersDrafts(drafts);
+                  app.sync();
+                }
 
-                      draft_to_update = $.extend({
-                        id: self.activeOrder.upd.supply_order_id,
-                        supply_order_id: self.activeOrder.upd.supply_order_id,
-                        supply_order_name: self.activeOrder.upd.supply_order_name,
-                        updated_at: self.activeOrder.upd.updated_at,
-                        updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                        order_date: self.activeOrder.upd.order_date,
-                        order_form: self.activeOrder.upd.order_form,
-                        site_id: self.activeOrder.upd.site_id,
-                        site_name: self.activeOrder.upd.site_name,
-                        site_address: self.activeOrder.upd.site_address,
-                        special_instructions: self.activeOrder.upd.special_instructions,
-                        remaining_budget: self.activeOrder.upd.remaining_budget
-                      },{
-                        locally_saved: self.activeOrder.upd
-                      });
-
-                      drafts[i] = draft_to_update;
-                      return false;
-                    }
+                setTimeout(function(){
+                  var filter_site_id;
+                  try{
+                    filter_site_id = app.siteFilter();
+                    filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                  } catch (er){
+                    filter_site_id = "";
+                  }
+                  app.siteFilter( filter_site_id ) ;
+                  self.activeOrder = {};
+                  app.activeOrder(false);
+                  app.activeTab("drafts");
+                  app.route({
+                    toPage: window.location.href + "#orders"
                   });
-                }
-                app.mySupplyOrdersDrafts(drafts);
-                app.sync();
+                },0);
               }
-
-              setTimeout(function(){
-                var filter_site_id;
-                try{
-                  filter_site_id = app.siteFilter();
-                  filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
-                } catch (er){
-                  filter_site_id = "";
-                }
-                app.siteFilter( filter_site_id ) ;
-                self.activeOrder = {};
-                app.activeOrder(false);
-                app.activeTab("drafts");
-                app.route({
-                  toPage: window.location.href + "#orders"
-                });
-              },0);
-            }
-          },
-          "Supply Order",
-          ['Cancel','Save']
-      );
-
+              $manage_area.clicked = false;
+            },
+            "Supply Order",
+            ['Cancel','Save']
+        );
+      }
     });
 
     this.el.on('click', "#proceed", function(e){
       e.preventDefault();
-      setTimeout(function(){
-        app.route({
-          toPage: window.location.href + "#order-overall:active_order"
-        });
-      },0);
+      var $manage_area = $(e.currentTarget).parents(".manage_area")[0];
+      if (!$manage_area.clicked) {
+        $manage_area.clicked = true;
+        setTimeout(function(){
+          app.route({
+            toPage: window.location.href + "#order-overall:active_order"
+          });
+          $manage_area.clicked = false;
+        },0);
+      }
     });
 
     this.el.on('input propertychange', '#special_instructions', function(e){
@@ -899,7 +917,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
     out.push("<div class=\"location_details\">");
     out.push("<p><font>Order: "+ ((/^new_on_device/ig).test(order.supply_order_id)? '<em>-</em>': ('<strong>#' + order.supply_order_id + '</strong> from <strong>'+ (('' != order.order_date) ? order.order_date : '-') +'</strong>')));
-    out.push("<br />"+order.site+"</font><br /><em>" + order.address + "</em></p>");
+    out.push("<br />"+order.site_name+"</font><br /><em>" + order.site_address + "</em></p>");
     out.push("<p class=\"add_info\">Order type: <span>"+order.order_form+"</span>");
 
     if ("log" == order.order_status){

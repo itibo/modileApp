@@ -129,56 +129,234 @@ var OrderOverallView = function(order_id){
     });
 
     this.el.on('click', "#submit_to_vendor", function(e){
-      var active_order_info = (function(){
-        var _total = 0,
-            _count = 0;
+      e.preventDefault();
+      var $manage_area = $(e.currentTarget).parents(".manage_area")[0];
 
-        $.each(Object.keys(self.activeOrder.upd.supply_order_categories), function(i,v){
-          var _category = self.activeOrder.upd.supply_order_categories[v];
-          $.each(Object.keys(_category), function(ik,vk){
-            var _am = parseFloat(_category[vk]["amount"]);
-            if ( _am > 0 ) {
-              _count = _count + _am;
-              _total = _total + ( _am * parseFloat(_category[vk]["price"]) );
-            }
+      if (!$manage_area.clicked) {
+        $manage_area.clicked = true;
+
+        var active_order_info = (function(){
+          var _total = 0,
+              _count = 0;
+
+          $.each(Object.keys(self.activeOrder.upd.supply_order_categories), function(i,v){
+            var _category = self.activeOrder.upd.supply_order_categories[v];
+            $.each(Object.keys(_category), function(ik,vk){
+              var _am = parseFloat(_category[vk]["amount"]);
+              if ( _am > 0 ) {
+                _count = _count + _am;
+                _total = _total + ( _am * parseFloat(_category[vk]["price"]) );
+              }
+            });
           });
-        });
 
-        return {
-          total: _total,
-          count: _count
-        }
-      })();
+          return {
+            total: _total,
+            count: _count
+          }
+        })();
 
-      if ( active_order_info.count > 0) {
+        if ( active_order_info.count > 0) {
 
-        if (active_order_info.total > parseFloat(self.activeOrder.upd.remaining_budget)){
-          navigator.notification.alert(
-              "Order can't be submitted to vendor since budget is exceeded. Please correct the order details to be in the limits of available budget.", // message
-              function(){},    // callback
-              "Over budget.",       // title
-              'Ok'         // buttonName
-          );
+          if (active_order_info.total > parseFloat(self.activeOrder.upd.remaining_budget)){
+            navigator.notification.alert(
+                "Order can't be submitted to vendor since budget is exceeded. Please correct the order details to be in the limits of available budget.", // message
+                function(){
+                  $manage_area.clicked = false;
+                },    // callback
+                "Over budget.",       // title
+                'Ok'         // buttonName
+            );
+          } else {
+            navigator.notification.confirm(
+                "Do you want to submit this order to Vendor?",
+                function(buttonIndex){
+                  if(2 == buttonIndex){
+
+                    var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
+                        myLastSubmittedOrders = app.myLastSubmittedOrders(),
+                        submitted_item = {},
+                        mutation = app.ids_mutation();
+
+                    self.activeOrder.upd.updated_at_utc = (new Date(app.last_sync_date()) > new Date())
+                        ? new Date(app.last_sync_date()).toJSON().replace(/\.\d{3}Z$/,'Z')
+                        : (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+
+                    // новый черновик, не присутствующий в ЛС, добавляем его туда
+                    if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
+                        (function(){
+                          var _tmp = [];
+                          _tmp = $.grep(mySupplyOrdersDrafts, function(n,i){
+                            return $.inArray(n.supply_order_id,
+                                [ String(self.activeOrder.upd.supply_order_id),
+                                  (undefined == mutation[self.activeOrder.upd.supply_order_id])
+                                      ? null
+                                      : String(mutation[self.activeOrder.upd.supply_order_id])
+                                ]
+                            ) > -1
+                          });
+                          return _tmp.length<1;
+                        })() ){
+
+                      mySupplyOrdersDrafts.unshift($.extend({
+                        id: self.activeOrder.upd.supply_order_id,
+                        supply_order_id: self.activeOrder.upd.supply_order_id,
+                        supply_order_name: self.activeOrder.upd.supply_order_name,
+                        updated_at: self.activeOrder.upd.updated_at,
+                        updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                        order_date: self.activeOrder.upd.order_date,
+                        order_form: self.activeOrder.upd.order_form,
+                        priority: self.activeOrder.upd.priority,
+                        site_id: self.activeOrder.upd.site_id,
+                        site_name: self.activeOrder.upd.site_name,
+                        site_address: self.activeOrder.upd.site_address,
+                        special_instructions: self.activeOrder.upd.special_instructions,
+                        remaining_budget: self.activeOrder.upd.remaining_budget
+                      }, {
+                        order_status:"log"
+                      }));
+                    }
+
+                    app.mySupplyOrdersDrafts((function(){
+                      $.each(mySupplyOrdersDrafts, function(i,v){
+                        if ($.inArray( String(v.supply_order_id),
+                            [ String(self.activeOrder.upd.supply_order_id),
+                              (undefined === mutation[self.activeOrder.upd.supply_order_id])? null : String(mutation[self.activeOrder.upd.supply_order_id])]
+                        ) > -1 )
+                        {
+                          var order_form_short = v.order_form.match(/^(.+?)\b/)[0].toLowerCase();
+
+                          if (undefined !== mutation[self.activeOrder.upd.supply_order_id]){
+                            self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
+                            self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
+                          }
+
+                          mySupplyOrdersDrafts[i] = $.extend( true, {
+                            id: self.activeOrder.upd.supply_order_id,
+                            supply_order_id: self.activeOrder.upd.supply_order_id,
+                            supply_order_name: self.activeOrder.upd.supply_order_name,
+                            updated_at: self.activeOrder.upd.updated_at,
+                            updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                            order_date: self.activeOrder.upd.order_date,
+                            order_form: self.activeOrder.upd.order_form,
+                            priority: self.activeOrder.upd.priority,
+                            site_id: self.activeOrder.upd.site_id,
+                            site_name: self.activeOrder.upd.site_name,
+                            site_address: self.activeOrder.upd.site_address,
+                            special_instructions: self.activeOrder.upd.special_instructions,
+                            remaining_budget: self.activeOrder.upd.remaining_budget
+                          },{
+                            locally_saved: self.activeOrder.upd
+                          }, {
+                            submit_status: "submitting"
+                          },{
+                            order_status:"log"
+                          });
+                          submitted_item = mySupplyOrdersDrafts[i];
+                        }
+                        if (self.activeOrder.upd.order_form == v.order_form &&
+                            ( (self.activeOrder.upd.site_id == v.site_id && "paper" == order_form_short) || "paper" != order_form_short ) ){
+                          mySupplyOrdersDrafts[i]['remaining_budget'] = (parseFloat(v.remaining_budget) - active_order_info.total).toFixed(2);
+                        }
+                      });
+                      return mySupplyOrdersDrafts;
+                    })());
+
+                    app.myLastSubmittedOrders((function(submitted_item){
+                      submitted_item = submitted_item.locally_saved;
+                      if (!$.isEmptyObject(submitted_item)){
+                        myLastSubmittedOrders.unshift(submitted_item);
+                      }
+                      return myLastSubmittedOrders;
+                    })(submitted_item));
+
+                    // локальный перерасчет бюджетов
+                    app.mySites((function(){
+                      var mySites = app.mySites(),
+                          short_order_form = self.activeOrder.upd.order_form.match(/^(.+?)\b/)[0].toLowerCase();
+                      $.each(mySites, function(i,v){
+                        try{
+                          if (v.assigned){
+                            if ("" === String(self.activeOrder.upd.site_id) || "paper" !== short_order_form )
+                            {
+                              mySites[i]["used_"+short_order_form] = parseFloat(mySites[i]["used_"+short_order_form])
+                                  + parseFloat(active_order_info.total);
+                            } else {
+                              if (v.site_id == self.activeOrder.upd.site_id){
+                                for(var objkey in mySites[i]){
+                                  if ((new RegExp("^used_"+short_order_form)).test(objkey)){
+                                    mySites[i][objkey] = parseFloat(mySites[i][objkey])
+                                        + parseFloat(active_order_info.total);
+                                  }
+                                }
+                                return false;
+                              }
+                            }
+                          }
+                        } catch(er){}
+                      });
+                      return mySites;
+                    })());
+
+                    app.sync();
+                    setTimeout(function(){
+                      var filter_site_id;
+                      try{
+                        filter_site_id = app.siteFilter();
+                        filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                      } catch (er){
+                        filter_site_id = "";
+                      }
+                      app.siteFilter( filter_site_id ) ;
+                      self.activeOrder = {};
+                      app.activeOrder(false);
+                      app.activeTab("submitted");
+                      app.route({
+                        toPage: window.location.href + "#orders"
+                      });
+                    }, 0);
+
+                  }
+                  $manage_area.clicked = false;
+                },
+                "Supply Order",
+                ['Cancel','Submit']
+            );
+          }
+
         } else {
-          navigator.notification.confirm(
-              "Do you want to submit this order to Vendor?",
-              function(buttonIndex){
-                if(2 == buttonIndex){
+          navigator.notification.alert(
+              "There are no items selected to submit to the vendor.", // message
+              function(){
+                $manage_area.clicked = false;
+              },   // callback
+              "Supply Order", // title
+              'Ok'            // buttonName
+          );
+        }
+      }
+    });
 
-                  var mySupplyOrdersDrafts = app.mySupplyOrdersDrafts(),
-                      myLastSubmittedOrders = app.myLastSubmittedOrders(),
-                      submitted_item = {},
+    this.el.on('click', "#save_draft", function(e){
+      e.preventDefault();
+      var $manage_area = $(e.currentTarget).parents(".manage_area")[0];
+
+      if (!$manage_area.clicked) {
+        $manage_area.clicked = true;
+        navigator.notification.confirm(
+            "Do you want to save this order as draft?",
+            function(buttonIndex){
+              if(2 == buttonIndex){
+                if(!isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
+                  var drafts = app.mySupplyOrdersDrafts(),
                       mutation = app.ids_mutation();
 
-                  self.activeOrder.upd.updated_at_utc = (new Date(app.last_sync_date()) > new Date())
-                      ? new Date(app.last_sync_date()).toJSON().replace(/\.\d{3}Z$/,'Z')
-                      : (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+                  self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
-                  // новый черновик, не присутствующий в ЛС, добавляем его туда
                   if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
                       (function(){
                         var _tmp = [];
-                        _tmp = $.grep(mySupplyOrdersDrafts, function(n,i){
+                        _tmp = $.grep(drafts, function(n,i){
                           return $.inArray(n.supply_order_id,
                               [ String(self.activeOrder.upd.supply_order_id),
                                 (undefined == mutation[self.activeOrder.upd.supply_order_id])
@@ -189,8 +367,9 @@ var OrderOverallView = function(order_id){
                         });
                         return _tmp.length<1;
                       })() ){
+                    // новый черновик, не присутствующий в ЛС, добавляем его туда
 
-                    mySupplyOrdersDrafts.unshift($.extend({
+                    drafts.unshift($.extend({
                       id: self.activeOrder.upd.supply_order_id,
                       supply_order_id: self.activeOrder.upd.supply_order_id,
                       supply_order_name: self.activeOrder.upd.supply_order_name,
@@ -204,26 +383,24 @@ var OrderOverallView = function(order_id){
                       site_address: self.activeOrder.upd.site_address,
                       special_instructions: self.activeOrder.upd.special_instructions,
                       remaining_budget: self.activeOrder.upd.remaining_budget
-                    }, {
-                      order_status:"log"
+                    },{
+                      locally_saved: self.activeOrder.upd
                     }));
-                  }
-
-                  app.mySupplyOrdersDrafts((function(){
-                    $.each(mySupplyOrdersDrafts, function(i,v){
-                      if ($.inArray( String(v.supply_order_id),
-                          [ String(self.activeOrder.upd.supply_order_id),
-                            (undefined === mutation[self.activeOrder.upd.supply_order_id])? null : String(mutation[self.activeOrder.upd.supply_order_id])]
-                          ) > -1 )
+                  } else {
+                    $.each(drafts, function(i, dr){
+                      if ($.inArray(String(dr.supply_order_id),
+                          [String(self.activeOrder.upd.supply_order_id),
+                            (undefined == mutation[self.activeOrder.upd.supply_order_id])? null :
+                                String(mutation[self.activeOrder.upd.supply_order_id])] ) > -1 )
                       {
-                        var order_form_short = v.order_form.match(/^(.+?)\b/)[0].toLowerCase();
+                        var draft_to_update = {};
 
-                        if (undefined !== mutation[self.activeOrder.upd.supply_order_id]){
+                        if (undefined != mutation[self.activeOrder.upd.supply_order_id]){
                           self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
                           self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
                         }
 
-                        mySupplyOrdersDrafts[i] = $.extend( true, {
+                        draft_to_update = $.extend({
                           id: self.activeOrder.upd.supply_order_id,
                           supply_order_id: self.activeOrder.upd.supply_order_id,
                           supply_order_name: self.activeOrder.upd.supply_order_name,
@@ -239,342 +416,157 @@ var OrderOverallView = function(order_id){
                           remaining_budget: self.activeOrder.upd.remaining_budget
                         },{
                           locally_saved: self.activeOrder.upd
-                        }, {
-                          submit_status: "submitting"
-                        },{
-                          order_status:"log"
                         });
-                        submitted_item = mySupplyOrdersDrafts[i];
-                      }
-                      if (self.activeOrder.upd.order_form == v.order_form &&
-                          ( (self.activeOrder.upd.site_id == v.site_id && "paper" == order_form_short) || "paper" != order_form_short ) ){
-                        mySupplyOrdersDrafts[i]['remaining_budget'] = (parseFloat(v.remaining_budget) - active_order_info.total).toFixed(2);
+
+                        drafts[i] = draft_to_update;
+                        return false;
                       }
                     });
-                    return mySupplyOrdersDrafts;
-                  })());
-
-                  app.myLastSubmittedOrders((function(submitted_item){
-                    submitted_item = submitted_item.locally_saved;
-                    if (!$.isEmptyObject(submitted_item)){
-                      myLastSubmittedOrders.unshift(submitted_item);
-                    }
-                    return myLastSubmittedOrders;
-                  })(submitted_item));
-
-                  // локальный перерасчет бюджетов
-                  app.mySites((function(){
-                    var mySites = app.mySites(),
-                        short_order_form = self.activeOrder.upd.order_form.match(/^(.+?)\b/)[0].toLowerCase();
-                    $.each(mySites, function(i,v){
-                      try{
-                        if (v.assigned){
-                          if ("" === String(self.activeOrder.upd.site_id) || "paper" !== short_order_form )
-                          {
-                            mySites[i]["used_"+short_order_form] = parseFloat(mySites[i]["used_"+short_order_form])
-                                + parseFloat(active_order_info.total);
-                          } else {
-                            if (v.site_id == self.activeOrder.upd.site_id){
-                              for(var objkey in mySites[i]){
-                                if ((new RegExp("^used_"+short_order_form)).test(objkey)){
-                                  mySites[i][objkey] = parseFloat(mySites[i][objkey])
-                                      + parseFloat(active_order_info.total);
-                                }
-                              }
-                              return false;
-                            }
-                          }
-                        }
-                      } catch(er){}
-                    });
-                    return mySites;
-                  })());
-
+                  }
+                  app.mySupplyOrdersDrafts(drafts);
                   app.sync();
-                  setTimeout(function(){
-                    var filter_site_id;
-                    try{
-                      filter_site_id = app.siteFilter();
-                      filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
-                    } catch (er){
-                      filter_site_id = "";
-                    }
-                    app.siteFilter( filter_site_id ) ;
-                    self.activeOrder = {};
-                    app.activeOrder(false);
-                    app.activeTab("submitted");
-                    app.route({
-                      toPage: window.location.href + "#orders"
-                    });
-                  }, 0);
-
                 }
-              },
-              "Supply Order",
-              ['Cancel','Submit']
-          );
-        }
 
-      } else {
-        navigator.notification.alert(
-            "There are no items selected to submit to the vendor.", // message
-            function(){},   // callback
-            "Supply Order", // title
-            'Ok'            // buttonName
+                setTimeout(function(){
+                  var filter_site_id;
+                  try{
+                    filter_site_id = app.siteFilter();
+                    filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                  } catch (er){
+                    filter_site_id = "";
+                  }
+                  app.siteFilter( filter_site_id ) ;
+                  self.activeOrder = {};
+                  app.activeOrder(false);
+                  app.activeTab("drafts");
+                  app.route({
+                    toPage: window.location.href + "#orders"
+                  });
+                },0);
+              }
+              $manage_area.clicked = false;
+            },
+            "Supply Order",
+            ['Cancel','Save']
         );
       }
-
-    });
-
-    this.el.on('click', "#save_draft", function(e){
-
-      navigator.notification.confirm(
-          "Do you want to save this order as draft?",
-          function(buttonIndex){
-            if(2 == buttonIndex){
-              if(!isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
-                var drafts = app.mySupplyOrdersDrafts(),
-                    mutation = app.ids_mutation();
-
-                self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
-
-                if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                    (function(){
-                      var _tmp = [];
-                      _tmp = $.grep(drafts, function(n,i){
-                        return $.inArray(n.supply_order_id,
-                            [ String(self.activeOrder.upd.supply_order_id),
-                              (undefined == mutation[self.activeOrder.upd.supply_order_id])
-                                  ? null
-                                  : String(mutation[self.activeOrder.upd.supply_order_id])
-                            ]
-                        ) > -1
-                      });
-                      return _tmp.length<1;
-                    })() ){
-                  // новый черновик, не присутствующий в ЛС, добавляем его туда
-
-                  drafts.unshift($.extend({
-                    id: self.activeOrder.upd.supply_order_id,
-                    supply_order_id: self.activeOrder.upd.supply_order_id,
-                    supply_order_name: self.activeOrder.upd.supply_order_name,
-                    updated_at: self.activeOrder.upd.updated_at,
-                    updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                    order_date: self.activeOrder.upd.order_date,
-                    order_form: self.activeOrder.upd.order_form,
-                    priority: self.activeOrder.upd.priority,
-                    site_id: self.activeOrder.upd.site_id,
-                    site_name: self.activeOrder.upd.site_name,
-                    site_address: self.activeOrder.upd.site_address,
-                    special_instructions: self.activeOrder.upd.special_instructions,
-                    remaining_budget: self.activeOrder.upd.remaining_budget
-                  },{
-                    locally_saved: self.activeOrder.upd
-                  }));
-                } else {
-                  $.each(drafts, function(i, dr){
-                    if ($.inArray(String(dr.supply_order_id),
-                        [String(self.activeOrder.upd.supply_order_id),
-                          (undefined == mutation[self.activeOrder.upd.supply_order_id])? null :
-                              String(mutation[self.activeOrder.upd.supply_order_id])] ) > -1 )
-                    {
-                      var draft_to_update = {};
-
-                      if (undefined != mutation[self.activeOrder.upd.supply_order_id]){
-                        self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
-                        self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
-                      }
-
-                      draft_to_update = $.extend({
-                        id: self.activeOrder.upd.supply_order_id,
-                        supply_order_id: self.activeOrder.upd.supply_order_id,
-                        supply_order_name: self.activeOrder.upd.supply_order_name,
-                        updated_at: self.activeOrder.upd.updated_at,
-                        updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                        order_date: self.activeOrder.upd.order_date,
-                        order_form: self.activeOrder.upd.order_form,
-                        priority: self.activeOrder.upd.priority,
-                        site_id: self.activeOrder.upd.site_id,
-                        site_name: self.activeOrder.upd.site_name,
-                        site_address: self.activeOrder.upd.site_address,
-                        special_instructions: self.activeOrder.upd.special_instructions,
-                        remaining_budget: self.activeOrder.upd.remaining_budget
-                      },{
-                        locally_saved: self.activeOrder.upd
-                      });
-
-                      drafts[i] = draft_to_update;
-                      return false;
-                    }
-                  });
-                }
-                app.mySupplyOrdersDrafts(drafts);
-                app.sync();
-              }
-
-              setTimeout(function(){
-                var filter_site_id;
-                try{
-                  filter_site_id = app.siteFilter();
-                  filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
-                } catch (er){
-                  filter_site_id = "";
-                }
-                app.siteFilter( filter_site_id ) ;
-                self.activeOrder = {};
-                app.activeOrder(false);
-                app.activeTab("drafts");
-                app.route({
-                  toPage: window.location.href + "#orders"
-                });
-              },0);
-            }
-          },
-          "Supply Order",
-          ['Cancel','Save']
-      );
-
     });
 
     this.el.on('click', "#save_future", function(e){
+      e.preventDefault();
+      var $manage_area = $(e.currentTarget).parents(".manage_area")[0];
+      if (!$manage_area.clicked) {
+        $manage_area.clicked = true;
 
-      navigator.notification.confirm(
-          "Do you want to save this future order?",
-          function(buttonIndex){
-            if(2 == buttonIndex){
-              if(!isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
-                var future_orders = app.myFutureOrders(),
-                    mutation = app.ids_mutation();
+        navigator.notification.confirm(
+            "Do you want to save this future order?",
+            function(buttonIndex){
+              if(2 == buttonIndex){
+                if(!isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
+                  var future_orders = app.myFutureOrders(),
+                      mutation = app.ids_mutation();
 
-                self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+                  self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
 //alert("новый фьючер: " + ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) && (function(){ var _tmp = []; _tmp = $.grep(future_orders, function(n,i){ return $.inArray(n.supply_order_id, [ String(self.activeOrder.upd.supply_order_id), (undefined == mutation[self.activeOrder.upd.supply_order_id]) ? null : String(mutation[self.activeOrder.upd.supply_order_id]) ] ) > -1 }); return _tmp.length<1; })() ));
 
-                if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                    (function(){
-                      var _tmp = [];
-                      _tmp = $.grep(future_orders, function(n,i){
-                        return $.inArray(n.supply_order_id,
-                            [ String(self.activeOrder.upd.supply_order_id),
-                              (undefined == mutation[self.activeOrder.upd.supply_order_id])
-                                  ? null
-                                  : String(mutation[self.activeOrder.upd.supply_order_id])
-                            ]
-                        ) > -1
-                      });
-                      return _tmp.length<1;
-                    })() ){
-                  // новый фьючер, не присутствующий в ЛС, добавляем его туда
+                  if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
+                      (function(){
+                        var _tmp = [];
+                        _tmp = $.grep(future_orders, function(n,i){
+                          return $.inArray(n.supply_order_id,
+                              [ String(self.activeOrder.upd.supply_order_id),
+                                (undefined == mutation[self.activeOrder.upd.supply_order_id])
+                                    ? null
+                                    : String(mutation[self.activeOrder.upd.supply_order_id])
+                              ]
+                          ) > -1
+                        });
+                        return _tmp.length<1;
+                      })() ){
+                    // новый фьючер, не присутствующий в ЛС, добавляем его туда
 
-                  future_orders.unshift($.extend(true, {
-                    id: self.activeOrder.upd.supply_order_id,
-                    supply_order_id: self.activeOrder.upd.supply_order_id,
-                    supply_order_name: self.activeOrder.upd.supply_order_name,
-                    updated_at: self.activeOrder.upd.updated_at,
-                    updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                    order_date: self.activeOrder.upd.order_date,
-                    order_form: self.activeOrder.upd.order_form,
-                    priority: self.activeOrder.upd.priority,
-                    site_id: self.activeOrder.upd.site_id,
-                    site_name: self.activeOrder.upd.site_name,
-                    site_address: self.activeOrder.upd.site_address,
-                    special_instructions: self.activeOrder.upd.special_instructions,
-                    remaining_budget: self.activeOrder.upd.remaining_budget
-                  },{
-                    locally_saved: self.activeOrder.upd
-                  }));
-                } else {
-                  $.each(future_orders, function(i, ft){
-                    if ($.inArray(String(ft.supply_order_id),
-                        [String(self.activeOrder.upd.supply_order_id),
-                          (undefined == mutation[self.activeOrder.upd.supply_order_id])? null :
-                              String(mutation[self.activeOrder.upd.supply_order_id])] ) > -1 )
-                    {
-                      var order_to_update = {};
+                    future_orders.unshift($.extend(true, {
+                      id: self.activeOrder.upd.supply_order_id,
+                      supply_order_id: self.activeOrder.upd.supply_order_id,
+                      supply_order_name: self.activeOrder.upd.supply_order_name,
+                      updated_at: self.activeOrder.upd.updated_at,
+                      updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                      order_date: self.activeOrder.upd.order_date,
+                      order_form: self.activeOrder.upd.order_form,
+                      priority: self.activeOrder.upd.priority,
+                      site_id: self.activeOrder.upd.site_id,
+                      site_name: self.activeOrder.upd.site_name,
+                      site_address: self.activeOrder.upd.site_address,
+                      special_instructions: self.activeOrder.upd.special_instructions,
+                      remaining_budget: self.activeOrder.upd.remaining_budget
+                    },{
+                      locally_saved: self.activeOrder.upd
+                    }));
+                  } else {
+                    $.each(future_orders, function(i, ft){
+                      if ($.inArray(String(ft.supply_order_id),
+                          [String(self.activeOrder.upd.supply_order_id),
+                            (undefined == mutation[self.activeOrder.upd.supply_order_id])? null :
+                                String(mutation[self.activeOrder.upd.supply_order_id])] ) > -1 )
+                      {
+                        var order_to_update = {};
 
-                      if (undefined != mutation[self.activeOrder.upd.supply_order_id]){
-                        self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
-                        self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
-                      }
-
-                      order_to_update = $.extend(true, {
-                        id: self.activeOrder.upd.supply_order_id,
-                        supply_order_id: self.activeOrder.upd.supply_order_id,
-                        supply_order_name: self.activeOrder.upd.supply_order_name,
-                        updated_at: self.activeOrder.upd.updated_at,
-                        updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                        order_date: self.activeOrder.upd.order_date,
-                        order_form: self.activeOrder.upd.order_form,
-                        priority: self.activeOrder.upd.priority,
-                        site_id: self.activeOrder.upd.site_id,
-                        site_name: self.activeOrder.upd.site_name,
-                        site_address: self.activeOrder.upd.site_address,
-                        special_instructions: self.activeOrder.upd.special_instructions,
-                        remaining_budget: self.activeOrder.upd.remaining_budget
-                      },{
-                        locally_saved: self.activeOrder.upd
-                      });
-
-                      future_orders[i] = order_to_update;
-                      return false;
-                    }
-                  });
-                }
-                app.myFutureOrders(future_orders);
-
-/*                // локальный перерасчет бюджетов
-                app.mySites((function(){
-                  var mySites = app.mySites(),
-                      short_order_form = self.activeOrder.upd.order_form.match(/^(.+?)\b/)[0].toLowerCase();
-                  $.each(mySites, function(i,v){
-                    try{
-                      if (v.assigned){
-                        if ("" === String(self.activeOrder.upd.site_id) || "paper" !== short_order_form )
-                        {
-                          mySites[i]["next_pending_"+short_order_form] = parseFloat(mySites[i]["next_pending_"+short_order_form])
-                              + parseFloat(active_order_info.total);
-                        } else {
-                          if (v.site_id == self.activeOrder.upd.site_id){
-                            for(var objkey in mySites[i]){
-                              if ((new RegExp("^next_pending_"+short_order_form)).test(objkey)){
-                                mySites[i][objkey] = parseFloat(mySites[i][objkey])
-                                    + parseFloat(active_order_info.total);
-                              }
-                            }
-                            return false;
-                          }
+                        if (undefined != mutation[self.activeOrder.upd.supply_order_id]){
+                          self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
+                          self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
                         }
+
+                        order_to_update = $.extend(true, {
+                          id: self.activeOrder.upd.supply_order_id,
+                          supply_order_id: self.activeOrder.upd.supply_order_id,
+                          supply_order_name: self.activeOrder.upd.supply_order_name,
+                          updated_at: self.activeOrder.upd.updated_at,
+                          updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                          order_date: self.activeOrder.upd.order_date,
+                          order_form: self.activeOrder.upd.order_form,
+                          priority: self.activeOrder.upd.priority,
+                          site_id: self.activeOrder.upd.site_id,
+                          site_name: self.activeOrder.upd.site_name,
+                          site_address: self.activeOrder.upd.site_address,
+                          special_instructions: self.activeOrder.upd.special_instructions,
+                          remaining_budget: self.activeOrder.upd.remaining_budget
+                        },{
+                          locally_saved: self.activeOrder.upd
+                        });
+
+                        future_orders[i] = order_to_update;
+                        return false;
                       }
-                    } catch(er){}
-                  });
-                  return mySites;
-                })());*/
-
-
-                app.sync();
-              }
-
-              setTimeout(function(){
-                var filter_site_id;
-                try{
-                  filter_site_id = app.siteFilter();
-                  filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
-                } catch (er){
-                  filter_site_id = "";
+                    });
+                  }
+                  app.myFutureOrders(future_orders);
+                  app.sync();
                 }
-                app.siteFilter( filter_site_id ) ;
-                self.activeOrder = {};
-                app.activeOrder(false);
-                app.activeTab("next_month");
-                app.route({
-                  toPage: window.location.href + "#orders"
-                });
-              },0);
-            }
-          },
-          "Future Order",
-          ['Cancel','Save']
-      );
+
+                setTimeout(function(){
+                  var filter_site_id;
+                  try{
+                    filter_site_id = app.siteFilter();
+                    filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                  } catch (er){
+                    filter_site_id = "";
+                  }
+                  app.siteFilter( filter_site_id ) ;
+                  self.activeOrder = {};
+                  app.activeOrder(false);
+                  app.activeTab("next_month");
+                  app.route({
+                    toPage: window.location.href + "#orders"
+                  });
+                },0);
+              }
+              $manage_area.clicked = false;
+            },
+            "Future Order",
+            ['Cancel','Save']
+        );
+      }
     });
 
 

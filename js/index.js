@@ -18,7 +18,7 @@ var app = {
     this.collect_gps_interval_flag = void 0;
 
     this.autoconnect_flag = false;
-    this.application_version = "0.4.5";
+    this.application_version = "0.4.6";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -80,8 +80,8 @@ var app = {
 
     this.diamond_office = {
       site_id: "diamond_office",
-      site: "Diamond Corporate Office",
-      address: "11432 Vanowen Street, North Hollywood, CA 91605",
+      site_name: "Diamond Corporate Office",
+      site_address: "11432 Vanowen Street, North Hollywood, CA 91605",
       client: "",
       client_group: ""
     };
@@ -1929,7 +1929,7 @@ var app = {
   },
 
   //login
-  getLoginToken: function(email, password){
+  getLoginToken: function(email, password, callback){
     var success_getting_position = function(pos){
       $.ajax({
         type: "POST",
@@ -1988,6 +1988,10 @@ var app = {
           'Ok'         // buttonName
       );
       $("#overlay").hide();
+    }).always(function(){
+      if ("function" == typeof callback){
+        callback();
+      }
     });
   },
 

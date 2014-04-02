@@ -49,7 +49,7 @@ var InspectionView = function(data) {
     return this;
   };
 
-  this.validateAndSubmit = function(){
+  this.validateAndSubmit = function(callback){
     var self = this,
         allow_to_submit = (function(){
           var tmp = true;
@@ -64,7 +64,8 @@ var InspectionView = function(data) {
 
     if (allow_to_submit){
       var submit_data = app.getJobInspectionContainer();
-      if (submit_data.comment.length > self.comment_maxlength){
+
+      if (submit_data.comment && submit_data.comment.length > self.comment_maxlength){
         navigator.notification.alert(
             "Comment is too large. Please correct it.",         // message
             function(){                       //callback
@@ -107,10 +108,13 @@ var InspectionView = function(data) {
 
                 setTimeout(function(){
                   navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
+                  callback();
                   app.route({
                     toPage: window.location.href + "#welcome"
                   });
                 }, 0);
+              } else {
+                callback();
               }
             },
             'Inspection submission',
@@ -121,7 +125,7 @@ var InspectionView = function(data) {
       navigator.notification.alert(
         "The inspection is not completed. Please set rate on all items.",         // message
         function(){                       //callback
-          // do nothing
+          callback();
         },
         "Inspection submission",          // title
         'Ok'                              // buttonName
@@ -129,15 +133,18 @@ var InspectionView = function(data) {
     }
   };
 
-  this.cancelInspection = function(){
+  this.cancelInspection = function(callback){
     navigator.notification.confirm("Do you want to cancel this inspection?",
       function(buttonIndex){
         if(2 == buttonIndex){
           app.cancell_inspection(true);
           app.setJobInspectionContainer(false);
+          callback();
           app.route({
             toPage: window.location.href + "#my_jobs"
           });
+        } else {
+          callback();
         }
       },
       "Inspection cancelling",
@@ -206,11 +213,19 @@ var InspectionView = function(data) {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
-    this.el.on('click', '.block-submit input[type=submit]', $.proxy(this.validateAndSubmit, self));
+    this.el.on('click', '.block-submit input[type=submit]', function(e){
+      e.preventDefault();
+      if (!e.currentTarget.clicked) {
+        e.currentTarget.clicked = true;
+        self.validateAndSubmit.call(self, function(){
+          e.currentTarget.clicked = false;
+        });
+      }
+    });
     this.el.on('click', 'div[data-role=header] a', function(event){
       event.preventDefault();
-      self.close_and_clean_popup.call(self);
-      self.cancelInspection.call(self);
+        self.close_and_clean_popup.call(self);
+        self.cancelInspection.call(self);
     });
 
     this.el.on('click', '.pop_up .close', function(event){

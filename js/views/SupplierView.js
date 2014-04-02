@@ -41,8 +41,8 @@ var SupplierView = function(){
       })], $.map(app.mySites(), function(st){
         return $.extend({}, {
           site_id: st.site_id,
-          site: st.site,
-          address: st.address,
+          site_name: st.site,
+          site_address: st.address,
           client: st.client,
           client_group: st.client_group,
           selected: ((undefined != filter_site_id && String(filter_site_id) == String(st.site_id) )? true : false)
@@ -281,7 +281,7 @@ Handlebars.registerHelper('SitesFilter', function(sites){
   var out = "<select id=\"sites_filter\">"+
     "<option value=\"\">-- All Sites --</option>";
   $.each(sites, function(i,st){
-    out = out + "<option value=\""+ st.site_id +"\""+ ((st.selected)?' selected="selected"':'') +">"+ st.site +"</option>";
+    out = out + "<option value=\""+ st.site_id +"\""+ ((st.selected)?' selected="selected"':'') +">"+ st.site_name +"</option>";
   });
   out = out + "</select>";
   return new Handlebars.SafeString(out);

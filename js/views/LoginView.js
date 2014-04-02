@@ -1,9 +1,9 @@
 var LoginView = function() {
 
-  this.login = function(e){
+  this.login = function(callback){
     var email = $("#email").val();
     var password = $("#password").val();
-    app.getLoginToken(email, password);
+    app.getLoginToken(email, password, callback);
   };
 
   this.render = function() {
@@ -20,7 +20,12 @@ var LoginView = function() {
 //    this.el.on('submit', 'form', function(event){
     this.el.on('click', '#login_form button', function(event){
       event.preventDefault();
-      self.login.call(self);
+      if (!event.currentTarget.clicked) {
+        event.currentTarget.clicked = true;
+        self.login.call(self, function(){
+          event.currentTarget.clicked = false;
+        });
+      }
     });
   };
   this.initialize();
