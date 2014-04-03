@@ -387,7 +387,19 @@ var app = {
     navigator.geolocation.clearWatch(app.watch_position_ID);
     app.watch_position_ID = void 0;
     if(app.token()){
-      app.watch_position_ID = navigator.geolocation.watchPosition(function(){}, function(){}, {maximumAge: 0, enableHighAccuracy: true});
+//      app.watch_position_ID = navigator.geolocation.watchPosition(function(){}, function(){}, {maximumAge: 0, enableHighAccuracy: true, timeout: 60000});
+      (function(){
+        var suc_clb = function(){};
+        var err_clb = function(){
+          navigator.geolocation.clearWatch(app.watch_position_ID);
+          startWP();
+        };
+        var startWP = function(){
+          if (!app.watch_position_ID) navigator.geolocation.clearWatch(app.watch_position_ID);
+          app.watch_position_ID = navigator.geolocation.watchPosition(suc_clb, err_clb, {maximumAge: 0, enableHighAccuracy: true, timeout: 30000});
+        };
+        startWP();
+      })();
       app.collect_gps_interval_flag = setTimeout(app.collectGeoPositions, app.collectGeoCoordinatesTimeout);
     }
   },
