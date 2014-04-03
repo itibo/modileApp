@@ -267,7 +267,8 @@ var app = {
 //console.log("checkTic invoked!");
     app.check();
     app.sync();
-    setTimeout(app.checkTic, app.watchPositionTimeout);
+    clearTimeout(app.server_communicate_interval_flag);
+    app.server_communicate_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
   },
 
   collectGeoPositions: function(){
@@ -360,7 +361,8 @@ var app = {
           { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
       );
     }
-    setTimeout(app.collectGeoPositions, app.collectGeoCoordinatesTimeout);
+    clearTimeout(app.collect_gps_interval_flag);
+    app.collect_gps_interval_flag = setTimeout(app.collectGeoPositions, app.collectGeoCoordinatesTimeout);
   },
 
   startServerCommunication: function(){
@@ -370,10 +372,7 @@ var app = {
           app.check();
         app.sync();
       }, 1000);
-
-      app.server_communicate_interval_flag = setTimeout(function(){
-        app.checkTic();
-      }, app.watchPositionTimeout);
+      app.server_communicate_interval_flag = setTimeout(app.checkTic, app.watchPositionTimeout);
     }
   },
 
