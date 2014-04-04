@@ -249,19 +249,21 @@ var SupplierView = function(){
       );
     });
 
-
-    this.el.on("click", 'div[data-role="navbar"] div a', function(e){
+    this.el.on("click", 'div[data-role=navbar] div a', function(e){
       e.preventDefault();
+      e.stopPropagation();
+
       var $elm = $(e.currentTarget);
       $('div[data-role="navbar"] > div').removeClass("active");
       $elm.closest("div").addClass("active");
       $('ul[data-role="listview"]').hide();
       app.activeTab(($elm.attr("href")).substring(1));
-      $($elm.attr("href")).show().trigger( "pagecreate" );
+      $($elm.attr("href")).show();
     });
 
     this.el.on("change", "#sites_filter", function(e){
       e.preventDefault();
+
       var selected_site = $(e.currentTarget).val();
       selected_site = ("" != selected_site) ? selected_site : false;
       app.siteFilter( selected_site ) ;

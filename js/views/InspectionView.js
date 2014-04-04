@@ -139,12 +139,12 @@ var InspectionView = function(data) {
         if(2 == buttonIndex){
           app.cancell_inspection(true);
           app.setJobInspectionContainer(false);
-          callback();
+          if ("function" === typeof callback) callback();
           app.route({
             toPage: window.location.href + "#my_jobs"
           });
         } else {
-          callback();
+          if ("function" === typeof callback) callback();
         }
       },
       "Inspection cancelling",
@@ -224,12 +224,14 @@ var InspectionView = function(data) {
     });
     this.el.on('click', 'div[data-role=header] a', function(event){
       event.preventDefault();
+      event.stopPropagation();
         self.close_and_clean_popup.call(self);
         self.cancelInspection.call(self);
     });
 
     this.el.on('click', '.pop_up .close', function(event){
       event.preventDefault();
+      event.stopPropagation();
       self.close_and_clean_popup.call(self);
     });
 
@@ -250,6 +252,7 @@ var InspectionView = function(data) {
 
     this.el.on('click', '.pop_up .popup_content a, .pop_up a.clear', function(event){
       event.preventDefault();
+      event.stopPropagation();
       if (!$(event.currentTarget).hasClass('disabled')){
         self.update_ls.call(self, $(event.currentTarget));
         self.close_and_clean_popup.call(self);

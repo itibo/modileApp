@@ -28,11 +28,13 @@ var WelcomeView = function() {
 
     this.el.on('click', 'a[href="#close"]', function(event){
       event.preventDefault();
+      event.stopPropagation();
       app.backButton();
     });
 
     this.el.on('click', '.logo_img', function(event){
       event.preventDefault();
+      event.stopPropagation();
       $("#menu").toggle();
     });
 

@@ -63,8 +63,6 @@ var MyJobsView = function() {
       });
     });
 
-
-
   };
 
   this.initialize();

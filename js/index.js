@@ -125,11 +125,11 @@ var app = {
 
     self.route();
 
-    $(document).bind( "pagebeforechange", function( e, data ) {
+    $(document).on( "pagebeforechange", function( e, data ) {
       $("#menu").hide();
       if ( typeof data.toPage === "string" ) {
-        self.route(data);
         e.preventDefault();
+        self.route(data);
       }
     });
 

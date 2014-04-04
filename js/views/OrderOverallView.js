@@ -115,12 +115,12 @@ var OrderOverallView = function(order_id){
 
     this.el.on('click', ".log_back", function(e){
       e.preventDefault();
+      e.stopPropagation();
       app.backButton();
     });
 
     this.el.on("change", "input[name=priority]:radio", function(e){
       e.preventDefault();
-
 
       $("div.priority-box>div").removeClass("active");
       $(e.currentTarget).closest("div").parent().addClass("active");
@@ -568,7 +568,6 @@ var OrderOverallView = function(order_id){
         );
       }
     });
-
 
   };
 

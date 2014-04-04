@@ -500,8 +500,9 @@ var OrderView = function(order_id){
       }
     });
 
-    this.el.on('click', ".log_back", function(e){
+    this.el.on('click', ".log_back a", function(e){
       e.preventDefault();
+      e.stopPropagation();
       app.backButton();
     });
 
@@ -679,6 +680,7 @@ var OrderView = function(order_id){
 
     this.el.on('click', 'ul[data-role=listview] li a', function(e){
       e.preventDefault();
+      e.stopPropagation();
 
       var $popup = $(".pop_up"),
           $score_elm = $(".number span", $(e.currentTarget)).eq(0);
@@ -725,11 +727,13 @@ var OrderView = function(order_id){
 
     this.el.on('click', '.pop_up .close', function(e){
       e.preventDefault();
+      e.stopPropagation();
       self.close_popup();
     });
 
     this.el.on('click', '.pop_up .popup_content a, .pop_up a.clear', function(event){
       event.preventDefault();
+      event.stopPropagation();
 
       var $elm = $(event.currentTarget);
       if ($elm.hasClass("more")){

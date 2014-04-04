@@ -105,6 +105,7 @@ var NearestLocationsView = function() {
 
     this.el.on('click', ".btn-back a", function(e){
       e.preventDefault();
+      e.stopPropagation();
       app.backButton();
     });
 
