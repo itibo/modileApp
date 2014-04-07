@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.azati.dcsmobile_alpha" version="0.4.6" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
-<!--<widget id="com.azati.dcsmobilen" version="0.4.6" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">-->
+<widget id="com.azati.dcsmobile_alpha" version="0.4.7" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
+<!--<widget id="com.azati.dcsmobilen" version="0.4.7" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">-->
   <name>DCS - QA Inspections Alpha</name>
   <!--<name>DCS - QA Inspections Beta</name>-->
   <description>

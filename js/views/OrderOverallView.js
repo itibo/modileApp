@@ -458,114 +458,175 @@ var OrderOverallView = function(order_id){
       if (!$manage_area.clicked) {
         $manage_area.clicked = true;
 
-        navigator.notification.confirm(
-            "Do you want to save this future order?",
-            function(buttonIndex){
-              if(2 == buttonIndex){
-                if(!isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
-                  var future_orders = app.myFutureOrders(),
-                      mutation = app.ids_mutation();
+        var active_order_info = (function(){
+          var _total = 0,
+              _count = 0;
 
-                  self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+          $.each(Object.keys(self.activeOrder.upd.supply_order_categories), function(i,v){
+            var _category = self.activeOrder.upd.supply_order_categories[v];
+            $.each(Object.keys(_category), function(ik,vk){
+              var _am = parseFloat(_category[vk]["amount"]);
+              if ( _am > 0 ) {
+                _count = _count + _am;
+                _total = _total + ( _am * parseFloat(_category[vk]["price"]) );
+              }
+            });
+          });
+
+          return {
+            total: _total,
+            count: _count
+          }
+        })();
+
+        if (parseFloat(self.activeOrder.upd.remaining_budget - self.activeOrder.upd.pending_budget - active_order_info.total) < 0){
+          navigator.notification.alert(
+              "Order can't be saved as future since budget is exceeded. Please correct the order details to be in the limits of available budget.", // message
+              function(){
+                $manage_area.clicked = false;
+              },    // callback
+              "Over budget.",       // title
+              'Ok'         // buttonName
+          );
+        } else {
+          navigator.notification.confirm(
+              "Do you want to save this future order?",
+              function(buttonIndex){
+                if(2 == buttonIndex){
+                  if(!isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
+                    var future_orders = app.myFutureOrders(),
+                        mutation = app.ids_mutation();
+
+                    self.activeOrder.upd.updated_at_utc = (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
 //alert("новый фьючер: " + ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) && (function(){ var _tmp = []; _tmp = $.grep(future_orders, function(n,i){ return $.inArray(n.supply_order_id, [ String(self.activeOrder.upd.supply_order_id), (undefined == mutation[self.activeOrder.upd.supply_order_id]) ? null : String(mutation[self.activeOrder.upd.supply_order_id]) ] ) > -1 }); return _tmp.length<1; })() ));
 
-                  if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                      (function(){
-                        var _tmp = [];
-                        _tmp = $.grep(future_orders, function(n,i){
-                          return $.inArray(n.supply_order_id,
-                              [ String(self.activeOrder.upd.supply_order_id),
-                                (undefined == mutation[self.activeOrder.upd.supply_order_id])
-                                    ? null
-                                    : String(mutation[self.activeOrder.upd.supply_order_id])
-                              ]
-                          ) > -1
-                        });
-                        return _tmp.length<1;
-                      })() ){
-                    // новый фьючер, не присутствующий в ЛС, добавляем его туда
+                    if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
+                        (function(){
+                          var _tmp = [];
+                          _tmp = $.grep(future_orders, function(n,i){
+                            return $.inArray(n.supply_order_id,
+                                [ String(self.activeOrder.upd.supply_order_id),
+                                  (undefined == mutation[self.activeOrder.upd.supply_order_id])
+                                      ? null
+                                      : String(mutation[self.activeOrder.upd.supply_order_id])
+                                ]
+                            ) > -1
+                          });
+                          return _tmp.length<1;
+                        })() ){
+                      // новый фьючер, не присутствующий в ЛС, добавляем его туда
 
-                    future_orders.unshift($.extend(true, {
-                      id: self.activeOrder.upd.supply_order_id,
-                      supply_order_id: self.activeOrder.upd.supply_order_id,
-                      supply_order_name: self.activeOrder.upd.supply_order_name,
-                      updated_at: self.activeOrder.upd.updated_at,
-                      updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                      order_date: self.activeOrder.upd.order_date,
-                      order_form: self.activeOrder.upd.order_form,
-                      priority: self.activeOrder.upd.priority,
-                      site_id: self.activeOrder.upd.site_id,
-                      site_name: self.activeOrder.upd.site_name,
-                      site_address: self.activeOrder.upd.site_address,
-                      special_instructions: self.activeOrder.upd.special_instructions,
-                      remaining_budget: self.activeOrder.upd.remaining_budget
-                    },{
-                      locally_saved: self.activeOrder.upd
-                    }));
-                  } else {
-                    $.each(future_orders, function(i, ft){
-                      if ($.inArray(String(ft.supply_order_id),
-                          [String(self.activeOrder.upd.supply_order_id),
-                            (undefined == mutation[self.activeOrder.upd.supply_order_id])? null :
-                                String(mutation[self.activeOrder.upd.supply_order_id])] ) > -1 )
-                      {
-                        var order_to_update = {};
+                      future_orders.unshift($.extend(true, {
+                        id: self.activeOrder.upd.supply_order_id,
+                        supply_order_id: self.activeOrder.upd.supply_order_id,
+                        supply_order_name: self.activeOrder.upd.supply_order_name,
+                        updated_at: self.activeOrder.upd.updated_at,
+                        updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                        order_date: self.activeOrder.upd.order_date,
+                        order_form: self.activeOrder.upd.order_form,
+                        priority: self.activeOrder.upd.priority,
+                        site_id: self.activeOrder.upd.site_id,
+                        site_name: self.activeOrder.upd.site_name,
+                        site_address: self.activeOrder.upd.site_address,
+                        special_instructions: self.activeOrder.upd.special_instructions,
+                        remaining_budget: self.activeOrder.upd.remaining_budget
+                      },{
+                        locally_saved: self.activeOrder.upd
+                      }));
+                    } else {
+                      $.each(future_orders, function(i, ft){
+                        if ($.inArray(String(ft.supply_order_id),
+                            [String(self.activeOrder.upd.supply_order_id),
+                              (undefined == mutation[self.activeOrder.upd.supply_order_id])? null :
+                                  String(mutation[self.activeOrder.upd.supply_order_id])] ) > -1 )
+                        {
+                          var order_to_update = {};
 
-                        if (undefined != mutation[self.activeOrder.upd.supply_order_id]){
-                          self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
-                          self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
+                          if (undefined != mutation[self.activeOrder.upd.supply_order_id]){
+                            self.activeOrder.upd.supply_order_id = mutation[self.activeOrder.upd.supply_order_id];
+                            self.activeOrder.upd.id = mutation[self.activeOrder.upd.supply_order_id];
+                          }
+
+                          order_to_update = $.extend(true, {
+                            id: self.activeOrder.upd.supply_order_id,
+                            supply_order_id: self.activeOrder.upd.supply_order_id,
+                            supply_order_name: self.activeOrder.upd.supply_order_name,
+                            updated_at: self.activeOrder.upd.updated_at,
+                            updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                            order_date: self.activeOrder.upd.order_date,
+                            order_form: self.activeOrder.upd.order_form,
+                            priority: self.activeOrder.upd.priority,
+                            site_id: self.activeOrder.upd.site_id,
+                            site_name: self.activeOrder.upd.site_name,
+                            site_address: self.activeOrder.upd.site_address,
+                            special_instructions: self.activeOrder.upd.special_instructions,
+                            remaining_budget: self.activeOrder.upd.remaining_budget,
+                            pending_budget: parseFloat(self.activeOrder.upd.pending_budget) + parseFloat(active_order_info.total)
+                          },{
+                            locally_saved: self.activeOrder.upd
+                          });
+
+                          future_orders[i] = order_to_update;
+                          return false;
                         }
+                      });
+                    }
+                    app.myFutureOrders(future_orders);
 
-                        order_to_update = $.extend(true, {
-                          id: self.activeOrder.upd.supply_order_id,
-                          supply_order_id: self.activeOrder.upd.supply_order_id,
-                          supply_order_name: self.activeOrder.upd.supply_order_name,
-                          updated_at: self.activeOrder.upd.updated_at,
-                          updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                          order_date: self.activeOrder.upd.order_date,
-                          order_form: self.activeOrder.upd.order_form,
-                          priority: self.activeOrder.upd.priority,
-                          site_id: self.activeOrder.upd.site_id,
-                          site_name: self.activeOrder.upd.site_name,
-                          site_address: self.activeOrder.upd.site_address,
-                          special_instructions: self.activeOrder.upd.special_instructions,
-                          remaining_budget: self.activeOrder.upd.remaining_budget
-                        },{
-                          locally_saved: self.activeOrder.upd
-                        });
+                    // локальный перерасчет бюджетов
+                    app.mySites((function(){
+                      var mySites = app.mySites(),
+                          short_order_form = self.activeOrder.upd.order_form.match(/^(.+?)\b/)[0].toLowerCase();
+                      $.each(mySites, function(i,v){
+                        try{
+                          if (v.assigned){
+                            if ("" === String(self.activeOrder.upd.site_id) || "paper" !== short_order_form )
+                            {
+                              mySites[i]["next_pending_"+short_order_form] = parseFloat(mySites[i]["next_pending_"+short_order_form])
+                                  + parseFloat(active_order_info.total);
+                            } else {
+                              if (v.site_id == self.activeOrder.upd.site_id){
+                                for(var objkey in mySites[i]){
+                                  if ((new RegExp("^next_pending_"+short_order_form)).test(objkey)){
+                                    mySites[i][objkey] = parseFloat(mySites[i][objkey])
+                                        + parseFloat(active_order_info.total);
+                                  }
+                                }
+                                return false;
+                              }
+                            }
+                          }
+                        } catch(er){}
+                      });
+                      return mySites;
+                    })());
+                    app.sync();
+                  }
 
-                        future_orders[i] = order_to_update;
-                        return false;
-                      }
+                  setTimeout(function(){
+                    var filter_site_id;
+                    try{
+                      filter_site_id = app.siteFilter();
+                      filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                    } catch (er){
+                      filter_site_id = "";
+                    }
+                    app.siteFilter( filter_site_id ) ;
+                    self.activeOrder = {};
+                    app.activeOrder(false);
+                    app.activeTab("next_month");
+                    app.route({
+                      toPage: window.location.href + "#orders"
                     });
-                  }
-                  app.myFutureOrders(future_orders);
-                  app.sync();
+                  },0);
                 }
-
-                setTimeout(function(){
-                  var filter_site_id;
-                  try{
-                    filter_site_id = app.siteFilter();
-                    filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
-                  } catch (er){
-                    filter_site_id = "";
-                  }
-                  app.siteFilter( filter_site_id ) ;
-                  self.activeOrder = {};
-                  app.activeOrder(false);
-                  app.activeTab("next_month");
-                  app.route({
-                    toPage: window.location.href + "#orders"
-                  });
-                },0);
-              }
-              $manage_area.clicked = false;
-            },
-            "Future Order",
-            ['Cancel','Save']
-        );
+                $manage_area.clicked = false;
+              },
+              "Future Order",
+              ['Cancel','Save']
+          );
+        }
       }
     });
 
@@ -667,8 +728,15 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
     out.push("<div class=\"over_budget\">");
     out.push("<div class=\"budget\">");
     if ("log" != order.order_status){
-      out.push("Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>");
-      out.push("<div class=\"over\">"+ ((total>order.remaining_budget)?'Over Budget!!!':'') +"</div>");
+      if ($.inArray(order_obj.status, ["future","new_future"]) > -1 || $.inArray(order.order_status, ["future","new_future"]) > -1){
+        out.push("Month budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) + "</span>" +
+            "<br />Pending (in other orders): <span class=\"pending\">$"+ parseFloat(order.pending_budget).toFixed(2) +"</span>" +
+            "<br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - order.pending_budget - total).toFixed(2) +"</span>");
+        out.push("<div class=\"over\">"+ ( ( parseFloat(order.remaining_budget - order.pending_budget - total) < 0) ? 'Over Budget!!!':'') +"</div>");
+      } else {
+        out.push("Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>");
+        out.push("<div class=\"over\">"+ ((total>order.remaining_budget)?'Over Budget!!!':'') +"</div>");
+      }
     }
     out.push("<div class=\"total\">");
     out.push("<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>");

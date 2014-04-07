@@ -18,7 +18,7 @@ var app = {
     this.collect_gps_interval_flag = void 0;
 
     this.autoconnect_flag = false;
-    this.application_version = "0.4.6";
+    this.application_version = "0.4.7";
     this.application_build = "ALPHA";
 
     // allow to submit inspection
@@ -734,7 +734,7 @@ var app = {
                         && String(resulted.supply_order_id) == String(local_order.supply_order_id) )
                   }).length > 0 )
                   {
-                    alert("прошел проверку этот ордер:" + JSON.stringify(local_order));
+//                    alert("прошел проверку этот ордер:" + JSON.stringify(local_order));
                     result_items.push(local_order);
                   }
                 });

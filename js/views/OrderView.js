@@ -89,40 +89,52 @@ var OrderView = function(order_id){
                     });
 
                     if ($.isEmptyObject(tmp)){
-                      return $.extend( {}, app.diamond_office, {
-                        remaining_budget: (function(form_prefix){
+                      return $.extend( {}, app.diamond_office,
+                          (function(form_prefix){
                           var val = 0,
+                              pend_val = 0,
                               site_to_get_budgets = $.grep(my_sites, function(n,i){
                                 return n.assigned;
                               })[0];
                           if ("paper" != form_prefix && site_to_get_budgets) {
-                            val = (prefix.length > 0
-                                ? (parseFloat(site_to_get_budgets[prefix + "budget_"+form_prefix])
-                                - parseFloat(site_to_get_budgets[prefix + "pending_"+form_prefix]))
+                            val = prefix.length > 0
+                                ? parseFloat(site_to_get_budgets[prefix + "budget_"+form_prefix])
                                 : (parseFloat(site_to_get_budgets["budget_"+form_prefix])
-                                - parseFloat(site_to_get_budgets["used_"+form_prefix])));
+                                  - parseFloat(site_to_get_budgets["used_"+form_prefix]));
+                            pend_val = parseFloat(site_to_get_budgets[prefix + "pending_"+form_prefix]);
                           }
-                          return val.toFixed(2);
+                          return {
+                            remaining_budget: val.toFixed(2),
+                            pending_budget: pend_val.toFixed(2)
+                          };
                         })(form)
-                      });
+                      );
                     } else {
-                      return {
+                      return $.extend( {}, {
                         site_id: tmp.site_id,
                         site_name: tmp.site,
-                        site_address: tmp.address,
-                        remaining_budget: (function(form_prefix){
-                          var budget = $.grep(Object.keys(tmp), function(n,i){
-                            return RegExp('^' + prefix + 'budget_'+ form_prefix +'(\\b|_)','i').test(n);
-                          })[0];
-                          var used = $.grep(Object.keys(tmp), function(n,i){
-                            return RegExp( '^' + (prefix.length > 0
-                                ? (prefix + 'pending_')
-                                : ('used_')) + form_prefix + '(\\b|_)' ,'i').test(n);
-                          })[0];
-                          var remain = parseFloat(tmp[budget]) - parseFloat(tmp[used]);
-                          return parseFloat(remain).toFixed(2);
-                        })(form)
-                      }
+                        site_address: tmp.address
+                      },
+                      (function(form_prefix){
+                        var budget = $.grep(Object.keys(tmp), function(n,i){
+                          return RegExp('^' + prefix + 'budget_'+ form_prefix +'(\\b|_)','i').test(n);
+                        })[0];
+
+                        var pending = $.grep(Object.keys(tmp), function(n,i){
+                          return RegExp('^' + prefix + 'pending_'+ form_prefix +'(\\b|_)','i').test(n);
+                        })[0];
+
+                        var used = $.grep(Object.keys(tmp), function(n,i){
+                          return RegExp( '^' + (prefix.length > 0
+                              ? (prefix + 'pending_')
+                              : ('used_')) + form_prefix + '(\\b|_)' ,'i').test(n);
+                        })[0];
+                        var remain = parseFloat(tmp[budget] - (prefix.length > 0 ? 0 : tmp[used])) || 0;
+                        return {
+                          remaining_budget: remain.toFixed(2),
+                          pending_budget: (parseFloat(tmp[pending]) || 0).toFixed(2)
+                        };
+                      })(form))
                     }
                   })(self.order_id.match(/^new_on_device_(.*)_(.*)_(.*)$/)),
                   form_and_items_info = (function(form){
@@ -363,9 +375,15 @@ var OrderView = function(order_id){
       });
     });
 
-    $(".over_budget>.budget span.remain").html("$"+ parseFloat(self.activeOrder.upd.remaining_budget - total).toFixed(2));
+    $(".over_budget>.budget span.remain").html("$"+ parseFloat(self.activeOrder.upd.remaining_budget
+        - ($.inArray(self.activeOrder.status, ["future","new_future"]) > -1 || $.inArray(self.activeOrder.upd.order_status, ["future","new_future"]) > -1
+            ? self.activeOrder.upd.pending_budget
+            : 0 ) - total).toFixed(2));
 
-    if (parseFloat(self.activeOrder.upd.remaining_budget) >= parseFloat(total)){
+    if (parseFloat(self.activeOrder.upd.remaining_budget
+      - ($.inArray(self.activeOrder.status, ["future","new_future"]) > -1 || $.inArray(self.activeOrder.upd.order_status, ["future","new_future"]) > -1
+            ? self.activeOrder.upd.pending_budget
+            : 0 ) - total) >= 0 ){
       $(".over_budget .over").html("");
     } else {
       $(".over_budget .over").html("Over Budget!!!");
@@ -525,7 +543,17 @@ var OrderView = function(order_id){
           );
 
         } else {
-          if ("-" == $(".budget > dd", $(e.currentTarget).closest(".start_order")).text()){
+
+          if (future_order && parseFloat($(".remain > dd", $(e.currentTarget).closest(".start_order")).text().substring(1)) < 0 ){
+            navigator.notification.alert(
+                "There are no more budget available for this type of order.", // message
+                function(){
+                  $order_form_selection.clicked = false;
+                },   // callback
+                (future_order ? "New Future Order" : "New Order"),    // title
+                'Ok'            // buttonName
+            );
+          } else if ("-" == $(".budget > dd", $(e.currentTarget).closest(".start_order")).text()){
             navigator.notification.alert(
                 "The order can't be placed: no budget available for the selected site.", // message
                 function(){
@@ -990,10 +1018,19 @@ Handlebars.registerHelper("orderContent", function(order_obj){
       });
       //over budget
       out.push("<div class=\"over_budget\">" +
-        "<div class=\"budget\">" +
-          "Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span><br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>" +
-          "<div class=\"over\">"+ ((total>order.remaining_budget && "log" != order.order_status)?'Over Budget!!!':'') +"</div>" +
-          "<div class=\"total\">" +
+        "<div class=\"budget\">");
+
+      if ($.inArray(order_obj.status, ["future","new_future"]) > -1 || $.inArray(order.order_status, ["future","new_future"]) > -1){
+        out.push("Month budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span>"+
+            "<br />Pending (in other orders): <span class=\"pending\">$"+ parseFloat(order.pending_budget).toFixed(2) +"</span>"+
+            "<br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - order.pending_budget - total).toFixed(2) +"</span>" +
+            "<div class=\"over\">"+ ( ( parseFloat(order.remaining_budget - order.pending_budget - total) < 0 && "log" != order.order_status ) ? 'Over Budget!!!' : '' ) +"</div>");
+      } else {
+        out.push("Budget: <span>$"+ parseFloat(order.remaining_budget).toFixed(2) +"</span>"+
+            "<br />Remaining: <span class=\"remain\">$"+ parseFloat(order.remaining_budget - total).toFixed(2) +"</span>" +
+            "<div class=\"over\">"+ ((parseFloat(order.remaining_budget - total) < 0 && "log" != order.order_status)?'Over Budget!!!':'') +"</div>");
+      }
+      out.push("<div class=\"total\">" +
             "<p>Total: <span class=\"price\">$"+total.toFixed(2)+"</span></p>" +
           "</div>" +
         "</div>" +
