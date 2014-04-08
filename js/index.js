@@ -387,15 +387,29 @@ var app = {
     app.watch_position_ID = void 0;
     if(app.token()){
 //      app.watch_position_ID = navigator.geolocation.watchPosition(function(){}, function(){}, {maximumAge: 0, enableHighAccuracy: true, timeout: 60000});
-      (function(){
+/*      (function(){
         var suc_clb = function(){};
-        var err_clb = function(){
+        var err_clb = function(err){
+          console.log("err_clb: " + JSON.stringify(err));
           navigator.geolocation.clearWatch(app.watch_position_ID);
+          app.watch_position_ID = void 0;
+          console.log("clearWatch done");
           startWP();
+          console.log("startWP invoked in error calback");
         };
         var startWP = function(){
           if (!app.watch_position_ID) navigator.geolocation.clearWatch(app.watch_position_ID);
           app.watch_position_ID = navigator.geolocation.watchPosition(suc_clb, err_clb, {maximumAge: 0, enableHighAccuracy: true, timeout: 30000});
+        };
+        startWP();
+      })();*/
+      (function(){
+        var clb = function(){
+          console.log(arguments);
+          setTimeout(startWP, 30000);
+        };
+        var startWP = function(){
+          navigator.geolocation.getCurrentPosition(clb, clb, {maximumAge: 0, enableHighAccuracy: true, timeout: 30000});
         };
         startWP();
       })();

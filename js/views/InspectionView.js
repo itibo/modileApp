@@ -235,11 +235,6 @@ var InspectionView = function(data) {
       self.close_and_clean_popup.call(self);
     });
 
-    this.el.on('change', '#comment', function(event){
-      event.preventDefault();
-      app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {comment: $(event.currentTarget).val()}));
-    });
-
     this.el.on('input propertychange', 'textarea#comment', function(event){
       event.preventDefault();
       $(".characterscountdown>span", $(event.delegateTarget)).html($(event.currentTarget).val().length);
@@ -248,6 +243,7 @@ var InspectionView = function(data) {
       } else {
         $(".characterscountdown>span", $(event.delegateTarget)).removeClass("error");
       }
+      app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {comment: $(event.currentTarget).val()}));
     });
 
     this.el.on('click', '.pop_up .popup_content a, .pop_up a.clear', function(event){
