@@ -37,10 +37,12 @@ var InspectionsLogView = function(data) {
 }
 
 Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
-  var out = [];
-  var items = inspectionsLog.log;
+  var items = inspectionsLog.log,
+    out = ["<ul data-role=\"listview\" data-inset=\"true\">",
+        "<li data-role=\"list-divider\" role=\"heading\">Below are the list of inspections completed by you in last two months ("+ items.length +").</li>"];;
+
+  //Below are the list of inspections completed by you in last two months.
   if (items.length>0 || inspectionsLog.unsubmitted){
-    out.push("<ul data-role=\"listview\" data-inset=\"true\">");
     if (inspectionsLog.unsubmitted){
       out.push("<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + "<br/><span class=\"address\">" + inspectionsLog.unsubmitted.address + "(UNSUBMITTED)</span></div></li>");
     }
@@ -50,8 +52,8 @@ Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
           "<div class=\"points\">" + items[i].site  + "<br/><span></span><span class=\"address\">" + items[i].address + "</span></div>" +
           "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
             "<td class=\"points_time\">" +
-              "<span class=\"time\">Initiated: <font >" + items[i].arrival_time + "</font></span><br />" +
-              "<span class=\"time\">Completed: <font >" + items[i].departure_time + "</font></span>" +
+              "<span class=\"time\">Initiated: <font >" + items[i].initiated_time + "</font></span><br />" +
+              "<span class=\"time\">Completed: <font >" + items[i].completed_time + "</font></span>" +
             "</td>" +
             "<td class=\"right_points\">" +
               "<div class=\"box_points\">" +

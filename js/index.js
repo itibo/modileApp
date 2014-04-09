@@ -18,6 +18,8 @@ var app = {
     this.collect_gps_interval_flag = void 0;
 
     this.autoconnect_flag = false;
+    this.new_version = {};
+    this.update_notification_rised = false;
     this.application_version = "0.4.7";
     this.application_build = "ALPHA";
 
@@ -122,6 +124,11 @@ var app = {
     }
 
     app.sync_process_execution_flag.setFlag(false);
+
+    app.update_notification_rised=false;
+    if (app.new_version && app.new_version.viewed){
+      app.new_version.viewed = void 0;
+    }
 
     self.route();
 
@@ -405,7 +412,6 @@ var app = {
       })();*/
       (function(){
         var clb = function(){
-          console.log(arguments);
           setTimeout(startWP, 30000);
         };
         var startWP = function(){
@@ -425,6 +431,14 @@ var app = {
     app.watch_position_ID = void 0;
   },
 
+
+  orders_ready_to_sync: function(){
+    return ($.grep($.merge($.merge([], app.mySupplyOrdersDrafts()), app.myFutureOrders()), function(n,i){
+      return ( (undefined != n.submit_status && "submitting" == n.submit_status && undefined == n.submitting) ||
+          (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved) && undefined == n.sending) ||
+          (undefined != n.to_remove && undefined == n.removing) );
+    }).length>0);
+  },
 
   sync: function(){
 //    alert("sync invoked !" );
@@ -488,18 +502,10 @@ var app = {
         sites_properties: "sites_properties",
         site_properties: "sites_properties",
         site_schedule: "sites_schedule"
-      },
-          orders_ready_to_sync = function(){
-            return ($.grep($.merge($.merge([], app.mySupplyOrdersDrafts()), app.myFutureOrders()), function(n,i){
-              return ( (undefined != n.submit_status && "submitting" == n.submit_status && undefined == n.submitting) ||
-                  (undefined != n.locally_saved && !$.isEmptyObject(n.locally_saved) && undefined == n.sending) ||
-                  (undefined != n.to_remove && undefined == n.removing) );
-            }).length>0);
-          };
+      };
       var allow_to_chain_methods = true;
       var dfrrd = $.Deferred();
       dfrrd.resolve();
-
 
       var DeferredAjax = function(func){
         this.deferred = $.Deferred();
@@ -790,7 +796,7 @@ var app = {
         return self.deferred.promise();
       };
 
-      if (orders_ready_to_sync()){
+      if (app.orders_ready_to_sync()){
         methods_to_chain.push('save_orders');
       }
       if ("" == method_when_update_sync_time){
@@ -871,6 +877,7 @@ var app = {
             global: (typeof callback == "function")? true : false,
             timeout: 60000,
             success: function(data) {
+              app.new_version = ($.isEmptyObject(data.new_version)) ? {} : $.extend(app.new_version, data.new_version);
               app.autoconnect_flag = false;
               app.cancell_inspection(false);
 
@@ -882,6 +889,7 @@ var app = {
               if(typeof callback == "function"){
                 callback();
               }
+              app.tryToInformAboutNewVersion();
             },
             error: function(e){
               if (e.status == 401){
@@ -1974,7 +1982,7 @@ var app = {
         crossDomain: true,
         dataType: 'json',
         success: function(data) {
-          app.LS_clean();
+          app.LS_clean(false);
           app.setToken(data.token);
           app.setUserInfo(data.user);
           app.cancell_inspection(false);
@@ -2020,16 +2028,18 @@ var app = {
     });
   },
 
-
   // clean Local Storage
-  LS_clean: function(callback){
-
+  LS_clean: function(keep_user, callback){
+    keep_user = keep_user || false;
     app.stopCollectGeoPosition();
     app.stopServerCommunication();
 
-    app.setToken(false);
-    app.setPushID(false);
-    app.setUserInfo(false);
+    if (!keep_user){
+      app.setToken(false);
+      app.setPushID(false);
+      app.setUserInfo(false);
+    }
+
     app.coordinates = [];
     app.setSitesToInspect([]);
     app.setJobInspectionContainer(false);
@@ -2047,6 +2057,7 @@ var app = {
     app.supplierMainPageHelper(false);
     app.nearestLocationsFilter(false);
     app.sitesFilters(false);
+    app.new_version = {};
 
 //    savedCheckList ?
 
@@ -2071,7 +2082,7 @@ var app = {
         timeout: 60000
       });
     }).always(function(){
-      app.LS_clean(function(){
+      app.LS_clean(false, function(){
         $("#overlay").hide();
         if ($("#menu").is(":visible")){
           $("#menu").toggle();
@@ -2324,6 +2335,66 @@ var app = {
           return out;
         })()
     );
+  },
+
+  tryToInformAboutNewVersion: function(){
+    if (undefined !== app.new_version.version && app.new_version.version != app.application_version
+        && !app.new_version.viewed && !app.update_notification_rised){
+      if (!app.getJobInspectionContainer().status && !app.orders_ready_to_sync()){
+        app.update_notification_rised = true;
+        if (app.new_version.priority && "high" === app.new_version.priority){
+          navigator.notification.alert(
+              (app.new_version.message
+                  ? app.new_version.message
+                  : ("A new version of the application ("+ app.new_version.version +
+                      ") is released. You need to download it right away and can’t work until you upgrade.")), // message
+              function(){
+                var download_url = (app.new_version.url
+                    ? app.new_version.url
+                    : ("http://staging.azati.com/dcs/DCS_QAInspections" +
+                      (function(str){ return str[0].toUpperCase() + str.slice(1);})(app.application_build.toLowerCase()) +
+                      "-" + app.new_version.version + ".apk" ));
+                app.update_notification_rised = false;
+                app.LS_clean(true);
+                navigator.app.loadUrl(download_url, {openExternal : true});
+
+                app.stopCollectGeoPosition();
+                app.stopServerCommunication();
+                navigator.app.exitApp();
+              },    // callback
+              "Application Update (Required)",       // title
+              "Download and update"         // buttonName
+          );
+        } else {
+          navigator.notification.confirm(
+              (app.new_version.message
+                  ? app.new_version.message
+                  : ("A new version of the application ("+ app.new_version.version +
+                      ") is avaliable for download. You could either upgrade it now or skip and do this later.")), // message
+              function(buttonIndex){
+                if(2 == buttonIndex){
+                  var download_url = (app.new_version.url
+                      ? app.new_version.url
+                      : ("http://staging.azati.com/dcs/DCS_QAInspections" +
+                        (function(str){ return str[0].toUpperCase() + str.slice(1);})(app.application_build.toLowerCase()) +
+                        "-" + app.new_version.version + ".apk" ));
+                  app.LS_clean(true);
+                  navigator.app.loadUrl(download_url, {openExternal : true});
+
+                  app.stopCollectGeoPosition();
+                  app.stopServerCommunication();
+                  navigator.app.exitApp();
+                } else {
+                  app.new_version.viewed = true;
+                }
+                app.update_notification_rised = false;
+              },
+              "Application Update",
+              ["Skip","Download now"]
+          );
+        }
+      }
+    }
   }
 };
 

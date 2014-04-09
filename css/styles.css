@@ -2,7 +2,7 @@ body, div, span, p, a, table, td{
 	font-family: Arial, Helvetica, sans-serif !important;
 }
 
-div[data-role=page]{
+div[data-role=page], div[data-role=page]>div{
 	background-color: #c4c4c5; 
 	background-image: -ms-linear-gradient(top, #e7e7e7 0%, #e7e7e7 100%);
 	background-image: -moz-linear-gradient(top, #e7e7e7 0%, #e7e7e7 100%);
@@ -20,7 +20,7 @@ div[data-role=page]{
 .ui-mobile-viewport .ui-page .ui-header { background:transparent; background-color:#c2d7d6; border:0 none; text-shadow:none; }
 .ui-header h1.ui-title { border-left:1em solid #e2d3c8; color:#757575; margin:0px; padding:0px; text-align:left; min-height:40px; }
 .ui-header h1.ui-title.cancel_inspect { border-left:1em solid #e2d3c8; color:#757575; margin:0px; padding:0px; text-align:left; }
-h1.ui-title span.address { float:left; font-style: normal; font-weight: bold; padding: 0.4em 0 0 1em; width: 53%; white-space:normal; }
+h1.ui-title span.address { float:left; font-style: normal; font-weight: bold; padding: 0.4em 0 0 1em; padding: 1% 0 1% 1em; width: 53%; white-space:normal; }
 h1.ui-title span.logout{ background-color:#f0f0f0; color:#7d7d7d; float:right; font-size:smaller; padding:0.2em 1.2em; text-align:center; }
 h1.ui-title span.btn-back {background-color:#f0f0f0;  color:#7d7d7d; float:right; font-size:smaller; padding:0.2em 1.2em; text-align:center; }
 h1.ui-title span.btn-back_inspect{background-color:#f0f0f0;  color:#7d7d7d; float:right; font-size:smaller; padding:0.2em 1.2em; text-align:center; }
@@ -195,7 +195,9 @@ border: 1px solid #a0a0a2;
 .input_text{
 	width:300px;
 }
-
+.mt0 {
+	margin-top: 0;
+}
 
 /* welcome */
 .welcome li{
@@ -1414,18 +1416,30 @@ ul#next_month{
 	font-weight:normal;
 }
 
-.draft .ui-content h3 {
+/*.draft */.ui-content h3 {
 	float: none;
 	font-weight: normal;
 	font-size: 150%;
-	margin-bottom:0px;
+	margin-bottom: 0;
 	width: 100%;
 }
-.draft .block-textarea{
+	.ui-content h3 font {
+		color: #777;
+		font-size: 90%;
+		font-style: italic;
+	}
+.characterscountdown { 
+	float: right;
+	margin-top: -22px;
+}
+.block-textarea{
 	float: none;
 	width:100%;
 }
-.draft textarea{
+.block-textarea textarea.ui-input-text{
+	display: inline-block;
+}
+textarea.block-textarea{
 	border-radius: 0.5em;
 	box-shadow: 0 3px 5px #dbdbdb inset;
 	background-color: #f0f0f0;
@@ -1762,7 +1776,7 @@ body div[data-role=page] > div.curr_loc .main div.gmaps > div div#map_canvas {
 }
 
 .block-textarea .characterscountdown {
-    text-align: right;
+	text-align: right;
 }
 
 .characterscountdown .error{

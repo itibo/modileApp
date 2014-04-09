@@ -213,7 +213,7 @@ var InspectionView = function(data) {
     var self = this;
     // Define a div wrapper for the view. The div wrapper is used to attach events.
     this.el = $('<div />');
-    this.el.on('click', '.block-submit input[type=submit]', function(e){
+    this.el.on('click', '.manage_area button#submit', function(e){
       e.preventDefault();
       if (!e.currentTarget.clicked) {
         e.currentTarget.clicked = true;
@@ -237,11 +237,11 @@ var InspectionView = function(data) {
 
     this.el.on('input propertychange', 'textarea#comment', function(event){
       event.preventDefault();
-      $(".characterscountdown>span", $(event.delegateTarget)).html($(event.currentTarget).val().length);
+      $(".characterscountdown>strong", $(event.delegateTarget)).html($(event.currentTarget).val().length);
       if ($(event.currentTarget).val().length > self.comment_maxlength){
-        $(".characterscountdown>span", $(event.delegateTarget)).addClass("error");
+        $(".characterscountdown>strong", $(event.delegateTarget)).addClass("error");
       } else {
-        $(".characterscountdown>span", $(event.delegateTarget)).removeClass("error");
+        $(".characterscountdown>strong", $(event.delegateTarget)).removeClass("error");
       }
       app.setJobInspectionContainer($.extend(app.getJobInspectionContainer(), {comment: $(event.currentTarget).val()}));
     });
@@ -314,14 +314,24 @@ Handlebars.registerHelper('checkListContent', function(container){
   }
   //begin of textarea and submit
   out.push("<div data-role=\"content\">" +
-      "<h3>Notes <br /><font>(optional):</font></h3>" +
-      "<div class=\"block-textarea\">" +
+      "<h3 class=\"mt0\">Notes <font>(optional):</font></h3>" +
+      "<div class=\"characterscountdown\"><strong"+(comment.length>comment_maxlength ? " class=\"error\"" : "")+">"+
+        comment.length +"</strong> of "+ comment_maxlength +"</div>" +
+      "<div class=\"block-textarea\" style=\"clear: both;\">" +
         "<textarea id=\"comment\" name=\"comment\">" + comment + "</textarea>" +
-        "<div class=\"characterscountdown\"><span>"+ comment.length +"</span> of "+ comment_maxlength +"</div>" +
+
       "</div>" +
-      "<div class=\"block-submit\">" +
+/*      "<div class=\"block-submit\">" +
         "<input type=\"submit\" value=\"Submit\" />"+
-      "</div>" +
+      "</div>" +*/
+
+      "<table class=\"manage_area\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr>" +
+        "<td width=\"24%\">&nbsp;</td>" +
+        "<td class=\"green_btn\">" +
+          "<button id=\"submit\">Submit</button>" +
+        "</td>" +
+        "<td width=\"24%\">&nbsp;</td>" +
+      "</tr></table>" +
     "</div>");
   //end textarea and submit
   return new Handlebars.SafeString(out.join(""));

@@ -3,6 +3,7 @@ var OrderView = function(order_id){
   this.activeOrder = {};
   this.scroll_event_obj = false;
   this.order_type = "";
+  this.comment_maxlength = 2000;
 
   this.render = function(){
     var context = {},
@@ -10,6 +11,7 @@ var OrderView = function(order_id){
         self = this;
 
     context.order = {};
+    context.comment_maxlength = self.comment_maxlength;
 
     switch (self.order_id) {
       case "new":
@@ -581,109 +583,122 @@ var OrderView = function(order_id){
       var $manage_area = $(e.currentTarget).parents(".manage_area")[0];
       if (!$manage_area.clicked) {
         $manage_area.clicked = true;
-        navigator.notification.confirm(
-            "Do you want to save this order as draft?",
-            function(buttonIndex){
-              if(2 == buttonIndex){
 
-                if(String(self.order_id) == String(self.activeOrder.id) && !isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
-                  var drafts = app.mySupplyOrdersDrafts(),
-                      mutation = app.ids_mutation();
+        if (self.activeOrder.upd.special_instructions
+            && self.activeOrder.upd.special_instructions.length > self.comment_maxlength){
+          navigator.notification.alert(
+              "Comment is too large. Please correct it.",         // message
+              function(){                       //callback
+                $manage_area.clicked = false;
+              },
+              "Draft saving",          // title
+              'Ok'                              // buttonName
+          );
+        } else {
+          navigator.notification.confirm(
+              "Do you want to save this order as draft?",
+              function(buttonIndex){
+                if(2 == buttonIndex){
 
-                  self.activeOrder.upd.updated_at_utc = (new Date(app.last_sync_date()) > new Date())
-                      ? new Date(app.last_sync_date()).toJSON().replace(/\.\d{3}Z$/,'Z')
-                      : (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
+                  if(String(self.order_id) == String(self.activeOrder.id) && !isObjectsEqual(self.activeOrder.proto, self.activeOrder.upd)){
+                    var drafts = app.mySupplyOrdersDrafts(),
+                        mutation = app.ids_mutation();
 
-                  if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
-                      (function(){
-                        var _tmp = [];
-                        _tmp = $.grep(drafts, function(n,i){
-                          return $.inArray(n.supply_order_id,
-                              [ String(self.activeOrder.upd.supply_order_id),
-                                (undefined == mutation[self.activeOrder.upd.supply_order_id])
-                                    ? null
-                                    : String(mutation[self.activeOrder.upd.supply_order_id])
-                              ]
-                          ) > -1
-                        });
-                        return _tmp.length<1;
-                      })() ){
-                    // новый черновик, не присутствующий в ЛС, добавляем его туда
+                    self.activeOrder.upd.updated_at_utc = (new Date(app.last_sync_date()) > new Date())
+                        ? new Date(app.last_sync_date()).toJSON().replace(/\.\d{3}Z$/,'Z')
+                        : (new Date()).toJSON().replace(/\.\d{3}Z$/,'Z');
 
-                    drafts.unshift($.extend({
-                      id: self.activeOrder.upd.supply_order_id,
-                      supply_order_id: self.activeOrder.upd.supply_order_id,
-                      supply_order_name: self.activeOrder.upd.supply_order_name,
-                      updated_at: self.activeOrder.upd.updated_at,
-                      updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                      order_date: self.activeOrder.upd.order_date,
-                      order_form: self.activeOrder.upd.order_form,
-                      site_id: self.activeOrder.upd.site_id,
-                      site_name: self.activeOrder.upd.site_name,
-                      site_address: self.activeOrder.upd.site_address,
-                      special_instructions: self.activeOrder.upd.special_instructions,
-                      remaining_budget: self.activeOrder.upd.remaining_budget
-                    },{
-                      locally_saved: self.activeOrder.upd
-                    }));
-                  } else {
-                    $.each(drafts, function(i, dr){
-                      if ($.inArray(String(dr.supply_order_id), [String(self.order_id), (undefined == mutation[self.order_id])? null : String(mutation[self.order_id])] ) > -1 ){
-                        var draft_to_update = {};
+                    if ( RegExp('^new_on_device_','i').test(self.activeOrder.upd.supply_order_id) &&
+                        (function(){
+                          var _tmp = [];
+                          _tmp = $.grep(drafts, function(n,i){
+                            return $.inArray(n.supply_order_id,
+                                [ String(self.activeOrder.upd.supply_order_id),
+                                  (undefined == mutation[self.activeOrder.upd.supply_order_id])
+                                      ? null
+                                      : String(mutation[self.activeOrder.upd.supply_order_id])
+                                ]
+                            ) > -1
+                          });
+                          return _tmp.length<1;
+                        })() ){
+                      // новый черновик, не присутствующий в ЛС, добавляем его туда
 
-                        if (undefined != mutation[self.order_id]){
-                          self.activeOrder.upd.supply_order_id = mutation[self.order_id];
-                          self.activeOrder.upd.id = mutation[self.order_id];
+                      drafts.unshift($.extend({
+                        id: self.activeOrder.upd.supply_order_id,
+                        supply_order_id: self.activeOrder.upd.supply_order_id,
+                        supply_order_name: self.activeOrder.upd.supply_order_name,
+                        updated_at: self.activeOrder.upd.updated_at,
+                        updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                        order_date: self.activeOrder.upd.order_date,
+                        order_form: self.activeOrder.upd.order_form,
+                        site_id: self.activeOrder.upd.site_id,
+                        site_name: self.activeOrder.upd.site_name,
+                        site_address: self.activeOrder.upd.site_address,
+                        special_instructions: self.activeOrder.upd.special_instructions,
+                        remaining_budget: self.activeOrder.upd.remaining_budget
+                      },{
+                        locally_saved: self.activeOrder.upd
+                      }));
+                    } else {
+                      $.each(drafts, function(i, dr){
+                        if ($.inArray(String(dr.supply_order_id), [String(self.order_id), (undefined == mutation[self.order_id])? null : String(mutation[self.order_id])] ) > -1 ){
+                          var draft_to_update = {};
+
+                          if (undefined != mutation[self.order_id]){
+                            self.activeOrder.upd.supply_order_id = mutation[self.order_id];
+                            self.activeOrder.upd.id = mutation[self.order_id];
+                          }
+
+                          draft_to_update = $.extend({
+                            id: self.activeOrder.upd.supply_order_id,
+                            supply_order_id: self.activeOrder.upd.supply_order_id,
+                            supply_order_name: self.activeOrder.upd.supply_order_name,
+                            updated_at: self.activeOrder.upd.updated_at,
+                            updated_at_utc: self.activeOrder.upd.updated_at_utc,
+                            order_date: self.activeOrder.upd.order_date,
+                            order_form: self.activeOrder.upd.order_form,
+                            site_id: self.activeOrder.upd.site_id,
+                            site_name: self.activeOrder.upd.site_name,
+                            site_address: self.activeOrder.upd.site_address,
+                            special_instructions: self.activeOrder.upd.special_instructions,
+                            remaining_budget: self.activeOrder.upd.remaining_budget
+                          },{
+                            locally_saved: self.activeOrder.upd
+                          });
+
+                          drafts[i] = draft_to_update;
+                          return false;
                         }
+                      });
+                    }
+                    app.mySupplyOrdersDrafts(drafts);
+                    app.sync();
+                  }
 
-                        draft_to_update = $.extend({
-                          id: self.activeOrder.upd.supply_order_id,
-                          supply_order_id: self.activeOrder.upd.supply_order_id,
-                          supply_order_name: self.activeOrder.upd.supply_order_name,
-                          updated_at: self.activeOrder.upd.updated_at,
-                          updated_at_utc: self.activeOrder.upd.updated_at_utc,
-                          order_date: self.activeOrder.upd.order_date,
-                          order_form: self.activeOrder.upd.order_form,
-                          site_id: self.activeOrder.upd.site_id,
-                          site_name: self.activeOrder.upd.site_name,
-                          site_address: self.activeOrder.upd.site_address,
-                          special_instructions: self.activeOrder.upd.special_instructions,
-                          remaining_budget: self.activeOrder.upd.remaining_budget
-                        },{
-                          locally_saved: self.activeOrder.upd
-                        });
-
-                        drafts[i] = draft_to_update;
-                        return false;
-                      }
+                  setTimeout(function(){
+                    var filter_site_id;
+                    try{
+                      filter_site_id = app.siteFilter();
+                      filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
+                    } catch (er){
+                      filter_site_id = "";
+                    }
+                    app.siteFilter( filter_site_id ) ;
+                    self.activeOrder = {};
+                    app.activeOrder(false);
+                    app.activeTab("drafts");
+                    app.route({
+                      toPage: window.location.href + "#orders"
                     });
-                  }
-                  app.mySupplyOrdersDrafts(drafts);
-                  app.sync();
+                  },0);
                 }
-
-                setTimeout(function(){
-                  var filter_site_id;
-                  try{
-                    filter_site_id = app.siteFilter();
-                    filter_site_id = (filter_site_id === ("" === String(self.activeOrder.upd.site_id) ? "diamond_office" : String(self.activeOrder.upd.site_id)) ) ? filter_site_id : "";
-                  } catch (er){
-                    filter_site_id = "";
-                  }
-                  app.siteFilter( filter_site_id ) ;
-                  self.activeOrder = {};
-                  app.activeOrder(false);
-                  app.activeTab("drafts");
-                  app.route({
-                    toPage: window.location.href + "#orders"
-                  });
-                },0);
-              }
-              $manage_area.clicked = false;
-            },
-            "Supply Order",
-            ['Cancel','Save']
-        );
+                $manage_area.clicked = false;
+              },
+              "Supply Order",
+              ['Cancel','Save']
+          );
+        }
       }
     });
 
@@ -692,16 +707,38 @@ var OrderView = function(order_id){
       var $manage_area = $(e.currentTarget).parents(".manage_area")[0];
       if (!$manage_area.clicked) {
         $manage_area.clicked = true;
-        setTimeout(function(){
-          app.route({
-            toPage: window.location.href + "#order-overall:active_order"
-          });
-          $manage_area.clicked = false;
-        },0);
+
+        if (self.activeOrder.upd.special_instructions
+            && self.activeOrder.upd.special_instructions.length > self.comment_maxlength){
+          navigator.notification.alert(
+              "Comment is too large. Please correct it.",         // message
+              function(){                       //callback
+                $manage_area.clicked = false;
+              },
+              "Order processing",          // title
+              'Ok'                              // buttonName
+          );
+        } else {
+          setTimeout(function(){
+            app.route({
+              toPage: window.location.href + "#order-overall:active_order"
+            });
+            $manage_area.clicked = false;
+          },0);
+        }
       }
     });
 
     this.el.on('input propertychange', '#special_instructions', function(e){
+      e.preventDefault();
+
+      $(".characterscountdown>strong", $(e.delegateTarget)).html($(e.currentTarget).val().length);
+      if ($(e.currentTarget).val().length > self.comment_maxlength){
+        $(".characterscountdown>strong", $(e.delegateTarget)).addClass("error");
+      } else {
+        $(".characterscountdown>strong", $(e.delegateTarget)).removeClass("error");
+      }
+
       self.activeOrder.upd.special_instructions = $(e.currentTarget).val();
       app.activeOrder(self.activeOrder);
     });
@@ -941,7 +978,9 @@ Handlebars.registerHelper("newOrderStartContent", function(order){
 });
 
 Handlebars.registerHelper("orderContent", function(order_obj){
-  var out = [];
+  var out = [],
+      comment_maxlength = this.comment_maxlength;
+
 
   if (undefined !== order_obj.id && undefined === order_obj.type){
     var order = order_obj.upd,
@@ -1040,6 +1079,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
       if ("log" != order.order_status){
         out.push("<h3>Special Instructions:</h3><div class=\"block-textarea\">");
+        out.push("<div class=\"characterscountdown\"><strong"+(order.special_instructions.length>comment_maxlength ? " class=\"error\"" : "")+">"+ order.special_instructions.length +"</strong> of "+ comment_maxlength +"</div>");
         out.push("<textarea id=\"special_instructions\" name=\"special_instructions\">" + order.special_instructions + "</textarea>");
       } else if ($.trim(order.special_instructions).length > 0) {
         out.push("<div class=\"location_details\">");
