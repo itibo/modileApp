@@ -1807,7 +1807,7 @@ var app = {
     identification_array = identification_array || [];
     var self = this,
       inspect_job_cont = app.getJobInspectionContainer(),
-      ajax_call = function(){
+      ajax_call = function(start_date){
         var token = app.token();
         $.when( app.check_online(), app.get_position() ).done(function(obj1, obj2 ){
           $.ajax({
@@ -1817,7 +1817,9 @@ var app = {
               id: token,
               job_id: inspect_job_cont.job_id,
               site_id: inspect_job_cont.site_id,
-              gps: obj2.position
+              gps: (start_date
+                  ? $.extend(true, {}, obj2.position, {0:{time: start_date}})
+                  : obj2.position)
             },
             cache: false,
             crossDomain: true,
@@ -1868,7 +1870,7 @@ var app = {
       );
     } else {
       if (inspect_job_cont.site_id != identification_array[0] || inspect_job_cont.job_id != identification_array[1] ||
-          $.isEmptyObject(app.savedCheckList()))
+          $.isEmptyObject(app.savedCheckList()) || undefined === inspect_job_cont.status)
       {
         inspect_job_cont = app.setJobInspectionContainer(false);
         inspect_job_cont = app.setJobInspectionContainer($.extend( app.getJobInspectionContainer(),
@@ -1876,10 +1878,11 @@ var app = {
             id: identification_array[0],
             site_id: identification_array[0],
             job_id: identification_array[1],
-            started_at: (new Date()).toUTCString()
+            started_at: (new Date()).toUTCString(),
+            status: (void 0)
           }
         ));
-        ajax_call.call(self);
+        ajax_call.call(self, inspect_job_cont.started_at);
       } else {
         success_callback();
       }
@@ -2107,9 +2110,9 @@ var app = {
 
   closeApp: function(){
     navigator.notification.confirm(
-        ((app.getJobInspectionContainer().id != null) ?
-            "One or several completed inspections are saved on the device but not synced with the server yet. Please wait untill data is synced to the server. If you close the app now - the data will be synced when the app is opened next time." :
-            "Do you want to quit?"),
+        (app.getJobInspectionContainer().status
+            ? "One or several completed inspections are saved on the device but not synced with the server yet. Please wait untill data is synced to the server. If you close the app now - the data will be synced when the app is opened next time."
+            : "Do you want to quit?"),
         function(buttonIndex){
           if(2 == buttonIndex){
             app.stopCollectGeoPosition();
@@ -2118,7 +2121,7 @@ var app = {
           }
         },
         "Close",
-        ((app.getJobInspectionContainer().id != null)
+        (app.getJobInspectionContainer().status
             ? ["Wait for sync","Close the app anyway"]
             : ["Cancel","Confirm"])
     );

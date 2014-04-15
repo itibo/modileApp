@@ -28,20 +28,25 @@ var SiteInfoView = function(site_info) {
 };
 
 Handlebars.registerHelper('LocationDetailsContent', function(){
-  var out = "";
+  var out = [];
   if (!$.isEmptyObject(this.common_info)){
-    out = "<div class=\"location_details\">" +
-      "<p><font><strong>"+ (this.common_info.site || "-") +"</strong><br /></font><br /><em>"+ (this.common_info.address || "-") +"</em></p>" +
-      "<p class=\"add_info\">" +
-        "Client: <span>"+(this.common_info.client || "-")+"</span><br />" +
-        "Client group: <span>"+(this.common_info.client_group || "-")+"</span><br />" +
-/*        "Contact Name: <span>"+(this.common_info.contact_name || "-")+"</span><br />" +
-        "Contact Phone: <span>"+(this.common_info.contact_phone || "-")+"</span>"+ ((this.common_info.contact_phone)? ("&nbsp;<a class=\"dial\" href=\"tel:"+this.common_info.contact_phone+"\"><span>Dial</span></a>") : "") +"<br />" +
-        "Email: <span>"+(this.common_info.email || "-")+"</span>" +*/
-      "</p>" +
-    "</div>";
+    out.push("<div class=\"location_details\">");
+    out.push("<p><font><strong>"+ (this.common_info.site || "-") +"</strong><br /></font><br /><em>"+ (this.common_info.address || "-") +"</em></p>");
+    out.push("<p class=\"add_info\">");
+    out.push("Client: <span>"+(this.common_info.client || "-")+"</span><br />");
+    out.push("Client group: <span>"+(this.common_info.client_group || "-")+"</span><br />");
+    out.push("</p>");
+    out.push("</div>");
+
+    if (this.common_info.maintenance_instructions){
+      out.push("<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">")
+      out.push("<li data-role=\"list-divider\" role=\"heading\">Maintenance Instructions</li>");
+      out.push("<li class=\"boxcntone\"><span class=\"address\">"+this.common_info.maintenance_instructions+"</span></li>");
+      out.push("</ul>");
+    }
   }
-  return new Handlebars.SafeString(out);
+
+  return new Handlebars.SafeString(out.join(""));
 });
 
 Handlebars.registerHelper('StaffingPlanContent', function(){
@@ -119,7 +124,17 @@ Handlebars.registerHelper('StaffingPlanContent', function(){
     out.push("<li class=\"boxcntone\"> - </li>");
   }
 
-  out.push("<li role=\"heading\"><div class=\"total hours\"><p>Total weekly hours: <span class=\"price\">"+ (function(all){
+  out.push("<li role=\"heading\">");
+  if (this.common_info.budgeted_hours){
+    out.push("<div style=\"display: inline-block; width: 50%;\" class=\"total hours\"> " +
+        "<p style=\"text-align: left;\">Total budgeted hours: <span class=\"price\">" +
+        this.common_info.budgeted_hours +"h</span></div>");
+    out.push("<div style=\"display: inline-block; width: 50%;\" class=\"total hours\">");
+  } else {
+    out.push("<div class=\"total hours\">");
+  }
+
+  out.push("<p>Total weekly hours: <span class=\"price\">"+ (function(all){
     var out = "",
         hours = Math.floor( all / 60),
         minutes = all % 60;

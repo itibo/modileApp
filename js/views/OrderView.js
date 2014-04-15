@@ -336,7 +336,7 @@ var OrderView = function(order_id){
     var $clicked_elm = $("a[id='"+$(".pop_up>input[type=hidden][id=item_id]").val()+"']");
     try {
       var clicked_category = $("li[data-role=list-divider]", $clicked_elm.closest("ul")).text();
-      var elm_id = $clicked_elm.attr("id").match(/^iid_(.*)$/i)[1];
+      var elm_id = $clicked_elm.attr("id").match(/^iid_(\d+)_(.*)$/i)[1];
       var details_arr = $(".details", $clicked_elm);
 
       self.activeOrder.upd.supply_order_categories[String(clicked_category)][String(elm_id)]['amount'] = new_value > 0 ? new_value : 0;
@@ -1025,7 +1025,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
 
             category_out = category_out + "<li>";
             if ("log" != order.order_status){
-              category_out = category_out + "<a id=\"iid_"+item.item_id+"\" href=\"#editOrderItem:"+item.item_id+"\" class=\"btn-ordet\" data-role=\"button\">";
+              category_out = category_out + "<a id=\"iid_"+item.item_id+"_"+ i +"\" class=\"btn-ordet\" data-role=\"button\">";
             }
             category_out = category_out + "<div class=\"infodetails"+ (amount > 0?'':' one') +"\">" +
               "<div>"+ item.description +"<br/>" +

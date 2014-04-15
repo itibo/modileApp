@@ -38,11 +38,14 @@ var InspectionsLogView = function(data) {
 
 Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
   var items = inspectionsLog.log,
-    out = ["<ul data-role=\"listview\" data-inset=\"true\">",
-        "<li data-role=\"list-divider\" role=\"heading\">Below are the list of inspections completed by you in last two months ("+ items.length +").</li>"];;
+    out = [];
 
   //Below are the list of inspections completed by you in last two months.
   if (items.length>0 || inspectionsLog.unsubmitted){
+
+    out = ["<ul data-role=\"listview\" data-inset=\"true\">",
+          "<li data-role=\"list-divider\" role=\"heading\">Below are the list of inspections completed by you in last two months ("+ items.length +").</li>"];
+
     if (inspectionsLog.unsubmitted){
       out.push("<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + "<br/><span class=\"address\">" + inspectionsLog.unsubmitted.address + "(UNSUBMITTED)</span></div></li>");
     }
