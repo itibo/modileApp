@@ -1353,13 +1353,65 @@ var app = {
         }
       });
 
+      var my_future_orders = $.ajax({
+        type: "POST",
+        url: app.site+'/mobile/my_future_orders.json',
+        data: {
+          id: token,
+          version: app.application_version,
+          gps: pos
+        },
+        cache: false,
+        crossDomain: true,
+        dataType: 'json',
+        timeout: 60000,
+        success: function(data) {
+          if (data.token == token){
+            var tmp = [];
+            $.each(data.supply_orders_list, function(i,v){
+              tmp.push(formatSupplyOrders(v));
+            });
+            app.myFutureOrders(tmp);
+          } else {
+            app.setToken(false);
+            app.route();
+          }
+          return false;
+        },
+        error: function(error){
+          app.errorAlert(error, "Error", function(){
+            if (error.status == 401){
+              navigator.notification.alert(
+                  "Invalid authentication token. You need to log in before continuing.", // message
+                  function(){
+                    app.setToken(false);
+                    app.route();
+                  },    // callback
+                  "Authentication failed",       // title
+                  'Ok'         // buttonName
+              );
+            } else {
+              app.errorAlert(error, "Error", function(){
+                app.route();
+              });
+            }
+          });
+        }
+      });
+
+      $("#overlay").show();
       var chained = my_supply_orders_request.then(function() {
         return my_last_submitted_orders;
+      }).then(function(){
+        return my_future_orders;
       });
 
       chained.done(function() {
         if (typeof success_callback == "function"){
           success_callback();
+        }
+        if ($("#overlay").is(':visible')){
+          $("#overlay").hide();
         }
       });
     };
