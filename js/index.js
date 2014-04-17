@@ -707,7 +707,10 @@ var app = {
                     });
                   } else {
                     // проверяем на наличие новых изменений в ордерах, которые уже синхронизизированы ранее
+                    var founded_flag;
                     $.each(remote_items, function(ir,remote_order){
+                      result_items = $.merge([], result_items);
+                      founded_flag = false;
                       $.each(local_items, function(il,local_order){
                         if ($.inArray(String(remote_order.supply_order_id),
                             $.merge([String(local_order.supply_order_id)],
@@ -733,9 +736,15 @@ var app = {
                           } else {
                             result_items.push($.extend(true, {}, formatSupplyOrders(remote_order)));
                           }
+                          founded_flag = true;
                           return false;
                         }
                       });
+                      if (!founded_flag && $.grep(result_items, function(saved, ind){
+                        return String(saved.supply_order_id) === String(remote_order.supply_order_id)
+                      }).length < 1){
+                        result_items.push($.extend(true, {}, formatSupplyOrders(remote_order)));
+                      }
                     });
                   }
                 } catch (er){
@@ -748,11 +757,13 @@ var app = {
                 // проверяем ПОЯВИЛИСЬ ЛИ НОВЫЕ ордера/фьючеры на девайсе пока идет процесс синхронизации до их перезаписи
                 $.each(local_items, function(ir, local_order){
                   var resulted_orders = $.merge([], result_items);
-                  if ( $.grep(resulted_orders, function(resulted, ind){
-                    return ( /^new_on_device_/.test(local_order.supply_order_id)
-                        && undefined === mutations[local_order.supply_order_id]
-                        && String(resulted.supply_order_id) == String(local_order.supply_order_id) )
-                  }).length > 0 )
+
+                  if ( /^new_on_device_/.test(local_order.supply_order_id)
+                      && undefined === mutations[local_order.supply_order_id]
+                      && $.grep(resulted_orders, function(resulted, k){
+                        return String(resulted.supply_order_id) === String(local_order.supply_order_id)
+                      }).length < 1 )
+
                   {
 //                    alert("прошел проверку этот ордер:" + JSON.stringify(local_order));
                     result_items.push(local_order);
@@ -1099,7 +1110,8 @@ var app = {
         type: "POST",
         url: app.site+'/mobile/inspections_log.json',
         data: {
-          id: token
+          id: token,
+          version: app.application_version
         },
         cache: false,
         crossDomain: true,
@@ -1974,6 +1986,7 @@ var app = {
           url: app.site+'/mobile/update_checklist.json',
           data: {
             id: token,
+            version: app.application_version,
             job_id: job_fields.job_id,
             site_id: job_fields.site_id,
             started_at: submit_data.started_at,
@@ -1982,7 +1995,6 @@ var app = {
             checklist_id: submit_data.checklist_id ? submit_data.checklist_id : "",
             checklist_results: submit_data.container ? submit_data.container : [],
             comment: submit_data.comment
-
           },
           cache: false,
           crossDomain: true,
