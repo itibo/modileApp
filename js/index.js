@@ -3,8 +3,8 @@ var app = {
   // Application Constructor
   initialize: function() {
     // config
-    this.site = 'http://209.123.209.169:3000';  // ALPHA
-//    this.site = 'http://209.123.209.154/';      // BETA
+//    this.site = 'http://209.123.209.169:3000';  // ALPHA
+    this.site = 'http://209.123.209.154/';      // BETA
     this.watchID = null;
     this.coordinates = [];
 
@@ -21,7 +21,7 @@ var app = {
     this.new_version = {};
     this.update_notification_rised = false;
     this.application_version = "0.4.7";
-    this.application_build = "ALPHA";
+    this.application_build = "BETA";
 
     // allow to submit inspection
     this.allowToSubmit = true;
@@ -2437,7 +2437,7 @@ var app = {
               (app.new_version.message
                   ? app.new_version.message
                   : ("A new version of the application ("+ app.new_version.version +
-                      ") is avaliable for download. You could either upgrade it now or skip and do this later.")), // message
+                      ") is available for download. You could either upgrade it now or skip and do this later.")), // message
               function(buttonIndex){
                 if(2 == buttonIndex){
                   var download_url = (app.new_version.url
