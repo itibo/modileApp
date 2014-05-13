@@ -5,6 +5,7 @@ var SiteInfoView = function(site_info) {
 
   this.render = function() {
     var context = $.extend(true, {}, {common_info: this.common_info, staffing_plan: this.staffing_plan});
+    context.userInfo = app.getUserInfo();
     context.version = app.application_build + " " + app.application_version;
     context.back_to_page = this.back_to_page;
     this.el.html(SiteInfoView.template(context));
@@ -41,7 +42,8 @@ Handlebars.registerHelper('LocationDetailsContent', function(){
     if (this.common_info.maintenance_instructions){
       out.push("<ul data-role=\"listview\" data-inset=\"true\" class=\"week\">")
       out.push("<li data-role=\"list-divider\" role=\"heading\">Maintenance Instructions</li>");
-      out.push("<li class=\"boxcntone\"><span class=\"address\">"+this.common_info.maintenance_instructions+"</span></li>");
+      out.push("<li class=\"boxcntone\"><span class=\"address\">"+
+          $.trim(this.common_info.maintenance_instructions).replace(/\n/gi, "<br />")+"</span></li>");
       out.push("</ul>");
     }
   }

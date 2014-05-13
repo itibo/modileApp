@@ -37,6 +37,13 @@ var InspectionView = function(data) {
       }
       return data;
     })(self.data);
+
+    $.extend(job_inspect_container, {
+      address: site.address,
+      site: site.site
+    });
+    app.setJobInspectionContainer(job_inspect_container);
+
     context = $.extend(context, {
       controls: {
         checkList: populated_data,
@@ -84,14 +91,10 @@ var InspectionView = function(data) {
                 }));
 
                 var get_position_arr = function(pos){
-                  return [{
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude,
-                    acc: pos.coords.accuracy,
-                    time: (new Date(pos.timestamp)).toUTCString(),
+                  return [app.prepare_position(pos, {
                     job_id: submit_data.job_id,
                     site_id: submit_data.site_id
-                  }];
+                  })];
                 };
 
                 var position_callback = function(arg){
@@ -107,10 +110,10 @@ var InspectionView = function(data) {
                 };
 
                 setTimeout(function(){
-                  navigator.geolocation.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
+                  app.getCurrentPosition(position_callback, position_callback, {timeout:30000, maximumAge: 0, enableHighAccuracy: false});
                   callback();
                   app.route({
-                    toPage: window.location.href + "#welcome"
+                    toPage: window.location.href + "#inspectionslog"
                   });
                 }, 0);
               } else {

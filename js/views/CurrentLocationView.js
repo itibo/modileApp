@@ -38,20 +38,16 @@ var CurrentLocationView = function(){
     this.el = $('<div class="curr_loc" />');
 
     try {
-      if (navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(
-            function(position){
-              self.updateGPSSection(position).updateMapSection(position);
-            },
-            function(error){
-              self.currentLocation = {};
-              self.updateGPSSection({}).updateMapSection({});
-            },
-            { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
-        );
-      } else {
-        self.currentLocation = {};
-      }
+      app.getCurrentPosition(
+          function(position){
+            self.updateGPSSection(position).updateMapSection(position);
+          },
+          function(error){
+            self.currentLocation = {};
+            self.updateGPSSection({}).updateMapSection({});
+          },
+          { maximumAge: 0, timeout: 60000, enableHighAccuracy: false }
+      );
     } catch(er){
       self.currentLocation = {};
     }

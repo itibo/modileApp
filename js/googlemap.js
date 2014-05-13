@@ -1,7 +1,7 @@
 function GoogleMap(){
 
   this.initialize = function(position){
-    var position = position || {};
+    position = position || {};
     var map = showMap(position);
   }
 

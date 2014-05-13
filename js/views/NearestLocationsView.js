@@ -2,7 +2,7 @@ var NearestLocationsView = function() {
 
   this.render = function() {
     var context = {};
-
+    context.userInfo = app.getUserInfo();
     context.nearest_loc_filter = (function(){
       return app.nearestLocationsFilter() || "by_dist";
     })();
@@ -50,8 +50,7 @@ var NearestLocationsView = function() {
                 {
                   distance: ($.isEmptyObject(app.lastLocation)
                       ? null
-                      : (parseFloat(get_dist(s.circle_latitude, s.circle_longitude, app.lastLocation.lat, app.lastLocation.lng))
-                        - (parseFloat(s.circle_radius))))
+                      : (parseFloat(get_dist(s.circle_latitude, s.circle_longitude, app.lastLocation.lat, app.lastLocation.lng))))
                 }
             );
 
@@ -143,7 +142,7 @@ Handlebars.registerHelper('NearestLocationsContent', function(){
       out = out + "<li class=\"inspectable\">" +
         "<div class=\"points\">" +
           "<div class=\"box_rightcnt\" style=\"padding: 0; width: auto;\">" +
-            ( s.distance > 0
+            ( s.distance > 0.01
                 ? (s.distance.toMiles() + "mi")
                 : "you are here" ) +
           "</div>" +

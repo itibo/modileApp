@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.azati.dcsmobile_alpha" version="0.4.7" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
-<!--<widget id="com.azati.dcsmobilen" version="0.4.7" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">-->
+<widget id="com.azati.dcsmobile_alpha" version="0.4.9" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
+<!--<widget id="com.azati.dcsmobilen" version="0.4.9" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">-->
   <name>DCS - QA Inspections Alpha</name>
   <!--<name>DCS - QA Inspections Beta</name>-->
   <description>
@@ -22,18 +22,25 @@
   <gap:plugin name="org.apache.cordova.geolocation" />
   <gap:plugin name="org.apache.cordova.network-information"/>
   <gap:plugin name="org.apache.cordova.vibration"/>
+  <gap:plugin name="org.apache.cordova.splashscreen"/>
+  
 
   <!-- alpha icons-->
   <icon src="res/alpha_icon/android/icon-36-ldpi.png" width="36" height="36" gap:platform="android" gap:density="ldpi"/>
   <icon src="res/alpha_icon/android/icon-48-mdpi.png" width="48" height="48" gap:platform="android" gap:density="mdpi"/>
   <icon src="res/alpha_icon/android/icon-72-hdpi.png" width="72" height="72" gap:platform="android" gap:density="hdpi"/>
   <icon src="res/alpha_icon/android/icon-96-xhdpi.png" width="96" height="96" gap:platform="android" gap:density="xhdpi"/>
-  
+
   <!-- production icons -->
   <!--<icon src="res/icon/android/icon-36-ldpi.png" width="36" height="36" gap:platform="android" gap:density="ldpi"/>-->
   <!--<icon src="res/icon/android/icon-48-mdpi.png" width="48" height="48" gap:platform="android" gap:density="mdpi"/>-->
   <!--<icon src="res/icon/android/icon-72-hdpi.png" width="72" height="72" gap:platform="android" gap:density="hdpi"/>-->
   <!--<icon src="res/icon/android/icon-96-xhdpi.png" width="96" height="96" gap:platform="android" gap:density="xhdpi"/>-->
+
+  <gap:splash src="splash/android/screen-hdpi-portrait.png"  gap:platform="android" gap:density="hdpi"  />
+  <gap:splash src="splash/android/screen-mdpi-portrait.png"  gap:platform="android" gap:density="mdpi"  />
+  <gap:splash src="splash/android/screen-ldpi-portrait.png"  gap:platform="android" gap:density="ldpi"  />
+  <gap:splash src="splash/android/screen-xhdpi-portrait.png" gap:platform="android" gap:density="xhdpi" />
 
   <access origin="*" />
 </widget>

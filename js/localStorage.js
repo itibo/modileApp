@@ -374,6 +374,23 @@ $.extend(app, {
 
   getPushID: function(){
     return window.localStorage.getItem("push_id") ? window.localStorage.getItem("push_id") : false;
+  },
+
+  inspectionsLog: function(data){
+    var out = [];
+    if (typeof data != "undefined"){
+      data = data || false;
+      if (data){
+        window.localStorage.setItem("inspectionsLog", JSON.stringify(data));
+        out = data;
+      } else {
+        window.localStorage.removeItem("inspectionsLog");
+        out = [];
+      }
+    } else {
+      out = window.localStorage.getItem("inspectionsLog") ? JSON.parse(window.localStorage.getItem("inspectionsLog")) : [];
+    }
+    return out;
   }
 
 });

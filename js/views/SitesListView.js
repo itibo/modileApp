@@ -81,11 +81,11 @@ var SitesListView = function(data) {
                 && filters.client == st.client && filters.client_group == st.client_group )
             )
       });
-
+      var out;
       if (sites_arr.length>0){
-        var out = [];
+        out = ["<li data-role=\"list-divider\" role=\"heading\">Sites ("+ sites_arr.length +")</li>"];
         for(var i=0, l=sites_arr.length; i<l; i++) {
-          out[i] = "<li class=\"inspectable\">" +
+          out[i+1] = "<li class=\"inspectable\">" +
             "<div class=\"points\">" +
               sites_arr[i].site +"<br />" +
               "<span class=\"address\">"+ sites_arr[i].address +"</span><br />" +
@@ -106,8 +106,9 @@ var SitesListView = function(data) {
           $("ul#sites_content").trigger("create").listview('refresh');
         });
       } else {
-        $("ul#sites_content").hide(1, function(){
-          $("ul#sites_content").html("&nbsp;");
+        out = ["<li data-role=\"list-divider\" role=\"heading\">Sites (0)</li>", "<li class=\"inspectable\"> - </li>"];
+        $("ul#sites_content").html(out.join("")).show(1, function(){
+          $("ul#sites_content").trigger("create").listview('refresh');
         });
       }
     });
@@ -121,7 +122,7 @@ var SitesListView = function(data) {
   };
   this.initialize();
 
-}
+};
 
 Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
   var out = [],
@@ -187,8 +188,9 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
   }
   out.push("</select>");
 
+  out.push("<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\" id=\"sites_content\">");
   if (sites_to_display.length > 0) {
-    out.push("<ul data-role=\"listview\" data-inset=\"true\" class=\"withbrd\" id=\"sites_content\">");
+    out.push("<li data-role=\"list-divider\" role=\"heading\">Sites ("+ sites_to_display.length +")</li>");
     $.each(sites_to_display, function(i,v){
       out.push("<li class=\"inspectable\">" +
         "<div class=\"points\">" +
@@ -206,6 +208,7 @@ Handlebars.registerHelper('ListOfAvailiableSitesContent', function() {
      "</li>");
     });
   } else {
+    out.push("<li data-role=\"list-divider\" role=\"heading\">Sites (0)</li>");
     out.push("<li class=\"inspectable\"> - </li>");
   }
   out.push("</ul>");

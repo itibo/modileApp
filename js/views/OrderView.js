@@ -1084,7 +1084,7 @@ Handlebars.registerHelper("orderContent", function(order_obj){
       } else if ($.trim(order.special_instructions).length > 0) {
         out.push("<div class=\"location_details\">");
         out.push("<p><font>Special Instructions:</font></p>");
-        out.push("<p>" + order.special_instructions + "</p>");
+        out.push("<p>" + $.trim(order.special_instructions).replace(/\n/gi, "<br />") + "</p>");
         out.push("</div>");
       }
 

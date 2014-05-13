@@ -73,7 +73,6 @@ var OrderOverallView = function(order_id){
       return ret_obj;
     })();
 
-
     context.backUrl = "<a href=\""+ (("active_order" == self.order_id && !$.isEmptyObject(self.activeOrder))?
         ('#order:' + self.activeOrder.upd.supply_order_id) : '#orders') +"\" class=\"ui-btn-right\" data-role=\"button\">Back</a>";
 
@@ -748,7 +747,7 @@ Handlebars.registerHelper("OrderOverallContent", function(order_obj){
     if ($.trim(order.special_instructions).length > 0) {
       out.push("<div class=\"location_details\">");
       out.push("<p><font>Special Instructions:</font></p>");
-      out.push("<p>" + order.special_instructions + "</p>");
+      out.push("<p>" + $.trim(order.special_instructions).replace(/\n/gi, "<br />") + "</p>");
       out.push("</div>");
     }
     out.push("</div>");

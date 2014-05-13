@@ -4,14 +4,14 @@ var InspectionsLogView = function(data) {
   this.render = function() {
     var self = this;
     var unsubmitted = (function(){
-      var result = null;
-      var saved_inspection = app.getJobInspectionContainer();
-      if ("submitting" == saved_inspection.status){
-        $.each(app.sitesToInspect(), function(i,v){
-          if (saved_inspection.id == v.id){
-            result = v;
-            return false;
-          }
+      var result = {},
+          saved_inspection = app.getJobInspectionContainer();
+      if ( $.inArray(saved_inspection.status, ["pre_submitting", "submitting"])>-1 ){
+        $.extend(result, {
+          address: saved_inspection.address,
+          completed_time: saved_inspection.completed_at,
+          initiated_time: saved_inspection.started_at,
+          site: saved_inspection.site
         });
       }
       return result;
@@ -38,16 +38,28 @@ var InspectionsLogView = function(data) {
 
 Handlebars.registerHelper('ListInspectionsLog', function(inspectionsLog) {
   var items = inspectionsLog.log,
-    out = [];
+    out = [],
+      items_count = items.length + ($.isEmptyObject(inspectionsLog.unsubmitted) ? 0 : 1);
 
   //Below are the list of inspections completed by you in last two months.
-  if (items.length>0 || inspectionsLog.unsubmitted){
+  if (items.length>0 || !$.isEmptyObject(inspectionsLog.unsubmitted)){
 
     out = ["<ul data-role=\"listview\" data-inset=\"true\">",
-          "<li data-role=\"list-divider\" role=\"heading\">Below are the list of inspections completed by you in last two months ("+ items.length +").</li>"];
+          "<li data-role=\"list-divider\" role=\"heading\">Below are the list of inspections completed by you in last two months ("+ items_count +").</li>"];
 
-    if (inspectionsLog.unsubmitted){
-      out.push("<li><div class=\"left_points\">" + inspectionsLog.unsubmitted.site  + "<br/><span class=\"address\">" + inspectionsLog.unsubmitted.address + "(UNSUBMITTED)</span></div></li>");
+    if (!$.isEmptyObject(inspectionsLog.unsubmitted)){
+      out.push("<li>" +
+        "<table class=\"left_points\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>" +
+          "<td class=\"points_time\">" +
+            "<div class=\"points\">" + inspectionsLog.unsubmitted.site + "<br/><span></span><span class=\"address\">" + inspectionsLog.unsubmitted.address + "</span></div>" +
+          "</td>" +
+          "<td class=\"right_points\">" +
+            "<div class=\"box_points\">" +
+              "<div style=\"color: red;\">waiting for sync</div>" +
+            "</div>" +
+          "</td>" +
+        "</tr></table>" +
+      "</li>");
     }
 
     for(var i=0, l=items.length; i<l; i++) {

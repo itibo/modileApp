@@ -1,8 +1,8 @@
 var LoginView = function() {
 
   this.login = function(callback){
-    var email = $("#email").val();
-    var password = $("#password").val();
+    var email = $.trim($("#email").val());
+    var password = $.trim($("#password").val());
     app.getLoginToken(email, password, callback);
   };
 
