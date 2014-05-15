@@ -341,7 +341,7 @@ var app = {
   checkTic: function() {
 //console.log("checkTic invoked!");
 
-app.log.customAppend("checkTic invoked!\r\n");
+//app.log.customAppend("checkTic invoked!\r\n");
 
     app.check();
     app.sync();
@@ -377,9 +377,11 @@ app.log.customAppend("checkTic invoked!\r\n");
   },
 
   collectGeoPositions: function(){
+app.log.customAppend("collectGeoPositions invoked!\r\n");
 //console.log("collectGeoPositions invoke");
 
     app.getCurrentPosition(function(position){
+app.log.customAppend("  getCurrentPosition success!\r\n");
         if (app.token()){
           var job_inspect_container = app.getJobInspectionContainer();
           if ("submitting" == job_inspect_container.status &&
@@ -404,6 +406,7 @@ app.log.customAppend("checkTic invoked!\r\n");
 //console.log("getCurrentPosition success");
 //console.log("   app.coordinates: " + JSON.stringify(app.coordinates));
           if (app.coordinates.length > 0 ) {
+app.log.customAppend("    app.coordinates.length > 0 ("+app.coordinates.length+") \r\n");
             var R = 6371; // km
             var dLat = (position.coords.latitude - app.coordinates[app.coordinates.length - 1].lat).toRad();
             var dLon = (position.coords.longitude - app.coordinates[app.coordinates.length - 1].lng).toRad();
@@ -414,6 +417,7 @@ app.log.customAppend("checkTic invoked!\r\n");
             var d = R * c;
 //console.log("      distance: " + d);
             if (d > 0.03){
+app.log.customAppend("      distance  > 30m, so push to app.coordinates\r\n");
               app.coordinates.push(app.prepare_position(position, {
                 application_status: app.getCheckStatus(),
                 site_id: (job_inspect_container.site_id && !(/submitting$/.test(job_inspect_container.status)))
@@ -423,8 +427,11 @@ app.log.customAppend("checkTic invoked!\r\n");
                     ? (job_inspect_container.job_id)
                     : null
               }) );
+            }else{
+app.log.customAppend("      distance  < 30m, so ignore pushing to app.coordinates\r\n");
             }
           } else {
+app.log.customAppend("    app.coordinates.length == 0, so push to app.coordinates\r\n");
             app.coordinates.push(app.prepare_position(position, {
               application_status: app.getCheckStatus(),
               site_id: (job_inspect_container.site_id && !(/submitting$/.test(job_inspect_container.status)))
@@ -447,6 +454,7 @@ app.log.customAppend("checkTic invoked!\r\n");
           timestamp: position.timestamp
         };
       }, function(error){
+app.log.customAppend("  getCurrentPosition error!\r\n");
         //do nothing
 /*        //TODO[BEGIN]: для проверки нерегулярности прихода чеков
           app.coordinates.push({
@@ -483,6 +491,7 @@ app.log.customAppend("checkTic invoked!\r\n");
 
   startCollectGeoPosition: function(){
     if(app.token()){
+      app.collectGeoPositions();
       app.collect_gps_interval_flag = setTimeout(app.collectGeoPositions, app.collectGeoCoordinatesTimeout);
     }
   },
@@ -491,7 +500,6 @@ app.log.customAppend("checkTic invoked!\r\n");
     clearTimeout(app.collect_gps_interval_flag);
     app.collect_gps_interval_flag = void 0;
   },
-
 
   orders_ready_to_sync: function(){
     return ($.grep($.merge($.merge([], app.mySupplyOrdersDrafts()), app.myFutureOrders()), function(n,i){
@@ -502,7 +510,7 @@ app.log.customAppend("checkTic invoked!\r\n");
   },
 
   sync: function(){
-app.log.customAppend("  sync invoked!\r\n");
+//app.log.customAppend("  sync invoked!\r\n");
 //    alert("sync invoked !" );
     // return if sync process is already
     if (app.sync_process_execution_flag.checkBusy()){
@@ -909,7 +917,7 @@ app.log.customAppend("  sync invoked!\r\n");
 
   //TODO: refactor, refactor and refactor again
   check: function(use_geofence, callback){
-app.log.customAppend("  check invoked!\r\n");
+//app.log.customAppend("  check invoked!\r\n");
 //console.log("check invoked use_geofence: " + use_geofence + "; and app.online_flag: " + app.online_flag());
     use_geofence = use_geofence || false;
     var token = app.token();
@@ -930,7 +938,7 @@ app.log.customAppend("  check invoked!\r\n");
     };
 
     if (token){
-app.log.customAppend("    check app.online_flag: " + app.online_flag() + "\r\n");
+//app.log.customAppend("    check app.online_flag: " + app.online_flag() + "\r\n");
       if (app.online_flag()){
         var ajax_call = function(coord, success, error){
 
@@ -983,22 +991,22 @@ app.log.customAppend("    check app.online_flag: " + app.online_flag() + "\r\n")
             }
           });
         };
-app.log.customAppend("    check use_geofence: " + use_geofence + " \r\n");
+//app.log.customAppend("    check use_geofence: " + use_geofence + " \r\n");
         if ( use_geofence ){
           $.when( app.get_position(), app.check_online() ).done(function(obj1, obj2 ){
-app.log.customAppend("      check ajax_call with currently defined position\r\n");
+//app.log.customAppend("      check ajax_call with currently defined position\r\n");
             ajax_call(obj1.position,
                 function(data){
-app.log.customAppend("        check success ajax_call with currently defined position\r\n");
+//app.log.customAppend("        check success ajax_call with currently defined position\r\n");
                   app.setSitesToInspect(data.jobs);
                 },
                 function(){
-app.log.customAppend("        check error ajax_call with currently defined position\r\n");
+//app.log.customAppend("        check error ajax_call with currently defined position\r\n");
                   app.internet_gps_error();
                 }
             );
           }).fail(function(obj){
-app.log.customAppend("      check fail before ajax_call with error: " + JSON.stringify(obj) +"\r\n");
+//app.log.customAppend("      check fail before ajax_call with error: " + JSON.stringify(obj) +"\r\n");
             app.internet_gps_error(obj);
             if ($("#overlay").is(':visible')){
               $("#overlay").hide();
@@ -1010,15 +1018,15 @@ app.log.customAppend("      check fail before ajax_call with error: " + JSON.str
               inspection_status = app.getCheckStatus();
 
 //console.log("coordinates to pass to server: " + JSON.stringify(coordinates));
-app.log.customAppend("      check coordinates " + JSON.stringify(coordinates) + "\r\n");
+//app.log.customAppend("      check coordinates " + JSON.stringify(coordinates) + "\r\n");
           if (coordinates.length > 0){
             (function(coordinates_arr){
-app.log.customAppend("        check ajax call with coordinates " + JSON.stringify(coordinates) + "\r\n");
+//app.log.customAppend("        check ajax call with coordinates " + JSON.stringify(coordinates) + "\r\n");
               ajax_call(coordinates_arr,
                   function(data){
 //console.log("   app.coordinates before check slice: " + JSON.stringify(app.coordinates));
                     app.coordinates = (app.coordinates).slice(coordinates_arr.length);
-app.log.customAppend("          check ajax call success with coordinates. New cooordinates: " + JSON.stringify(app.coordinates) + "\r\n");
+//app.log.customAppend("          check ajax call success with coordinates. New cooordinates: " + JSON.stringify(app.coordinates) + "\r\n");
 //console.log("   app.coordinates after check slice: " + JSON.stringify(app.coordinates));
                     var savedSitesToInspect = app.sitesToInspect();
                     $.each(data.jobs, function(ind,v){
@@ -1038,16 +1046,16 @@ app.log.customAppend("          check ajax call success with coordinates. New co
                     });
                   },
                   function(error){
-app.log.customAppend("          check ajax call fail with coordinates. New cooordinates: " + JSON.stringify(app.coordinates) + "\r\n");
+//app.log.customAppend("          check ajax call fail with coordinates. New cooordinates: " + JSON.stringify(app.coordinates) + "\r\n");
                   }
               );
             })(coordinates);
           } else if ( 0 == coordinates.length && (1 == inspection_status || "submitting" == insp_cont.status)) {
-app.log.customAppend("        check without coordinates, but (inspection_status =  1: "+ (1 == inspection_status) + " ) || (\"submitting\" == insp_cont.status): " + ("submitting" == insp_cont.status) + "\r\n");
+//app.log.customAppend("        check without coordinates, but (inspection_status =  1: "+ (1 == inspection_status) + " ) || (\"submitting\" == insp_cont.status): " + ("submitting" == insp_cont.status) + "\r\n");
 //          alert("coordinates empty, insp_status: " + inspection_status + " cont_stattus: " + insp_cont.status);
             app.getCurrentPosition(
                 function(position){
-app.log.customAppend("          check without coordinates getCurrentPosition success\r\n");
+//app.log.customAppend("          check without coordinates getCurrentPosition success\r\n");
                   app.lastLocation = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
@@ -1057,10 +1065,10 @@ app.log.customAppend("          check without coordinates getCurrentPosition suc
                   var gps = [app.prepare_position(position, {
                     application_status: inspection_status
                   })];
-app.log.customAppend("            check without coordinates getCurrentPosition success ajax call \r\n");
+//app.log.customAppend("            check without coordinates getCurrentPosition success ajax call \r\n");
                   ajax_call(gps,
                       function(data){
-app.log.customAppend("              check without coordinates getCurrentPosition success ajax call success\r\n");
+//app.log.customAppend("              check without coordinates getCurrentPosition success ajax call success\r\n");
                         var savedSitesToInspect = app.sitesToInspect();
                         $.each(data.jobs, function(ind,v){
                           var new_site = true;
@@ -1079,24 +1087,24 @@ app.log.customAppend("              check without coordinates getCurrentPosition
                         });
                       },
                       function(){
-app.log.customAppend("              check without coordinates getCurrentPosition success ajax call error\r\n");
+//app.log.customAppend("              check without coordinates getCurrentPosition success ajax call error\r\n");
                       }
                   );
                 },
                 function(error){
                   // do nothing
-app.log.customAppend("            check without coordinates getCurrentPosition error\r\n");
+//app.log.customAppend("            check without coordinates getCurrentPosition error\r\n");
                 },
                 {timeout:30000, maximumAge: 0, enableHighAccuracy: false}
             );
           }
         }
       } else if (typeof callback == "function" && !app.online_flag()) {
-app.log.customAppend("    typeof callback == \"function\" && !app.online_flag(): true\r\n");
+//app.log.customAppend("    typeof callback == \"function\" && !app.online_flag(): true\r\n");
         app.internet_gps_error();
       }
     } else {
-app.log.customAppend("  wrong token\r\n");
+//app.log.customAppend("  wrong token\r\n");
       app.route();
     }
   },
@@ -2341,6 +2349,7 @@ app.log.customAppend("  wrong token\r\n");
           if(2 == buttonIndex){
             app.stopCollectGeoPosition();
             app.stopServerCommunication();
+
             // TODO: !!!!!!!!!!!!!!!! временное решение что бы не жрало батарино !!!!!!!!!!!!!!!!
             app.stop_azati_geo_service();
             navigator.app.exitApp();
